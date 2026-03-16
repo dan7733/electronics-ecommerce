@@ -1,0 +1,43 @@
+.updatestore-inforinput {
+    background: white;
+    padding: 20px;
+    box-shadow: none !important;
+    border: none; 
+    border-radius: 8px;
+}
+
+.updatestore-btn-update {
+    background-color: #218282 !important;
+    color: white !important;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.updatestore-btn-update i {
+    color: white !important;
+}
+
+.updatestore-btn-update:hover {
+    background-color: #176d6d !important;
+    color: white !important;
+}
+
+.updatestore-input-group-text {
+    background-color: #218282 !important;
+    border: none;
+    font-weight: bold;
+    padding: 8px;
+}
+.updatestore-inforinput h4 {
+    color: #218282 !important;
+}
+
+.updatestore-inforinput h4 i {
+    color: #218282 !important;
+}
+.updatestore-inforinput label {
+    color: #218282 !important;
+    font-weight: bold;
+}

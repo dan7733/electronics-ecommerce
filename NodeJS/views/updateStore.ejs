@@ -1,0 +1,123 @@
+<div class="container">
+    <div class="updatestore-inforinput card p-4 shadow-sm">
+        <h4 class="mb-3">
+            <i class="fas fa-store text-primary"></i> Cập nhật cửa hàng
+        </h4>
+
+        <!-- Thông báo (nếu có) -->
+        <% if (data && data.message) { %>
+            <div class="alert alert-info">
+                <%= data.message %>
+            </div>
+        <% } %>
+
+        <form action="/updatestore" method="POST" onsubmit="getCoordinates(event)">
+            <!-- Tên cửa hàng -->
+            <input type="hidden" name="store_id" value="<%= data.store.store_id %>">
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-tag"></i> Tên cửa hàng</label>
+                <input type="text" class="form-control" name="name" value="<%= data.store.name %>" placeholder="Nhập tên cửa hàng" required>
+            </div>
+
+            <!-- Địa chỉ -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-map-marker-alt"></i> Địa chỉ</label>
+                <input type="text" class="form-control" name="address" id="address" value="<%= data.store.address %>" placeholder="Nhập địa chỉ cửa hàng" required>
+            </div>
+
+            <!-- Vĩ độ (Tự động cập nhật) -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-map"></i> Vĩ độ</label>
+                <input type="text" class="form-control" name="latitude" id="latitude" value="<%= data.store.latitude %>" placeholder="Đang lấy vĩ độ..." readonly required>
+            </div>
+
+            <!-- Kinh độ (Tự động cập nhật) -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-map"></i> Kinh độ</label>
+                <input type="text" class="form-control" name="longitude" id="longitude" value="<%= data.store.longitude %>" placeholder="Đang lấy kinh độ..." readonly required>
+            </div>
+
+            <!-- Hiển thị bản đồ -->
+            <div id="map" class="mb-3" style="height: 400px; border-radius: 10px;"></div>
+
+            <!-- Giờ mở cửa -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-clock"></i> Giờ mở cửa</label>
+                <input type="text" class="form-control" name="open_hours" value="<%= data.store.open_hours %>" placeholder="Nhập giờ mở cửa (VD: 8:00)" required>
+            </div>
+
+            <!-- Giờ đóng cửa -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-clock"></i> Giờ đóng cửa</label>
+                <input type="text" class="form-control" name="close_hour" value="<%= data.store.close_hour %>" placeholder="Nhập giờ đóng cửa (VD: 22:00)" required>
+            </div>
+
+            <!-- Nút cập nhật -->
+            <button type="submit" class="updatestore-btn-update">
+                <i class="fas fa-check"></i> Cập nhật cửa hàng
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+    // Khởi tạo bản đồ Leaflet
+    var map = L.map('map').setView([<%= data.store.latitude %>, <%= data.store.longitude %>], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var marker;
+
+    // Hiển thị marker mặc định nếu có tọa độ
+    if (<%= data.store.latitude %> && <%= data.store.longitude %>) {
+        marker = L.marker([<%= data.store.latitude %>, <%= data.store.longitude %>]).addTo(map)
+            .bindPopup("Vị trí cửa hàng").openPopup();
+    }
+
+    function getCoordinates() {
+        var address = document.getElementById("address").value;
+        if (!address) {
+            alert("Vui lòng nhập địa chỉ");
+            return;
+        }
+
+        // Gửi request đến Nominatim để lấy tọa độ từ địa chỉ
+        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    var lat = parseFloat(data[0].lat);
+                    var lon = parseFloat(data[0].lon);
+
+                    // Cập nhật tọa độ vào input
+                    document.getElementById("latitude").value = lat;
+                    document.getElementById("longitude").value = lon;
+
+                    // Xóa marker cũ nếu có
+                    if (marker) {
+                        map.removeLayer(marker);
+                    }
+                    
+                    // Thêm marker mới
+                    marker = L.marker([lat, lon]).addTo(map)
+                        .bindPopup("Vị trí mới của cửa hàng").openPopup();
+
+                    // Di chuyển bản đồ đến vị trí mới
+                    map.setView([lat, lon], 14);
+                } else {
+                    alert("Không tìm thấy tọa độ cho địa chỉ này.");
+                }
+            })
+            .catch(error => console.error("Lỗi khi lấy tọa độ:", error));
+    }
+
+    // Khi người dùng nhập địa chỉ mới, cập nhật tọa độ và bản đồ
+    document.getElementById("address").addEventListener("change", getCoordinates);
+</script>
+

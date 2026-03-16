@@ -1,0 +1,59 @@
+.addvoucher-inforinput {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.addvoucher-inforinput > h4 {
+    color: #218282;
+}
+
+.addvoucher-inforinput h4 i {
+    color: #218282 !important;
+}
+
+.addvoucher-btn-add {
+    background-color: #218282 !important;
+    color: white !important;
+    border: none;
+}
+
+.addvoucher-btn-add i {
+    color: white !important;
+}
+
+.addvoucher-btn-add:hover {
+    background-color: #176d6d !important;
+}
+
+.addvoucher-file-name {
+    margin-top: 10px;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.addvoucher-upload-box {
+    border: 2px dashed #218282;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    background: white;
+    position: relative;
+}
+
+.addvoucher-upload-box * {
+    color: #218282 !important;
+}
+
+.addvoucher-upload-box:hover {
+    background: #218282;
+}
+
+.addvoucher-upload-box:hover * {
+    color: white !important;
+}
+
+.addvoucher-upload-box input {
+    display: none;
+}

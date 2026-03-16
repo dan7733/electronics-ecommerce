@@ -1,0 +1,224 @@
+<div class="container listreviews-container">
+    <% if (data.message) { %>
+      <div class="alert alert-info">
+        <%= data.message %>
+      </div>
+    <% } %>
+    <h4 class="mb-3 listreviews-title">Danh sách Đánh giá</h4>
+  
+    <!-- Filter Section -->
+    <div class="mb-3">
+      <!-- Search Inputs Row -->
+      <div class="row g-3 mb-2">
+        <div class="col-md-6">
+          <input type="text" id="review_searchInput" class="form-control listreviews-searchinput"
+            placeholder="🔍 Tìm kiếm theo bình luận hoặc người dùng..." value="<%= data.search %>">
+        </div>
+        <div class="col-md-6 position-relative">
+          <input type="text" id="product_searchInput" class="form-control listreviews-searchinput"
+            placeholder="🔍 Tìm kiếm sản phẩm..." value="<%= data.selectedProductName || '' %>">
+          <input type="hidden" id="product_id" name="product_id" value="<%= data.selectedProduct || '' %>">
+          <ul id="product_suggestions" class="list-group position-absolute w-100" style="z-index: 1000; display: none;"></ul>
+        </div>
+      </div>
+      <!-- Dropdown Filters Row -->
+      <div class="d-flex justify-content-end gap-2">
+        <!-- Rating Filter -->
+        <div class="dropdown listreviews-filter-container">
+          <button class="btn btn-secondary dropdown-toggle listreviews-filter" type="button" id="ratingDropdown"
+            data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-star"></i> Số sao
+          </button>
+          <ul class="dropdown-menu listreviews-option">
+            <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&rating=">Tất cả</a></li>
+            <% for (let i = 1; i <= 5; i++) { %>
+              <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&rating=<%= i %>&product=<%= data.selectedProduct %>&sort=<%= data.sort %>">
+                <%= i %> sao
+              </a></li>
+            <% } %>
+          </ul>
+        </div>
+        <!-- Sort Options -->
+        <div class="dropdown listreviews-filter-container">
+          <button class="btn btn-secondary dropdown-toggle listreviews-filter" type="button" id="sortDropdown"
+            data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-filter"></i> Sắp xếp
+          </button>
+          <ul class="dropdown-menu listreviews-option">
+            <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&product=<%= data.selectedProduct %>&rating=<%= data.selectedRating %>">Mặc định</a></li>
+            <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&product=<%= data.selectedProduct %>&rating=<%= data.selectedRating %>&sort=rating_asc">Sao tăng dần</a></li>
+            <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&product=<%= data.selectedProduct %>&rating=<%= data.selectedRating %>&sort=rating_desc">Sao giảm dần</a></li>
+            <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&product=<%= data.selectedProduct %>&rating=<%= data.selectedRating %>&sort=created_at_asc">Ngày tạo tăng dần</a></li>
+            <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&product=<%= data.selectedProduct %>&rating=<%= data.selectedRating %>&sort=created_at_desc">Ngày tạo giảm dần</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  
+    <div class="table-responsive rounded p-2">
+      <table class="table table-bordered listreviews-table">
+        <thead class="table-light">
+          <tr>
+            <th>STT</th>
+            <th>ID</th>
+            <th>Người dùng</th>
+            <th>Sản phẩm</th>
+            <th>Đơn hàng</th>
+            <th>Số sao</th>
+            <th>Bình luận</th>
+            <th>Ngày tạo</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (data.rows && data.rows.length > 0) { %>
+            <% data.rows.forEach((review, index) => { %>
+              <tr>
+                <td><%= (data.currentPage - 1) * 5 + index + 1 %></td>
+                <td><%= review.review_id %></td>
+                <td><%= review.User ? review.User.fullname || review.User.username : 'N/A' %></td>
+                <td><%= review.Product ? review.Product.name : 'N/A' %></td>
+                <td><%= review.Order ? review.Order.order_id : 'N/A' %></td>
+                <td><%= review.rating %></td>
+                <td><%= review.comment || 'Không có' %></td>
+                <td><%= new Date(review.created_at).toLocaleDateString('vi-VN') %></td>
+                <td>
+                  <form action="/deletereview" method="POST" style="display:inline-block;"
+                    onsubmit="return confirm('Bạn có chắc chắn muốn xóa đánh giá này không?');">
+                    <input type="hidden" name="review_id" value="<%= review.review_id %>" />
+                    <button class="btn btn-sm btn-danger" type="submit">
+                      <i class="bi bi-trash"></i> Xóa
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr><td colspan="9">Không có đánh giá nào được tìm thấy.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  
+    <nav>
+      <ul class="pagination justify-content-center listreviews-pagination">
+        <li class="page-item <%= data.currentPage === 1 ? 'disabled' : '' %>">
+          <a class="page-link" href="?page=<%= data.currentPage - 1 %>&search=<%= data.search %>&product=<%= data.selectedProduct %>&rating=<%= data.selectedRating %>&sort=<%= data.sort %>">«</a>
+        </li>
+        <li class="page-item <%= data.currentPage === 1 ? 'active' : '' %>">
+          <a class="page-link" href="?page=1&search=<%= data.search %>&product=<%= data.selectedProduct %>&rating=<%= data.selectedRating %>&sort=<%= data.sort %>">1</a>
+        </li>
+        <% if (data.currentPage > 4) { %>
+          <li class="page-item disabled"><span class="page-link">...</span></li>
+        <% } %>
+        <% for (let i = Math.max(2, data.currentPage - 2); i <= Math.min(data.totalPages - 1, data.currentPage + 2); i++) { %>
+          <li class="page-item <%= data.currentPage === i ? 'active' : '' %>">
+            <a class="page-link" href="?page=<%= i %>&search=<%= data.search %>&product=<%= data.selectedProduct %>&rating=<%= data.selectedRating %>&sort=<%= data.sort %>"><%= i %></a>
+          </li>
+        <% } %>
+        <% if (data.currentPage < data.totalPages - 3) { %>
+          <li class="page-item disabled"><span class="page-link">...</span></li>
+        <% } %>
+        <% if (data.totalPages > 1) { %>
+          <li class="page-item <%= data.currentPage === data.totalPages ? 'active' : '' %>">
+            <a class="page-link" href="?page=<%= data.totalPages %>&search=<%= data.search %>&product=<%= data.selectedProduct %>&rating=<%= data.selectedRating %>&sort=<%= data.sort %>"><%= data.totalPages %></a>
+          </li>
+        <% } %>
+        <li class="page-item <%= data.currentPage === data.totalPages ? 'disabled' : '' %>">
+          <a class="page-link" href="?page=<%= data.currentPage + 1 %>&search=<%= data.search %>&product=<%= data.selectedProduct %>&rating=<%= data.selectedRating %>&sort=<%= data.sort %>">»</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  
+  <script>
+  // Debounce function to limit API calls
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+  
+  // Search by comment or username
+  document.getElementById('review_searchInput').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+      const keyword = e.target.value;
+      const urlParams = new URLSearchParams(window.location.search);
+      urlParams.set('search', keyword);
+      urlParams.set('page', 1);
+      window.location.href = `?${urlParams.toString()}`;
+    }
+  });
+  
+  // Product search with autocomplete
+  const productInput = document.getElementById('product_searchInput');
+  const productIdInput = document.getElementById('product_id');
+  const suggestionsList = document.getElementById('product_suggestions');
+  
+  const fetchProducts = debounce(async function (query) {
+    if (query.length < 2) {
+      suggestionsList.style.display = 'none';
+      return;
+    }
+  
+    try {
+      const response = await fetch(`/searchreviewproducts?query=${encodeURIComponent(query)}`);
+      const result = await response.json();
+      suggestionsList.innerHTML = '';
+  
+      if (result.errCode === 0 && result.data.length > 0) {
+        result.data.forEach(product => {
+          const li = document.createElement('li');
+          li.className = 'list-group-item list-group-item-action';
+          li.textContent = product.name;
+          li.dataset.productId = product.product_id;
+          li.addEventListener('click', () => {
+            productInput.value = product.name;
+            productIdInput.value = product.product_id;
+            suggestionsList.style.display = 'none';
+            // Trigger filter update
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('product', product.product_id);
+            urlParams.set('page', 1);
+            window.location.href = `?${urlParams.toString()}`;
+          });
+          suggestionsList.appendChild(li);
+        });
+        suggestionsList.style.display = 'block';
+      } else {
+        suggestionsList.style.display = 'none';
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      suggestionsList.style.display = 'none';
+    }
+  }, 1000); // 1-second debounce
+  
+  productInput.addEventListener('input', function () {
+    const query = this.value.trim();
+    fetchProducts(query);
+  });
+  
+  // Hide suggestions when clicking outside
+  document.addEventListener('click', function (e) {
+    if (!productInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+      suggestionsList.style.display = 'none';
+    }
+  });
+  
+  // Clear product filter
+  productInput.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter' && !this.value) {
+      const urlParams = new URLSearchParams(window.location.search);
+      urlParams.set('product', '');
+      urlParams.set('page', 1);
+      window.location.href = `?${urlParams.toString()}`;
+    }
+  });
+  </script>

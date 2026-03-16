@@ -1,0 +1,47 @@
+<div class="container">
+    <div class="addcategory-inforinput card p-4 shadow-sm">
+        <h4 class="mb-3">
+            <i class="fas fa-plus-circle text-primary"></i> Thêm loại sản phẩm
+        </h4>
+        <!-- Thông báo (nếu có) -->
+        <% if (data && data.message) { %>
+            <div class="alert alert-info">
+                <%= data.message %>
+            </div>
+        <% } %>
+        <form action="/addcategory" method="POST">
+            <!-- Tên loại sản phẩm -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-tag"></i> Tên loại sản phẩm</label>
+                <input type="text" class="form-control" name="categoryName" placeholder="Nhập tên loại sản phẩm">
+            </div>
+
+            <!-- Icon -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-icons"></i> Icon</label>
+                <div class="input-group">
+                    <span class="addcategory-input-group-text bg-white">
+                        <i id="iconPreview" class="fas fa-question-circle"></i>
+                    </span>
+                    <input type="text" class="form-control" name="icon" placeholder="Nhập class icon FontAwesome (ví dụ: fas fa-laptop)" id="iconInput">
+                </div>
+            </div>
+
+            <!-- Độ nổi bật (nhập số) -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-star"></i> Độ nổi bật</label>
+                <div class="input-group">
+                    <span class="addcategory-input-group-text bg-white">
+                        <i class="fas fa-bolt text-warning"></i>
+                    </span>
+                    <input type="number" class="form-control" name="highlight" placeholder="Nhập độ nổi bật (1-5)" id="highlightInput" min="0">
+                </div>
+            </div>
+
+            <!-- Nút thêm -->
+            <button type="submit" class="btn addcategory-btn-add">
+                <i class="fas fa-check"></i> Thêm loại sản phẩm
+            </button>
+        </form>
+    </div>
+</div>

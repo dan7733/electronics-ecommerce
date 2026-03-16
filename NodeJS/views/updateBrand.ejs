@@ -1,0 +1,108 @@
+<div class="container">
+    <div class="updatebrand-inforinput card p-4 shadow-sm">
+        <h4 class="mb-3">
+            <i class="fas fa-edit text-primary"></i> Cập nhật hãng
+        </h4>
+        <% if (data && data.message) { %>
+            <div class="alert alert-info">
+                <%= data.message %>
+            </div>
+        <% } %>
+        <form action="/updatebrand" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="brand_id" value="<%= data.brand ? data.brand.brand_id : '' %>">
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-tag"></i> Tên hãng</label>
+                <input type="text" class="form-control" name="brandName" value="<%= data.brand ? data.brand.name : '' %>" placeholder="Nhập tên hãng">
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-globe"></i> Quốc Gia Sản Xuất</label>
+                <input type="text" class="form-control" name="brandCountry" value="<%= data.brand ? data.brand.country : '' %>" placeholder="Nhập quốc gia sản xuất">
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-image"></i> Logo</label>
+                <div class="updatebrand-upload-box" id="updatebrand_drop_area">
+                    <% if (data.brand && data.brand.logo) { %>
+                        <input type="hidden" name="oldLogo" value="<%= data.brand.logo %>">
+                    <% } %>                    
+                    <input type="file" name="updatebrand_logo" id="updatebrand_logo_input" accept="image/*" hidden>
+                    <div id="updatebrand_click_area" style="cursor: pointer;">
+                        <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                        <p>Kéo & thả hoặc nhấn để tải lên</p>
+                    </div>
+                    <div class="updatebrand-preview-container" id="updatebrand_preview_container" hidden>
+                        <img id="updatebrand_logo_preview" class="img-thumbnail mt-2" 
+                             src="<%= data.brand && data.brand.logo ? '/images/brands/' + data.brand.logo : '' %>" 
+                             alt="Logo của <%= data.brand ? data.brand.name : 'Chưa có logo' %>">
+                    </div>
+                </div>
+                <span class="updatebrand-file-name" id="updatebrand_file_name"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-star"></i> Độ nổi bật</label>
+                <input type="number" class="form-control" name="highlight" value="<%= data.brand ? data.brand.highlight : 0 %>" placeholder="Nhập độ nổi bật (0-5)" id="updatebrand_highlight" min="0" max="5">
+            </div>
+            <button type="submit" class="btn updatebrand-btn-update">
+                <i class="fas fa-save"></i> Cập nhật hãng
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    let logoInput = document.getElementById("updatebrand_logo_input");
+    let clickArea = document.getElementById("updatebrand_click_area");
+    let dropArea = document.getElementById("updatebrand_drop_area");
+    let fileNameSpan = document.getElementById("updatebrand_file_name");
+    let logoPreview = document.getElementById("updatebrand_logo_preview");
+    let previewContainer = document.getElementById("updatebrand_preview_container");
+
+    // Hiển thị preview nếu đã có logo cũ
+    if (logoPreview.src && logoPreview.src !== window.location.href) {
+        previewContainer.hidden = false;
+    }
+
+    clickArea.addEventListener("click", function () {
+        logoInput.click();
+    });
+
+    logoInput.addEventListener("change", function (event) {
+        let file = event.target.files[0];
+        if (file) {
+            fileNameSpan.textContent = file.name;
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                logoPreview.src = e.target.result;
+                previewContainer.hidden = false;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    dropArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropArea.classList.add("highlight");
+    });
+
+    dropArea.addEventListener("dragleave", () => {
+        dropArea.classList.remove("highlight");
+    });
+
+    dropArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropArea.classList.remove("highlight");
+
+        let file = e.dataTransfer.files[0];
+        if (file) {
+            logoInput.files = e.dataTransfer.files;
+            fileNameSpan.textContent = file.name;
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                logoPreview.src = e.target.result;
+                previewContainer.hidden = false;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+</script>

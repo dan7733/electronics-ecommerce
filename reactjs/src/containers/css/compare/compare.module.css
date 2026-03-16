@@ -1,0 +1,128 @@
+.productBox,
+.productBoxCompare {
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: 15px;
+  background-color: #fff;
+  text-align: center;
+  height: 100%;
+  position: relative; /* Added for positioning remove button */
+}
+
+.productBox img {
+  max-height: 150px;
+  object-fit: contain;
+}
+
+.oldPrice {
+  text-decoration: line-through;
+  color: gray;
+  font-size: 0.9rem;
+}
+
+.newPrice {
+  color: red;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-top: 5px;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  display: inline;
+}
+
+.breadcrumb a {
+  text-decoration: none;
+  color: teal;
+}
+
+.breadcrumb1 {
+  color: gray;
+}
+
+.addProduct {
+  color: teal;
+  font-weight: bold;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 30%;
+}
+
+.compareHeading {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.specTitle {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.noProduct {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* New styles for remove button */
+.removeButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #d32f2f;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.removeButton:hover {
+  background: #b71c1c;
+  transform: scale(1.1);
+}
+
+.removeButton i {
+  font-size: 14px;
+}
+
+@media (max-width: 576px) {
+  .productBox img {
+    max-height: 120px;
+  }
+
+  .compareHeading {
+    font-size: 0.95rem;
+  }
+
+  .breadcrumb {
+    font-size: 0.9rem;
+  }
+
+  .addProduct {
+    margin-top: 10px;
+    font-size: 0.9rem;
+  }
+
+  .newPrice {
+    font-size: 0.95rem;
+  }
+
+  .oldPrice {
+    font-size: 0.8rem;
+  }
+
+  .removeButton {
+    width: 20px;
+    height: 20px;
+  }
+
+  .removeButton i {
+    font-size: 12px;
+  }
+}

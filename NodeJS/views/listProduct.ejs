@@ -1,0 +1,148 @@
+<div class="container listproduct-container">
+    <% if (data.message) { %>
+        <div class="alert alert-info">
+            <%= data.message %> 
+        </div>
+    <% } %>
+    <h4 class="mb-3 listproduct-title">Danh sách Sản phẩm</h4>
+
+    <div class="d-flex justify-content-between mb-2 listproduct-container">
+        <input type="text" id="product_searchInput" class="form-control w-50 listproduct-searchinput"
+            placeholder="🔍 Tìm kiếm theo tên sản phẩm..." value="<%= data.search %>">
+
+            <!-- Lọc theo thương hiệu -->
+    <div class="dropdown listproduct-filter-container">
+        <button class="btn btn-secondary dropdown-toggle listproduct-filter" type="button" id="brandDropdown"
+            data-bs-toggle="dropdown">
+            <i class="fa-solid fa-tag"></i> Thương hiệu
+        </button>
+        <ul class="dropdown-menu listproduct-option">
+            <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&brand=">Tất cả</a></li>
+            <% data.brands.forEach((brand) => { %>
+                <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&brand=<%= brand.brand_id %>&category=<%= data.selectedCategory %>&sort=<%= data.sort %>">
+                    <%= brand.name %>
+                </a></li>
+            <% }) %>
+        </ul>
+    </div>
+
+    <!-- Lọc theo danh mục -->
+    <div class="dropdown listproduct-filter-container">
+        <button class="btn btn-secondary dropdown-toggle listproduct-filter" type="button" id="categoryDropdown"
+            data-bs-toggle="dropdown">
+            <i class="fa-solid fa-list"></i> Danh mục
+        </button>
+        <ul class="dropdown-menu listproduct-option">
+            <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&category=">Tất cả</a></li>
+            <% data.categories.forEach((category) => { %>
+                <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&category=<%= category.category_id %>&brand=<%= data.selectedBrand %>&sort=<%= data.sort %>">
+                    <%= category.name %>
+                </a></li>
+            <% }) %>
+        </ul>
+    </div>
+        
+        <div class="dropdown listproduct-filter-container">
+            <button class="btn btn-secondary dropdown-toggle listproduct-filter" type="button" id="filterDropdown"
+                data-bs-toggle="dropdown">
+                <i class="fa-solid fa-filter"></i> Lọc
+            </button>
+            <ul class="dropdown-menu listproduct-option">
+                <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&brand=<%= data.selectedBrand %>&category=<%= data.selectedCategory %>">Reset</a></li>
+                <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&brand=<%= data.selectedBrand %>&category=<%= data.selectedCategory %>&sort=price_asc">Giá tăng dần</a></li>
+                <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&brand=<%= data.selectedBrand %>&category=<%= data.selectedCategory %>&sort=price_desc">Giá giảm dần</a></li>
+            </ul>
+        </div>
+
+    </div>
+    
+
+    <div class="table-responsive rounded p-2">
+        <table class="table table-bordered listproduct-table">
+            <thead class="table-light">
+                <tr>
+                    <th>STT</th>
+                    <th>ID</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Giá gốc</th>
+                    <th>Giá khuyến mãi</th>
+                    <th>Thương hiệu</th>
+                    <th>Danh mục</th>
+                    <th colspan="2">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (data.rows && data.rows.length > 0) { %>
+                    <% data.rows.forEach((product, index) => { %>
+                    <tr>
+                        <td><%= (data.currentPage - 1) * 5 + index + 1 %></td>
+                        <td><%= product.product_id %></td>
+                        <td><%= product.name %></td>
+                        <td><%= product.price %></td>
+                        <td><%= product.discount_price %></td>
+                        <td><%= product.Brand ? product.Brand.name : 'N/A' %></td>
+                        <td><%= product.Category ? product.Category.name : 'N/A' %></td>
+                        <td>
+                            <a href="/editproduct/<%= product.product_id %>" class="btn btn-sm btn-primary">
+                                <i class="bi bi-pencil-square"></i> Sửa
+                            </a>
+                            <form action="/deleteproduct" method="POST" style="display:inline-block;" 
+                                onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?');">
+                                <input type="hidden" name="product_id" value="<%= product.product_id %>" />
+                                <button class="btn btn-sm btn-danger" type="submit">
+                                    <i class="bi bi-trash"></i> Xóa
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr><td colspan="8">Không có sản phẩm nào được tìm thấy.</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Phân trang -->
+    <nav>
+        <ul class="pagination justify-content-center listproduct-pagination">
+            <li class="page-item <%= data.currentPage === 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= data.currentPage - 1 %>">«</a>
+            </li>
+            <li class="page-item <%= data.currentPage === 1 ? 'active' : '' %>">
+                <a class="page-link" href="?page=1">1</a>
+            </li>
+            <% if (data.currentPage > 4) { %>
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            <% } %>
+            <% for (let i = Math.max(2, data.currentPage - 2); i <= Math.min(data.totalPages - 1, data.currentPage + 2); i++) { %>
+                <li class="page-item <%= data.currentPage === i ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                </li>
+            <% } %>
+            <% if (data.currentPage < data.totalPages - 3) { %>
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            <% } %>
+            <% if (data.totalPages > 1) { %>
+                <li class="page-item <%= data.currentPage === data.totalPages ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= data.totalPages %>"><%= data.totalPages %></a>
+                </li>
+            <% } %>
+            <li class="page-item <%= data.currentPage === data.totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= data.currentPage + 1 %>">»</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script>
+document.getElementById('product_searchInput').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        const keyword = e.target.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('search', keyword);
+        urlParams.set('page', 1);
+        window.location.href = `?${urlParams.toString()}`;
+    }
+});
+</script>

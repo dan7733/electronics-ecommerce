@@ -1,0 +1,49 @@
+<div class="container">
+    <div class="updatecategory-inforinput card p-4 shadow-sm">
+        <h4 class="mb-3">
+            <i class="fas fa-edit text-primary"></i> Cập nhật loại sản phẩm
+        </h4>
+        <% if (data.message) { %>
+            <div class="alert alert-info">
+                <%= data.message %> 
+            </div>
+        <% } %>
+        <form action="/updatecategory" method="POST">
+            <input type="hidden" name="category_id" value="<%= data.category.category_id %>">
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-tag"></i> Tên loại sản phẩm</label>
+                <input type="text" class="form-control" name="name" value="<%= data.category.name %>" placeholder="Nhập tên loại sản phẩm">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-icons"></i> Icon</label>
+                <div class="input-group">
+                    <span class="updatecategory-input-group-text bg-white">
+                        <i id="upcategory-iconPreview" class="<%= data.category.icon %>"></i>
+                    </span>
+                    <input type="text" class="form-control" name="icon" id="upcategory-iconInput" value="<%= data.category.icon %>" placeholder="Nhập class icon FontAwesome">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-star"></i>Độ nổi bật</label>
+                <div class="input-group">
+                    <span class="updatecategory-input-group-text bg-white">
+                        <i class="fas fa-bolt text-warning"></i>
+                    </span>
+                    <input type="number" class="form-control" name="highlight" value="<%= data.category.highlight %>" min="0" max="5">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary updatecategory-btn-add"><i class="fas fa-save"></i> Lưu cập nhật</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Cập nhật preview icon khi người dùng thay đổi icon
+    document.getElementById('upcategory-iconInput').addEventListener('input', function() {
+        document.getElementById('upcategory-iconPreview').className = this.value || 'fas fa-question-circle';
+    });
+</script>

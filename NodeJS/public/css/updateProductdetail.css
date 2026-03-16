@@ -1,0 +1,27 @@
+.updateproductdetail-inforinput {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.updateproductdetail-inforinput > h4 {
+    color: #218282;
+}
+
+.updateproductdetail-inforinput h4 i {
+    color: #218282 !important;
+}
+
+.updateproductdetail-btn-update {
+    background-color: #218282 !important;
+    color: white !important;
+    border: none;
+}
+
+.updateproductdetail-btn-update i {
+    color: white !important;
+}
+
+.updateproductdetail-btn-update:hover {
+    background-color: #176d6d !important;
+}

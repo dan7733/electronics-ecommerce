@@ -1,0 +1,102 @@
+<div class="container listdetails-container">
+    <% if (data.message) { %>
+        <div class="alert alert-info">
+            <%= data.message %> 
+        </div>
+    <% } %>
+    <h4 class="mb-3 listdetails-title">Danh sách Chi Tiết Sản Phẩm</h4>
+
+    <div class="d-flex justify-content-between mb-2 listdetails-container">
+        <input type="text" id="details_searchInput" class="form-control w-50 listdetails-searchinput"
+            placeholder="🔍 Tìm kiếm theo tên sản phẩm..." value="<%= data.search %>">
+
+        <!-- Lọc theo ngày cập nhật -->
+        <div class="dropdown listdetails-filter-container">
+            <button class="btn btn-secondary dropdown-toggle listdetails-filter" type="button" id="updateDropdown"
+                data-bs-toggle="dropdown">
+                <i class="fa-solid fa-calendar"></i> Lọc theo Cập nhật
+            </button>
+            <ul class="dropdown-menu listdetails-option">
+                <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&updated=">Tất cả</a></li>
+                <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&updated=recent">Gần đây</a></li>
+                <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&updated=old">Cũ</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="table-responsive rounded p-2">
+        <table class="table table-bordered listdetails-table">
+            <thead class="table-light">
+                <tr>
+                    <th>STT</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Năm phát hành</th>
+                    <th>Cập nhật lúc</th>
+                    <th colspan="2">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (data.rows && data.rows.length > 0) { %>
+                    <% data.rows.forEach((detail, index) => { %>
+                    <tr>
+                        <td><%= (data.currentPage - 1) * 5 + index + 1 %></td>
+                        <td><%= detail.Product.name %></td>
+                        <td><%= detail.release_year %></td>
+                        <td><%= detail.updated_at %></td> <!-- Hiển thị ngày cập nhật -->
+                        <td>
+                            <a href="/editproductdetail/<%= detail.product_id %>" class="btn btn-sm btn-primary">
+                                <i class="bi bi-pencil-square"></i> Cập nhật
+                            </a>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr><td colspan="8">Không có sản phẩm nào được tìm thấy.</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Phân trang -->
+    <nav>
+        <ul class="pagination justify-content-center listdetails-pagination">
+            <li class="page-item <%= data.currentPage === 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= data.currentPage - 1 %>">«</a>
+            </li>
+            <li class="page-item <%= data.currentPage === 1 ? 'active' : '' %>">
+                <a class="page-link" href="?page=1">1</a>
+            </li>
+            <% if (data.currentPage > 4) { %>
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            <% } %>
+            <% for (let i = Math.max(2, data.currentPage - 2); i <= Math.min(data.totalPages - 1, data.currentPage + 2); i++) { %>
+                <li class="page-item <%= data.currentPage === i ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                </li>
+            <% } %>
+            <% if (data.currentPage < data.totalPages - 3) { %>
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            <% } %>
+            <% if (data.totalPages > 1) { %>
+                <li class="page-item <%= data.currentPage === data.totalPages ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= data.totalPages %>"><%= data.totalPages %></a>
+                </li>
+            <% } %>
+            <li class="page-item <%= data.currentPage === data.totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= data.currentPage + 1 %>">»</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script>
+document.getElementById('details_searchInput').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        const keyword = e.target.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('search', keyword);
+        urlParams.set('page', 1);
+        window.location.href = `?${urlParams.toString()}`;
+    }
+});
+</script>

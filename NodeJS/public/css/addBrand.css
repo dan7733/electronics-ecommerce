@@ -1,0 +1,76 @@
+.addbrand-upload-box {
+    border: 2px dashed #218282;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    background: white;
+    position: relative;
+}
+
+.addbrand-upload-box * {
+    color: #218282 !important;
+}
+
+.addbrand-inforinput > h4{
+    color: #218282;
+}
+
+.addbrand-inforinput h4 i{
+    color: #218282 !important;
+}
+
+.addbrand-upload-box:hover {
+    background: #218282;
+}
+
+.addbrand-upload-box:hover * {
+    color: white !important;
+}
+
+.addbrand-upload-box input {
+    display: none;
+}
+
+.addbrand-file-name {
+    margin-top: 10px;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.addbrand-inforinput {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.addbrand-btn-add {
+    background-color: #218282 !important;
+    color: white !important;
+    border: none;
+}
+
+.addbrand-btn-add i {
+    color: white !important;
+}
+
+.addbrand-btn-add:hover {
+    background-color: #176d6d !important;
+}
+
+.addbrand-preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+}
+
+#addbrand_logo_preview {
+    max-width: 150px;
+    display: block;
+    margin: 0 auto;
+}
+
+#addbrand_remove_image {
+    margin-top: 10px;
+}

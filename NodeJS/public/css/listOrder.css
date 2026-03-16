@@ -1,0 +1,91 @@
+.listorder-container {
+    padding: 0;
+    width: 100%;
+}
+
+.listorder-table th,
+.listorder-table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.listorder-table thead tr th {
+    background-color: #218282;
+    color: white;
+}
+
+.listorder-table tbody tr td {
+    color: #218282;
+}
+
+.listorder-title {
+    color: #218282;
+}
+
+.listorder-filter {
+    background-color: #218282;
+    color: white;
+}
+
+.listorder-option {
+    background-color: #218282;
+    color: white !important;
+}
+
+.listorder-option a {
+    color: white !important;
+}
+
+.listorder-option a:hover {
+    opacity: 0.1;
+    background: none;
+}
+
+.listorder-searchinput {
+    color: #218282;
+}
+
+.listorder-searchinput::placeholder {
+    color: #218282;
+}
+
+.listorder-pagination .page-link {
+    background-color: #218282;
+    color: white;
+    border: none;
+}
+
+.listorder-pagination .page-link:hover {
+    background-color: white;
+    color: #218282;
+    border: 1px solid #218282;
+}
+
+.listorder-pagination .active .page-link {
+    background-color: #125e5e;
+    color: white;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 600px) {
+    .listorder-filter-search-container {
+        flex-direction: column;
+    }
+
+    .listorder-searchinput {
+        width: 100% !important;
+        margin-top: 5px;
+    }
+
+    .listorder-container {
+        flex-direction: column !important;
+        gap: 10px;
+    }
+
+    .listorder-filter-container {
+        display: flex;
+        justify-content: flex-end;
+    }
+}

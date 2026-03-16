@@ -1,0 +1,98 @@
+.updateorder-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.updateorder-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(33, 130, 130, 0.2) !important;
+}
+
+.updateorder-card .card-header {
+    background-color: #218282 !important;
+    border-radius: 10px 10px 0 0;
+    padding: 15px;
+}
+
+.updateorder-card .card-body {
+    padding: 25px;
+}
+
+.form-label {
+    color: #218282;
+    font-weight: 600;
+}
+
+.form-control-plaintext {
+    color: #333;
+    font-size: 1rem;
+}
+
+.form-select {
+    border-color: #218282;
+    color: #333;
+    transition: border-color 0.3s ease;
+}
+
+.form-select:focus {
+    border-color: #176d6d;
+    box-shadow: 0 0 5px rgba(33, 130, 130, 0.3);
+}
+
+.btn-updateorder {
+    background-color: #218282 !important;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.btn-updateorder:hover {
+    background-color: #176d6d !important;
+}
+
+.table-primary {
+    background-color: #e6f3f3 !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f8f9fa;
+}
+
+.table-bordered {
+    border: 1px solid #dee2e6;
+}
+
+.table th, .table td {
+    vertical-align: middle;
+    padding: 12px;
+}
+
+.product-image {
+    object-fit: cover;
+    border: 1px solid #dee2e6;
+    transition: transform 0.2s ease;
+}
+
+.product-image:hover {
+    transform: scale(1.1);
+}
+
+.text-primary {
+    color: #218282 !important;
+}
+
+
+.btn-download-pdf {
+    background-color: #6c757d !important;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.btn-download-pdf:hover {
+    background-color: #5a6268 !important;
+}

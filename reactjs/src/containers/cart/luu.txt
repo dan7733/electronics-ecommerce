@@ -1,0 +1,283 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import styles from '../css/cart/cart.module.css';
+
+const Cart = () => {
+    const [selectAll, setSelectAll] = useState(false);
+    const [cartItems, setCartItems] = useState([]);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const itemsPerPage = 5;
+    const navigate = useNavigate();
+
+    // Get current page from URL, default to 1 if not specified
+    const currentPage = parseInt(searchParams.get('page')) || 1;
+
+    useEffect(() => {
+        const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
+        console.log('Cart loaded:', storedCart);
+        setCartItems(storedCart.map(item => ({ ...item, selected: false })));
+    }, []);
+
+    const handleSelectAll = () => {
+        setSelectAll(!selectAll);
+        const updatedCart = cartItems.map(item => ({
+            ...item,
+            selected: !selectAll,
+        }));
+        setCartItems(updatedCart);
+    };
+
+    const handleSelectItem = (index) => {
+        const globalIndex = (currentPage - 1) * itemsPerPage + index;
+        const updatedCart = [...cartItems];
+        updatedCart[globalIndex].selected = !updatedCart[globalIndex].selected;
+        setCartItems(updatedCart);
+        setSelectAll(updatedCart.every(item => item.selected));
+    };
+
+    const handleRemoveItem = (index) => {
+        const globalIndex = (currentPage - 1) * itemsPerPage + index;
+        const updatedCart = cartItems.filter((_, i) => i !== globalIndex);
+        setCartItems(updatedCart);
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+    };
+
+    const handleRemoveSelected = () => {
+        const updatedCart = cartItems.filter(item => !item.selected);
+        setCartItems(updatedCart);
+        localStorage.setItem('cart', JSON.stringify(updatedCart));
+        setSelectAll(false);
+    };
+
+    const handleQuantityChange = (index, delta) => {
+        const globalIndex = (currentPage - 1) * itemsPerPage + index;
+        const updatedCart = [...cartItems];
+        const newQuantity = updatedCart[globalIndex].quantity + delta;
+        if (newQuantity > 0) {
+            updatedCart[globalIndex].quantity = newQuantity;
+            setCartItems(updatedCart);
+            localStorage.setItem('cart', JSON.stringify(updatedCart));
+        }
+    };
+
+    const handleCheckout = () => {
+        const selectedItems = cartItems.filter(item => item.selected);
+        if (selectedItems.length === 0) {
+            alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
+            return;
+        }
+        navigate('/payment', { state: { products: selectedItems } });
+    };
+
+    const totalPages = Math.ceil(cartItems.length / itemsPerPage);
+    const paginatedItems = cartItems.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    const handlePageChange = (page) => {
+        if (page >= 1 && page <= totalPages) {
+            // Update the URL with the new page number
+            setSearchParams({ page: page.toString() });
+        }
+    };
+
+    // New Pagination Logic
+    const renderPagination = () => {
+        const pages = [];
+
+        // Always show the first page
+        pages.push(1);
+
+        // Add ellipsis if current page is greater than 4
+        if (currentPage > 4) {
+            pages.push('...');
+        }
+
+        // Calculate the range of nearby pages (2 pages before and after)
+        const startPage = Math.max(2, currentPage - 2);
+        const endPage = Math.min(totalPages - 1, currentPage + 2);
+
+        // Add nearby pages
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(i);
+        }
+
+        // Add ellipsis if current page is far from the last page
+        if (currentPage < totalPages - 3) {
+            pages.push('...');
+        }
+
+        // Always show the last page if there are at least 2 pages
+        if (totalPages > 1) {
+            pages.push(totalPages);
+        }
+
+        return pages;
+    };
+
+    return (
+        <div className={`${styles['container-cart']} container mt-5`}>
+            <div className="row g-12">
+                <div className="col-lg-8 offset-lg-2">
+                    {/* Checkout Button */}
+                    <div className="d-flex justify-content-end mb-3">
+                        <button
+                            className={`${styles['checkout-btn']} btn`}
+                            onClick={handleCheckout}
+                            disabled={!cartItems.some(item => item.selected)}
+                        >
+                            Thanh toán
+                        </button>
+                    </div>
+
+                    {/* Select All Section */}
+                    <div className={`${styles['product-card']} d-flex align-items-center`}>
+                        <input
+                            className={`${styles['detailproduct-checks']} me-2`}
+                            type="checkbox"
+                            id="selectAll"
+                            checked={selectAll}
+                            onChange={handleSelectAll}
+                        />
+                        <label className="form-check-label fw-bold" htmlFor="selectAll">
+                            Chọn tất cả ({cartItems.length})
+                        </label>
+                        <button
+                            className={`btn btn-sm ms-2 ms-auto ${styles['detailproduct-trash-all']}`}
+                            onClick={handleRemoveSelected}
+                            disabled={!cartItems.some(item => item.selected)}
+                        >
+                            <i className="fa fa-trash"></i>
+                        </button>
+                    </div>
+
+                    {/* Product List */}
+                    <div id="product-list">
+                        {paginatedItems.length > 0 ? (
+                            paginatedItems.map((item, index) => (
+                                <div
+                                    key={`${item.product_id}-${item.storage}-${item.color}`}
+                                    className={`${styles['product-card']} d-flex align-items-center mt-3 p-3`}
+                                >
+                                    <input
+                                        className={`${styles['detailproduct-checks']} me-3`}
+                                        type="checkbox"
+                                        checked={item.selected || false}
+                                        onChange={() => handleSelectItem(index)}
+                                    />
+                                    <img
+                                        src={`http://localhost:3000/images/products/${item.product_img}`}
+                                        alt={item.name}
+                                        className={`${styles['product-img']} me-3`}
+                                    />
+                                    <div className="flex-grow-1">
+                                        <h6>{item.name}</h6>
+                                        <p className="mb-0">Phiên bản: {item.storage}</p>
+                                        <p className="mb-0">Màu: {item.color}</p>
+                                        <div className="mb-0">
+                                            {item.discount_price ? (
+                                                <>
+                                                    <p className={`${styles['price-new']} mb-0`}>
+                                                        {item.discount_price.toLocaleString()}₫
+                                                    </p>
+                                                    <p className={`${styles['price-old']} mb-0`}>
+                                                        {item.price.toLocaleString()}₫
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <p className={`${styles['price-new']} mb-0`}>
+                                                    {item.price.toLocaleString()}₫
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="d-flex align-items-center">
+                                        <button
+                                            className={`${styles['btn-quantity']} btn btn-sm me-2`}
+                                            onClick={() => handleQuantityChange(index, -1)}
+                                        >
+                                            -
+                                        </button>
+                                        <span>{item.quantity}</span>
+                                        <button
+                                            className={`${styles['btn-quantity']} btn btn-sm ms-2`}
+                                            onClick={() => handleQuantityChange(index, 1)}
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                    <button
+                                        className={`btn btn-sm ms-3 ${styles['detailproduct-trash']}`}
+                                        onClick={() => handleRemoveItem(index)}
+                                    >
+                                        <i className="fa fa-trash"></i>
+                                    </button>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-center mt-3">Giỏ hàng trống</div>
+                        )}
+                    </div>
+
+                    {/* Custom Smart Pagination with Links */}
+                    {totalPages > 1 && (
+                        <div className={styles['custom-pagination']}>
+                            {/* Previous Page Link */}
+                            <Link
+                                to={`/cart?page=${currentPage - 1}`}
+                                className={`${styles['custom-pagination-button']} ${styles['arrow']} ${
+                                    currentPage === 1 ? styles['disabled'] : ''
+                                }`}
+                                onClick={(e) => {
+                                    if (currentPage === 1) e.preventDefault();
+                                    else handlePageChange(currentPage - 1);
+                                }}
+                            >
+                                &lt;
+                            </Link>
+
+                            {/* Pagination Pages */}
+                            {renderPagination().map((page, index) =>
+                                page === '...' ? (
+                                    <span
+                                        key={`ellipsis-${index}`}
+                                        className={styles['custom-pagination-button']}
+                                        style={{ cursor: 'default', border: 'none' }}
+                                    >
+                                        ...
+                                    </span>
+                                ) : (
+                                    <Link
+                                        key={page}
+                                        to={`/cart?page=${page}`}
+                                        className={`${styles['custom-pagination-button']} ${
+                                            currentPage === page ? styles['active'] : ''
+                                        }`}
+                                        onClick={() => handlePageChange(page)}
+                                    >
+                                        {page}
+                                    </Link>
+                                )
+                            )}
+
+                            {/* Next Page Link */}
+                            <Link
+                                to={`/cart?page=${currentPage + 1}`}
+                                className={`${styles['custom-pagination-button']} ${styles['arrow']} $
+                                    {currentPage === totalPages ? styles['disabled'] : ''}`}
+                                onClick={(e) => {
+                                    if (currentPage === totalPages) e.preventDefault();
+                                    else handlePageChange(currentPage + 1);
+                                }}
+                            >
+                                &gt;
+                            </Link>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+export default Cart;

@@ -1,0 +1,103 @@
+.listproduct-container {
+    padding: none;
+}
+
+.listproduct-table th,
+.listproduct-table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.listproduct-table thead tr th {
+    background-color: #218282;
+    color: white;
+}
+
+.listproduct-table tbody tr td {
+    color: #218282;
+}
+
+.action-btns .btn {
+    margin: 2px;
+
+}
+
+.listproduct-title {
+    color: #218282;
+}
+
+.listproduct-filter {
+    background-color: #218282;
+    color: white;
+}
+
+.listproduct-option {
+    background-color: #218282;
+    color: white !important;
+}
+
+.listproduct-option a {
+    color: white !important;
+}
+.listproduct-option a:hover { 
+    opacity: 0.1;
+    background: none;
+}
+.listproduct-searchinput {
+    color: #218282;
+}
+
+.listproduct-searchinput::placeholder {
+    color: #218282;
+}
+
+.listproduct-pagination .page-link {
+    background-color: #218282;
+    color: white;
+    border: none;
+}
+
+.listproduct-pagination .page-link:hover {
+    background-color: white;
+    color: #218282;
+    border: 1px solid #218282;
+}
+
+.listproduct-pagination .active .page-link {
+    background-color: #125e5e;
+    color: white;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 600px) {
+    .listproduct-filter-search-container {
+        flex-direction: column;
+    }
+
+    .listproduct-searchinput {
+        width: 100% !important;
+        margin-top: 5px;
+    }
+
+    .listproduct-action-btns {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .listproduct-action-btns .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .listproduct-container {
+        flex-direction: column !important;
+        gap: 10px;
+    }
+
+    .listproduct-filter-container {
+        display: flex;
+        justify-content: flex-end;
+    }
+}

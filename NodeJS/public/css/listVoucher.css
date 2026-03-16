@@ -1,0 +1,104 @@
+.listvoucher-container {
+    padding: none;
+}
+
+.listvoucher-table th,
+.listvoucher-table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.listvoucher-table thead tr th {
+    background-color: #218282;
+    color: white;
+}
+
+.listvoucher-table tbody tr td {
+    color: #218282;
+}
+
+.action-btns .btn {
+    margin: 2px;
+}
+
+.listvoucher-title {
+    color: #218282;
+}
+
+.listvoucher-filter {
+    background-color: #218282;
+    color: white;
+}
+
+.listvoucher-option {
+    background-color: #218282;
+    color: white !important;
+}
+
+.listvoucher-option a {
+    color: white !important;
+}
+
+.listvoucher-option a:hover {
+    opacity: 0.1;
+    background: none;
+}
+
+.listvoucher-searchinput {
+    color: #218282;
+}
+
+.listvoucher-searchinput::placeholder {
+    color: #218282;
+}
+
+.listvoucher-pagination .page-link {
+    background-color: #218282;
+    color: white;
+    border: none;
+}
+
+.listvoucher-pagination .page-link:hover {
+    background-color: white;
+    color: #218282;
+    border: 1px solid #218282;
+}
+
+.listvoucher-pagination .active .page-link {
+    background-color: #125e5e;
+    color: white;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 600px) {
+    .listvoucher-filter-search-container {
+        flex-direction: column;
+    }
+
+    .listvoucher-searchinput {
+        width: 100% !important;
+        margin-top: 5px;
+    }
+
+    .listvoucher-action-btns {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .listvoucher-action-btns .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .listvoucher-container {
+        flex-direction: column !important;
+        gap: 10px;
+    }
+
+    .listvoucher-filter-container {
+        display: flex;
+        justify-content: flex-end;
+    }
+}

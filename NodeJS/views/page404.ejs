@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Không tìm thấy trang</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .page404-body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .page404-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transform: translateY(30px);
+            animation: page404-slideIn 0.8s ease-out forwards;
+        }
+
+        @keyframes page404-slideIn {
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .page404-icon-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .page404-icon {
+            font-size: 60px;
+            transition: transform 0.3s ease;
+        }
+
+        /* Biển báo màu đỏ */
+        .page404-red {
+            color: #e74c3c;
+        }
+
+        /* Cờ lê rung tại chỗ */
+        .page404-shake {
+            color: #218282;
+            animation: page404-shake 0.9s ease-in-out infinite alternate;
+        }
+
+        @keyframes page404-shake {
+
+            0%,
+            100% {
+                transform: rotate(0);
+            }
+
+            /* Vị trí gốc */
+            20% {
+                transform: rotate(-20deg);
+            }
+
+            /* Rung qua trái */
+            40% {
+                transform: rotate(20deg);
+            }
+
+            /* Rung qua phải */
+            60% {
+                transform: rotate(-15deg);
+            }
+
+            /* Giảm biên độ */
+            80% {
+                transform: rotate(15deg);
+            }
+
+            /* Giảm biên độ */
+            90% {
+                transform: rotate(-5deg);
+            }
+
+            /* Rung nhẹ cuối */
+        }
+
+
+
+        /* Bánh răng xoay */
+        .page404-gear {
+            animation: page404-spin 3s linear infinite;
+            color: #218282;
+        }
+
+        @keyframes page404-spin {
+            from {
+                transform: rotate(0);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .page404-title {
+            font-size: 48px;
+            margin: 10px 0;
+            color: #218282;
+        }
+
+        .page404-description {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .page404-home-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: white;
+            background-color: #218282;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .page404-home-btn:hover {
+            background-color: #176e6e;
+        }
+    </style>
+</head>
+
+<body class="page404-body">
+
+    <div class="page404-container">
+        <div class="page404-icon-group">
+            <i class="fa-solid fa-gear page404-icon page404-gear"></i>
+            <i class="fa-solid fa-ban page404-icon page404-red"></i>
+            <i class="fa-solid fa-circle-exclamation page404-icon page404-red"></i>
+            <i class="fa-solid fa-wrench page404-icon page404-shake"></i>
+        </div>
+
+        <h1 class="page404-title">404 - Không tìm thấy trang</h1>
+        <p class="page404-description">Trang bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+        <a href="/" class="page404-home-btn">Quay lại trang chủ</a>
+    </div>
+
+    <script>
+        window.onload = function () {
+            document.body.style.opacity = 1;
+        };
+    </script>
+
+</body>
+
+</html>

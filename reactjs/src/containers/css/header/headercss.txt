@@ -1,0 +1,88 @@
+/* Thanh tìm kiếm chính */
+.headerContainer{
+  background-color: #218282 !important;
+  color: white;
+}
+.searchContainer {
+    background: white;
+    border-radius: 20px;
+    padding: 5px 10px;
+    flex-grow: 1;
+  }
+  
+  /* Input tìm kiếm */
+  .searchBox {
+    background: transparent;
+  }
+  
+  /* Mobile header */
+  .mobileHeader {
+    background-color: #222;
+  }
+  
+  /* Thanh tìm kiếm mobile */
+  .mobileSearch {
+    background: white;
+    border-radius: 20px;
+    padding: 5px 10px;
+    flex-grow: 1;
+  }
+  
+  /* Nút hành động (login, giỏ hàng) */
+  .actionButtons .btn {
+    background: transparent;
+    border: none;
+    font-size: 16px;
+  }
+  
+  /* Menu item padding */
+  .navbar-nav .nav-item {
+    padding: 5px;
+  }
+  
+  /* Nav menu chiều cao */
+  #navmenu {
+    height: 50px;
+  }
+  
+  /* Responsive cho màn hình nhỏ */
+  @media (max-width: 992px) {
+    .searchContainer {
+      display: none !important;
+    }
+  
+    #navmenu {
+      height: min-content !important;
+      margin-top: -15px !important;
+    }
+  
+    .mobileSearch {
+      display: flex !important;
+      margin-bottom: 10px !important;
+      height: 50px;
+    }
+  
+    .navbar-toggler span {
+      margin: 0 10px 10px !important;
+    }
+  }
+  
+  @media (max-width: 387px) {
+    .actionButtons .btn {
+      font-size: 0 !important;
+      padding: 5px !important;
+    }
+  
+    .actionButtons .btn i {
+      font-size: 18px !important;
+    }
+  }
+  
+  /* Nút navbar-toggler */
+  .navbar-toggler {
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    color: white;
+  }
+  

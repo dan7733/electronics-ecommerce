@@ -1,0 +1,43 @@
+<div class="container">
+    <div class="addvoucher-inforinput card p-4 shadow-sm">
+        <h4 class="mb-3">
+            <i class="fas fa-plus-circle text-primary"></i> Thêm Voucher
+        </h4>
+        <!-- Thông báo (nếu có) -->
+        <% if (data && data.message) { %>
+            <div class="alert alert-info">
+                <%= data.message %>
+            </div>
+        <% } %>
+        <form action="/addvoucher" method="POST">
+            <!-- Mã voucher -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-ticket-alt"></i> Mã Voucher</label>
+                <input type="text" class="form-control" name="voucher" placeholder="Nhập mã voucher">
+            </div>
+            
+            <!-- Giá trị voucher -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-dollar-sign"></i> Giá Trị</label>
+                <input type="number" class="form-control" name="value" placeholder="Nhập giá trị voucher">
+            </div>
+            
+            <!-- Ngày bắt đầu -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-calendar-plus"></i> Ngày Tạo</label>
+                <input type="date" class="form-control" name="create_at">
+            </div>
+            
+            <!-- Ngày kết thúc -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-calendar-times"></i> Ngày Kết Thúc</label>
+                <input type="date" class="form-control" name="end_at">
+            </div>
+            
+            <!-- Nút thêm -->
+            <button type="submit" class="btn addvoucher-btn-add">
+                <i class="fas fa-check"></i> Thêm Voucher
+            </button>
+        </form>
+    </div>
+</div>

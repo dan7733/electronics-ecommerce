@@ -1,0 +1,188 @@
+.container {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.sidebar {
+  width: 350px;
+  padding: 20px;
+  background-color: #ffffff;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #343a40;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.inputGroup {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.inputGroup input {
+  border-radius: 0.25rem;
+  box-shadow: none;
+  font-size: 0.95rem;
+}
+
+.inputGroup button {
+  border-radius: 0.25rem;
+  transition: background-color 0.3s;
+  font-size: 0.95rem;
+  padding: 8px 16px;
+  background-color: #218282; /* Màu chủ đạo */
+  border-color: #218282;
+}
+
+.inputGroup button:hover {
+  background-color: #1a6666; /* Màu đậm hơn khi hover */
+  border-color: #1a6666;
+}
+
+.storeList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.storeItem {
+  padding: 15px;
+  border-bottom: 1px solid #e9ecef;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.storeItem:hover {
+  background-color: #e6f0f0; /* Màu nền hover dựa trên tông #218282 */
+}
+
+.storeItem div {
+  font-size: 0.95rem;
+  color: #495057;
+}
+
+.storeItem strong {
+  color: #212529;
+  font-size: 1.1rem;
+}
+
+.storeItem i {
+  color: #218282; /* Màu biểu tượng */
+  margin-right: 8px;
+}
+
+.map {
+  flex-grow: 1;
+  height: 100%;
+}
+
+.storeListMobile {
+  display: none;
+}
+
+.storeListDesktop {
+  display: block;
+}
+
+/* Responsive cho tablet và mobile */
+@media (max-width: 992px) {
+  .sidebar {
+    width: 300px;
+    padding: 15px;
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
+
+  .inputGroup {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .inputGroup input,
+  .inputGroup button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    width: 100%;
+    box-shadow: none;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .map {
+    height: 60vh;
+    min-height: 400px;
+  }
+
+  .storeListDesktop {
+    display: none;
+  }
+
+  .storeListMobile {
+    display: block;
+    margin-top: 10px;
+  }
+
+  .offcanvas-body .storeList {
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+  }
+
+  /* Màu cho nút mở offcanvas */
+  .storeListMobile button {
+    background-color: #218282;
+    border-color: #218282;
+  }
+
+  .storeListMobile button:hover {
+    background-color: #1a6666;
+    border-color: #1a6666;
+  }
+
+  /* Màu cho tiêu đề offcanvas */
+  .offcanvas-title {
+    color: #218282;
+  }
+}
+
+@media (max-width: 576px) {
+  .sidebar {
+    padding: 10px;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .storeItem {
+    padding: 10px;
+  }
+
+  .storeItem div {
+    font-size: 0.9rem;
+  }
+
+  .storeItem strong {
+    font-size: 1rem;
+  }
+}

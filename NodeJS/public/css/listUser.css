@@ -1,0 +1,100 @@
+.listuser-container {
+    padding: none;
+}
+
+.listuser-table th,
+.listuser-table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.listuser-table thead tr th {
+    background-color: #218282;
+    color: white;
+}
+
+.listuser-table tbody tr td {
+    color: #218282;
+}
+
+.listuser-title {
+    color: #218282;
+}
+
+.listuser-filter {
+    background-color: #218282;
+    color: white;
+}
+
+.listuser-option {
+    background-color: #218282;
+    color: white !important;
+}
+
+.listuser-option a {
+    color: white !important;
+}
+
+.listuser-option a:hover { 
+    opacity: 0.1;
+    background: none;
+}
+
+.listuser-searchinput {
+    color: #218282;
+}
+
+.listuser-searchinput::placeholder {
+    color: #218282;
+}
+
+.listuser-pagination .page-link {
+    background-color: #218282;
+    color: white;
+    border: none;
+}
+
+.listuser-pagination .page-link:hover {
+    background-color: white;
+    color: #218282;
+    border: 1px solid #218282;
+}
+
+.listuser-pagination .active .page-link {
+    background-color: #125e5e;
+    color: white;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 600px) {
+    .listuser-filter-search-container {
+        flex-direction: column;
+    }
+
+    .listuser-searchinput {
+        width: 100% !important;
+        margin-top: 5px;
+    }
+
+    .listuser-action-btns {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .listuser-action-btns .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .listuser-container {
+        flex-direction: column !important;
+        gap: 10px;
+    }
+
+    .listuser-filter-container {
+        display: flex;
+        justify-content: flex-end;
+    }
+}

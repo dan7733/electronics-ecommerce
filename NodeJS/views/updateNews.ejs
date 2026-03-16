@@ -1,0 +1,129 @@
+<div class="container">
+    <div class="updatenews-inforinput card p-4 shadow-sm mt-5">
+        <h4 class="mb-3">
+            <i class="fas fa-edit text-primary"></i> Cập nhật tin tức
+        </h4>
+        <% if (data && data.message) { %>
+            <div class="alert alert-info">
+                <%= data.message %>
+            </div>
+        <% } %>
+        <form action="/updatenews" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="news_id" value="<%= data.news ? data.news.news_id : '' %>">
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-heading"></i> Tiêu đề</label>
+                <input type="text" class="form-control" name="newsTitle" value="<%= data.news ? data.news.title : '' %>" placeholder="Nhập tiêu đề" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-align-left"></i> Tóm tắt</label>
+                <textarea class="form-control" name="newsSummary" placeholder="Nhập tóm tắt" rows="3" required><%= data.news ? data.news.summary : '' %></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-align-justify"></i> Nội dung chi tiết</label>
+                <textarea id="news_content" name="newsContent"><%= data.news ? data.news.content : '' %></textarea>
+            </div>
+
+            <!-- Ngày tạo (readonly) -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-calendar-plus"></i> Ngày tạo</label>
+                <input type="text" class="form-control" readonly value="<%= data.news && data.news.created_at ? new Date(data.news.created_at).toLocaleString('vi-VN') : '' %>">
+            </div>
+
+            <!-- Ngày cập nhật (readonly) -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-calendar-check"></i> Ngày cập nhật</label>
+                <input type="text" class="form-control" readonly value="<%= data.news && data.news.updated_at ? new Date(data.news.updated_at).toLocaleString('vi-VN') : '' %>">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-image"></i> Ảnh tin tức</label>
+                <div class="updatenews-upload-box" id="updatenews_drop_area">
+                    <% if (data.news && data.news.image) { %>
+                        <input type="hidden" name="oldnewsImage" value="<%= data.news.image %>">
+                    <% } %> 
+                    <input type="file" name="news_image" id="updatenews_image_input" accept="image/*" style="display: none;">
+                    <div id="updatenews_click_area" style="cursor: pointer;">
+                        <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                        <p>Kéo & thả hoặc nhấn để tải lên</p>
+                    </div>
+                    <div class="updatenews-preview-container" id="updatenews_preview_container" style="display: <%= data.news && data.news.image ? 'flex' : 'none' %>;">
+                        <img id="updatenews_image_preview" class="img-thumbnail mt-2" src="<%= data.news && data.news.image ? '/images/news/' + data.news.image : '' %>">
+                        <button type="button" class="btn btn-danger" id="updatenews_remove_image">Xóa</button>
+                    </div>
+                </div>
+                <span class="updatenews-file-name" id="updatenews_file_name"><%= data.news && data.news.image ? data.news.image : '' %></span>
+            </div>
+
+            <button type="submit" class="btn updatenews-btn-add">
+                <i class="fas fa-check"></i> Cập nhật tin tức
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    CKEDITOR.replace('news_content');
+
+    document.addEventListener("DOMContentLoaded", function () {
+        let imgInput = document.getElementById("updatenews_image_input");
+        let clickArea = document.getElementById("updatenews_click_area");
+        let dropArea = document.getElementById("updatenews_drop_area");
+        let fileNameSpan = document.getElementById("updatenews_file_name");
+        let imgPreview = document.getElementById("updatenews_image_preview");
+        let previewContainer = document.getElementById("updatenews_preview_container");
+        let removeImageButton = document.getElementById("updatenews_remove_image");
+
+        clickArea.addEventListener("click", function () {
+            imgInput.click();
+        });
+
+        imgInput.addEventListener("change", function (event) {
+            let file = event.target.files[0];
+            if (file) {
+                fileNameSpan.textContent = file.name;
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    imgPreview.src = e.target.result;
+                    previewContainer.style.display = "flex";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        dropArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropArea.classList.add("highlight");
+        });
+
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.classList.remove("highlight");
+        });
+
+        dropArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropArea.classList.remove("highlight");
+
+            let file = e.dataTransfer.files[0];
+            if (file) {
+                imgInput.files = e.dataTransfer.files;
+                fileNameSpan.textContent = file.name;
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    imgPreview.src = e.target.result;
+                    previewContainer.style.display = "flex";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removeImageButton.addEventListener("click", function () {
+            imgInput.value = "";
+            imgPreview.src = "";
+            previewContainer.style.display = "none";
+            fileNameSpan.textContent = "";
+        });
+    });
+</script>

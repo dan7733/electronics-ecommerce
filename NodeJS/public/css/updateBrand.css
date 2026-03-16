@@ -1,0 +1,76 @@
+.updatebrand-upload-box {
+    border: 2px dashed #218282;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    background: white;
+    position: relative;
+}
+
+.updatebrand-upload-box * {
+    color: #218282 !important;
+}
+
+.updatebrand-inforinput > h4 {
+    color: #218282;
+}
+
+.updatebrand-inforinput h4 i {
+    color: #218282 !important;
+}
+
+.updatebrand-upload-box:hover {
+    background: #218282;
+}
+
+.updatebrand-upload-box:hover * {
+    color: white !important;
+}
+
+.updatebrand-upload-box input {
+    display: none;
+}
+
+.updatebrand-file-name {
+    margin-top: 10px;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.updatebrand-inforinput {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.updatebrand-btn-update {
+    background-color: #218282 !important;
+    color: white !important;
+    border: none;
+}
+
+.updatebrand-btn-update i {
+    color: white !important;
+}
+
+.updatebrand-btn-update:hover {
+    background-color: #176d6d !important;
+}
+
+.updatebrand-preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+}
+
+#updatebrand_logo_preview {
+    max-width: 150px;
+    display: block;
+    margin: 0 auto;
+}
+
+#updatebrand_remove_image {
+    margin-top: 10px;
+}

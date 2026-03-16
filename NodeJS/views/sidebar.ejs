@@ -1,0 +1,97 @@
+<div class="custom-header-menu-mobile">
+    <button class="custom-show-sidebar-btn custom-sidebar-toggle" onclick="toggleSidebar()"><i
+            class="fas fa-bars"></i></button>
+</div>
+<div class="custom-sidebar" id="sidebar">
+    <h3 class="text-center">Adminator</h3>
+    <a href="/"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+
+
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#submenuStock">
+        <i class="fas fa-cube"></i> Quản lý kho <i class="fas fa-caret-down"></i>
+    </a>
+    <ul class="collapse list-unstyled ms-3" id="submenuStock">
+        <li><a href="/liststock"><i class="fas fa-plus"></i> Nhập/Xuất </a></li>
+        <li><a href="/stockhistory"><i class="fas fa-history"></i> Truy cập thông tin </a></li>
+    </ul>
+
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#submenuProduct">
+        <i class="fas fa-cube"></i> Quản lý sản phẩm <i class="fas fa-caret-down"></i>
+    </a>
+    <ul class="collapse list-unstyled ms-3" id="submenuProduct">
+        <li><a href="/addproduct"><i class="fas fa-plus"></i> Thêm sản phẩm</a></li>
+        <li><a href="/listproduct"><i class="fas fa-edit"></i> Cập nhật</a></li>
+    </ul>
+    <a href="/listproductdetail"><i class="fas fa-cogs"></i> Chi tiết sản phẩm</a>
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#submenuCategory">
+        <i class="fas fa-list-alt"></i> Loại sản phẩm <i class="fas fa-caret-down"></i>
+    </a>
+    <ul class="collapse list-unstyled ms-3" id="submenuCategory">
+        <li><a href="/addcategory"><i class="fas fa-plus"></i> Thêm loại</a></li>
+        <li><a href="/listcategory"><i class="fas fa-edit"></i> Cập nhật loại</a></li>
+    </ul>
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#submenuBrand">
+        <i class="fas fa-list-alt"></i> Hãng sản phẩm <i class="fas fa-caret-down"></i>
+    </a>
+    <ul class="collapse list-unstyled ms-3" id="submenuBrand">
+        <li><a href="/addbrand"><i class="fas fa-plus"></i> Thêm hãng</a></li>
+        <li><a href="/listbrand"><i class="fas fa-edit"></i> Cập nhật hãng</a></li>
+    </ul>
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#submenuVoucher">
+        <i class="fas fa-ticket-alt"></i> Voucher <i class="fas fa-caret-down"></i>
+    </a>
+    <ul class="collapse list-unstyled ms-3" id="submenuVoucher">
+        <li><a href="/addvoucher"><i class="fas fa-plus"></i> Thêm voucher</a></li>
+        <li><a href="/listvoucher"><i class="fas fa-edit"></i> Cập nhật voucher</a></li>
+    </ul>   
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#submenuLocation">
+        <i class="fas fa-map-marker-alt"></i> Quản lý Cửa hàng <i class="fas fa-caret-down"></i>
+    </a>    
+    <ul class="collapse list-unstyled ms-3" id="submenuLocation">
+        <li><a href="/addstore"><i class="fas fa-plus"></i> Thêm vị trí</a></li>
+        <li><a href="/liststore"><i class="fas fa-edit"></i> Vị trí</a></li>
+    </ul> 
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#submenuUser">
+        <i class="fas fa-users"></i> Quản lý tài khoản <i class="fas fa-caret-down"></i>
+    </a>    
+    <ul class="collapse list-unstyled ms-3" id="submenuUser">
+        <li><a href="/adduser"><i class="fas fa-plus"></i> Thêm người dùng</a></li>
+        <li><a href="/listuser"><i class="fas fa-edit"></i> Cập nhật </a></li>
+    </ul> 
+
+    <a href="/listorder"><i class="fas fa-file-alt"></i> Quản lý đơn hàng</a>
+
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#submenuNews">
+        <i class="fas fa-newspaper"></i> Quản lý tin tức <i class="fas fa-caret-down"></i>
+    </a>
+    <ul class="collapse list-unstyled ms-3" id="submenuNews">
+        <li><a href="/addnews"><i class="fas fa-plus"></i> Thêm tin tức</a></li>
+        <li><a href="/listnews"><i class="fas fa-edit"></i> Cập nhật</a></li>
+    </ul>
+    <a href="#" data-bs-toggle="collapse" data-bs-target="#submenuReview">
+        <i class="fas fa-star"></i> Quản lý đánh giá <i class="fas fa-caret-down"></i>
+    </a>
+    <ul class="collapse list-unstyled ms-3" id="submenuReview">
+        <li><a href="/listreviews"><i class="fas fa-list-ul"></i> Danh sách đánh giá</a></li>
+        <li><a href="/statstopratedproducts"><i class="fas fa-chart-bar"></i> Thống kê đánh giá</a></li>
+    </ul>
+    <a href="#"><i class="fas fa-file-contract"></i> Điều khoản sử dụng</a>
+    <a href="/logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+    <a href="#" onclick="toggleSidebar()" class="custom-hide-sidebar-btn"><i class="fa-solid fa-caret-left"></i> Thu
+        nhỏ</a>
+</div>
+<script>
+        function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const contentBlur = document.getElementById('contentBlur');
+        sidebar.classList.toggle('show');
+        if (sidebar.classList.contains('show')) {
+            contentBlur.style.display = 'block';
+        } else {
+            contentBlur.style.display = 'none';
+        }
+    }
+</script>

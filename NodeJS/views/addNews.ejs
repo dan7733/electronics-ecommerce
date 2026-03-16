@@ -1,0 +1,112 @@
+<div class="container">
+    <div class="addnews-inforinput card p-4 shadow-sm mt-5">
+        <h4 class="mb-3">
+            <i class="fas fa-plus-circle text-primary"></i> Thêm tin tức
+        </h4>
+        <% if (data && data.message) { %>
+            <div class="alert alert-info">
+                <%= data.message %>
+            </div>
+        <% } %>
+        <form action="/addnews" method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-heading"></i> Tiêu đề</label>
+                <input type="text" class="form-control" name="newsTitle" placeholder="Nhập tiêu đề" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-align-left"></i> Tóm tắt</label>
+                <textarea class="form-control" name="newsSummary" placeholder="Nhập tóm tắt" rows="3" required></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-align-justify"></i> Nội dung chi tiết</label>
+                <textarea id="news_content" name="newsContent"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-image"></i> Ảnh tin tức</label>
+                <div class="addnews-upload-box" id="addnews_drop_area">
+                    <input type="file" name="news_image" id="addnews_image_input" accept="image/*" style="display: none;">
+                    <div id="addnews_click_area" style="cursor: pointer;">
+                        <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                        <p>Kéo & thả hoặc nhấn để tải lên</p>
+                    </div>
+                    <div class="addnews-preview-container" id="addnews_preview_container" style="display: none;">
+                        <img id="addnews_image_preview" class="img-thumbnail mt-2">
+                        <button type="button" class="btn btn-danger" id="addnews_remove_image">Xóa</button>
+                    </div>
+                </div>
+                <span class="addnews-file-name" id="addnews_file_name"></span>
+            </div>
+
+            <button type="submit" class="btn addnews-btn-add">
+                <i class="fas fa-check"></i> Thêm tin tức
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    CKEDITOR.replace('news_content');
+
+    document.addEventListener("DOMContentLoaded", function () {
+        let imgInput = document.getElementById("addnews_image_input");
+        let clickArea = document.getElementById("addnews_click_area");
+        let dropArea = document.getElementById("addnews_drop_area");
+        let fileNameSpan = document.getElementById("addnews_file_name");
+        let imgPreview = document.getElementById("addnews_image_preview");
+        let previewContainer = document.getElementById("addnews_preview_container");
+        let removeImageButton = document.getElementById("addnews_remove_image");
+
+        clickArea.addEventListener("click", function () {
+            imgInput.click();
+        });
+
+        imgInput.addEventListener("change", function (event) {
+            let file = event.target.files[0];
+            if (file) {
+                fileNameSpan.textContent = file.name;
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    imgPreview.src = e.target.result;
+                    previewContainer.style.display = "flex";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        dropArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropArea.classList.add("highlight");
+        });
+
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.classList.remove("highlight");
+        });
+
+        dropArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropArea.classList.remove("highlight");
+
+            let file = e.dataTransfer.files[0];
+            if (file) {
+                imgInput.files = e.dataTransfer.files;
+                fileNameSpan.textContent = file.name;
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    imgPreview.src = e.target.result;
+                    previewContainer.style.display = "flex";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removeImageButton.addEventListener("click", function () {
+            imgInput.value = "";
+            imgPreview.src = "";
+            previewContainer.style.display = "none";
+            fileNameSpan.textContent = "";
+        });
+    });
+</script>

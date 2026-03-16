@@ -1,0 +1,108 @@
+<div class="container">
+    <div class="addbrand-inforinput card p-4 shadow-sm">
+        <h4 class="mb-3">
+            <i class="fas fa-plus-circle text-primary"></i> Thêm hãng
+        </h4>
+        <% if (data && data.message) { %>
+            <div class="alert alert-info">
+                <%= data.message %>
+            </div>
+        <% } %>
+        <form action="/addbrand" method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-tag"></i> Tên hãng</label>
+                <input type="text" class="form-control" name="addbrand_name" placeholder="Nhập tên hãng">
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-tag"></i> Quốc Gia Sản Xuất</label>
+                <input type="text" class="form-control" name="addbrand_country" placeholder="Nhập tên hãng">
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-image"></i> Logo</label>
+                <div class="addbrand-upload-box" id="addbrand_drop_area">
+                    <input type="file" name="addbrand_logo" id="addbrand_logo_input" accept="image/*" style="display: none;">
+                    <div id="addbrand_click_area" style="cursor: pointer;">
+                        <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                        <p>Kéo & thả hoặc nhấn để tải lên</p>
+                    </div>
+                    <div class="addbrand-preview-container" id="addbrand_preview_container" style="display: none;">
+                        <img id="addbrand_logo_preview" class="img-thumbnail mt-2">
+                        <button type="button" class="btn btn-danger" id="addbrand_remove_image">Xóa</button>
+                    </div>
+                </div>
+                <span class="addbrand-file-name" id="addbrand_file_name"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-star"></i> Độ nổi bật</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" name="addbrand_highlight" placeholder="Nhập độ nổi bật (0-5)" id="addbrand_highlight" min="0" max="5">
+                </div>
+            </div>
+            <button type="submit" class="btn addbrand-btn-add">
+                <i class="fas fa-check"></i> Thêm hãng
+            </button>
+        </form>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    let logoInput = document.getElementById("addbrand_logo_input");
+    let clickArea = document.getElementById("addbrand_click_area");
+    let dropArea = document.getElementById("addbrand_drop_area");
+    let fileNameSpan = document.getElementById("addbrand_file_name");
+    let logoPreview = document.getElementById("addbrand_logo_preview");
+    let previewContainer = document.getElementById("addbrand_preview_container");
+    let removeImageButton = document.getElementById("addbrand_remove_image");
+
+    clickArea.addEventListener("click", function () {
+        logoInput.click();
+    });
+
+    logoInput.addEventListener("change", function (event) {
+        let file = event.target.files[0];
+        if (file) {
+            fileNameSpan.textContent = file.name;
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                logoPreview.src = e.target.result;
+                previewContainer.style.display = "flex";
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    dropArea.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropArea.classList.add("highlight");
+    });
+
+    dropArea.addEventListener("dragleave", () => {
+        dropArea.classList.remove("highlight");
+    });
+
+    dropArea.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropArea.classList.remove("highlight");
+
+        let file = e.dataTransfer.files[0];
+        if (file) {
+            logoInput.files = e.dataTransfer.files;
+            fileNameSpan.textContent = file.name;
+            let reader = new FileReader();
+            reader.onload = function (e) {
+                logoPreview.src = e.target.result;
+                previewContainer.style.display = "flex";
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    removeImageButton.addEventListener("click", function () {
+        logoInput.value = "";
+        logoPreview.src = "";
+        previewContainer.style.display = "none";
+        fileNameSpan.textContent = "";
+    });
+});
+
+</script>

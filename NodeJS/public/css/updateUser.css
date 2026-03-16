@@ -1,0 +1,76 @@
+.updateuser-upload-box {
+    border: 2px dashed #218282;
+    border-radius: 10px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    background: white;
+    position: relative;
+}
+
+.updateuser-upload-box * {
+    color: #218282 !important;
+}
+
+.updateuser-inforinput > h4{
+    color: #218282;
+}
+
+.updateuser-inforinput h4 i{
+    color: #218282 !important;
+}
+
+.updateuser-upload-box:hover {
+    background: #218282;
+}
+
+.updateuser-upload-box:hover * {
+    color: white !important;
+}
+
+.updateuser-upload-box input {
+    display: none;
+}
+
+.updateuser-file-name {
+    margin-top: 10px;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.updateuser-inforinput {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.updateuser-btn-add {
+    background-color: #218282 !important;
+    color: white !important;
+    border: none;
+}
+
+.updateuser-btn-add i {
+    color: white !important;
+}
+
+.updateuser-btn-add:hover {
+    background-color: #176d6d !important;
+}
+
+.updateuser-preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 10px;
+}
+
+#updateuser_logo_preview {
+    max-width: 150px;
+    display: block;
+    margin: 0 auto;
+}
+
+#updateuser_remove_image {
+    margin-top: 10px;
+}

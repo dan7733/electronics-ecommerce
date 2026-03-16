@@ -1,0 +1,262 @@
+/* CSS cho listStockHistory */
+.stockhistory-container {
+    padding: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.stockhistory-list {
+    border-radius: 12px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.stockhistory-text-primary {
+    color: #218282 !important;
+}
+
+.stockhistory-table-primary {
+    background-color: #e6f0f0 !important;
+}
+
+.stockhistory-btn-primary {
+    background-color: #218282;
+    border-color: #218282;
+    color: white;
+    border-radius: 6px;
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+}
+
+.stockhistory-btn-primary:hover {
+    background-color: #1c6d6d;
+    border-color: #1c6d6d;
+    opacity: 0.9;
+}
+
+.stockhistory-btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+    border-radius: 6px;
+    padding: 8px 16px;
+    transition: all 0.3s ease;
+}
+
+.stockhistory-btn-success:hover {
+    background-color: #218838;
+    border-color: #218838;
+    opacity: 0.9;
+}
+
+.stockhistory-bg-success {
+    background-color: #28a745 !important;
+    color: white;
+}
+
+.stockhistory-bg-danger {
+    background-color: #dc3545 !important;
+    color: white;
+}
+
+.stockhistory-badge {
+    font-size: 0.85em;
+    padding: 0.4em 0.8em;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.stockhistory-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+.stockhistory-table th,
+.stockhistory-table td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 12px;
+    border: 1px solid #dee2e6;
+}
+
+.stockhistory-table thead tr th {
+    background-color: #218282;
+    color: white;
+    font-weight: 600;
+}
+
+.stockhistory-table tbody tr td {
+    color: #218282;
+}
+
+.stockhistory-table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.stockhistory-table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f9fbfc;
+}
+
+/* CSS cho phần lọc */
+.stockhistory-filter-form {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stockhistory-filter-row {
+    align-items: center;
+}
+
+.stockhistory-searchinput {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    padding: 10px;
+    color: #218282;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stockhistory-searchinput::placeholder {
+    color: #218282;
+    opacity: 0.7;
+}
+
+.stockhistory-searchinput:focus {
+    border-color: #218282;
+    box-shadow: 0 0 0 0.2rem rgba(33, 130, 130, 0.25);
+}
+
+.stockhistory-filter-container {
+    position: relative;
+}
+
+.stockhistory-filter {
+    background-color: #218282;
+    color: white !important;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    transition: background-color 0.3s ease;
+    font-size: 0.9em;
+}
+
+.stockhistory-filter:hover {
+    background-color: #1c6d6d;
+}
+
+.stockhistory-option {
+    background-color: #ffffff;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stockhistory-option a {
+    color: #218282 !important;
+    padding: 8px 16px;
+    transition: background-color 0.3s ease;
+}
+
+.stockhistory-option a:hover {
+    background-color: #e6f0f0;
+    color: #1c6d6d !important;
+}
+
+.stockhistory-form-control {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    padding: 8px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stockhistory-form-control:focus {
+    border-color: #218282;
+    box-shadow: 0 0 0 0.2rem rgba(33, 130, 130, 0.25);
+}
+
+.stockhistory-form-label {
+    color: #218282;
+    font-weight: 500;
+    font-size: 0.9em;
+}
+
+/* CSS cho phân trang */
+.stockhistory-pagination {
+    margin-top: 20px;
+}
+
+.stockhistory-pagination .page-item {
+    margin: 0 2px;
+}
+
+.stockhistory-pagination .page-link {
+    background-color: #218282;
+    color: white;
+    border: none;
+    border-radius: 0;
+    padding: 8px 14px;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+}
+
+.stockhistory-pagination .page-link:hover {
+    background-color: white;
+    color: #218282;
+    border: 1px solid #218282;
+}
+
+.stockhistory-pagination .active .page-link {
+    background-color: #1c6d6d;
+    color: white;
+    border: 1px solid #1c6d6d;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stockhistory-pagination .disabled .page-link {
+    background-color: #e9ecef;
+    color: #6c757d;
+    border: none;
+    cursor: not-allowed;
+}
+
+.stockhistory-alert {
+    border-radius: 6px;
+    font-size: 0.9em;
+}
+@media (max-width: 768px) {
+    .stockhistory-filter-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .stockhistory-filter-container {
+        margin-bottom: 10px;
+    }
+
+    .stockhistory-btn-primary {
+        font-size: 0.9em;
+    }
+
+    .stockhistory-table th,
+    .stockhistory-table td {
+        padding: 8px;
+        font-size: 0.85em;
+    }
+}
+
+@media (max-width: 576px) {
+    .stockhistory-searchinput {
+        width: 100%;
+    }
+
+    .stockhistory-filter-container {
+        width: 100%;
+    }
+
+    .stockhistory-filter {
+        width: 100%;
+    }
+}

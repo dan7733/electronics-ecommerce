@@ -1,0 +1,30 @@
+.updatecategory-inforinput {
+    background: white;
+    padding: 20px;
+    box-shadow: none !important;
+    border: none; 
+    border-radius: 8px;
+}
+.updatecategory-inforinput * {
+    color: #218282 !important;
+}
+.updatecategory-btn-add {
+    background-color: #218282 !important;
+    color: white !important;
+    border: none;
+}
+.updatecategory-btn-add i {
+    color: white !important;
+}
+.updatecategory-btn-add:hover {
+    background-color: #176d6d !important;
+}
+.updatecategory-input-group-text {
+    background-color: #218282 !important;
+    border: none;
+    font-weight: bold;
+    padding: 8px;
+}
+.updatecategory-input-group-text > i{
+    color: white !important;
+}

@@ -1,0 +1,151 @@
+.container-cart{
+    margin-bottom: 20px;
+}
+.product-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    background-color: #ffffff;
+}
+
+.product-img {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+}
+
+.price-old {
+    text-decoration: line-through;
+    color: #999999;
+    font-size: 14px;
+}
+
+.price-new {
+    color: #218282;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.btn-quantity {
+    width: 32px;
+    border: 1px solid #218282;
+    color: #218282;
+    background-color: #ffffff;
+}
+
+.btn-quantity:hover {
+    background-color: #218282;
+    color: #ffffff;
+}
+
+.page-nav button {
+    margin: 0 4px;
+}
+
+.detailproduct-trash-all i,
+.detailproduct-trash i {
+    color: #218282;
+    font-size: 18px;
+}
+
+.detailproduct-check,
+.detailproduct-checks {
+    height: 20px;
+    width: 20px;
+    accent-color: #218282;
+}
+
+.detailproduct-pagination-container .btn {
+    width: 40px;
+    height: 40px;
+}
+
+.checkout-btn {
+    background-color: #218282;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    font-weight: bold;
+}
+
+.checkout-btn:hover {
+    background-color: #1a6b6b;
+}
+
+.checkout-btn:disabled {
+    background-color: #cccccc;
+    color: #ffffff;
+    cursor: not-allowed;
+}
+
+/* Custom Pagination Styles */
+.custom-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 8px;
+}
+
+.custom-pagination-button {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #218282;
+    border-radius: 4px;
+    background-color: #ffffff;
+    color: #218282;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.custom-pagination-button:hover:not([disabled]) {
+    background-color: #218282;
+    color: #ffffff;
+}
+
+.custom-pagination-button.active {
+    background-color: #218282;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.custom-pagination-button:disabled {
+    border-color: #cccccc;
+    color: #cccccc;
+    cursor: not-allowed;
+}
+
+.custom-pagination-button.arrow {
+    font-size: 18px;
+}
+
+@media screen and (max-width: 767px) {
+    .detailproduct-checks {
+        height: 17px;
+        width: 17px;
+    }
+
+    .product-card {
+        padding: 8px;
+    }
+
+    .price-new {
+        font-size: 14px;
+    }
+
+    .custom-pagination-button {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .custom-pagination-button.arrow {
+        font-size: 16px;
+    }
+}

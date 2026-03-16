@@ -1,0 +1,144 @@
+<div class="container">
+    <div class="addproduct-inforinput card p-4 shadow-sm mt-5">
+        <h4 class="mb-3">
+            <i class="fas fa-plus-circle text-primary"></i> Thêm sản phẩm
+        </h4>
+        <% if (data && data.message) { %>
+            <div class="alert alert-info">
+                <%= data.message %>
+            </div>
+        <% } %>
+        <form action="/addproduct" method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-tag"></i> Tên sản phẩm</label>
+                <input type="text" class="form-control" name="productName" placeholder="Nhập tên sản phẩm" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-dollar-sign"></i> Giá</label>
+                <input type="number" class="form-control" name="productPrice" placeholder="Nhập giá sản phẩm" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-percent"></i> Giá giảm (nếu có)</label>
+                <input type="number" class="form-control" name="ProductDiscount_price" placeholder="Nhập giá giảm">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-list"></i> Mô tả sản phẩm</label>
+                <textarea id="product_description" name="productDescription"></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-image"></i> Ảnh sản phẩm</label>
+                <div class="addproduct-upload-box" id="addproduct_drop_area">
+                    <input type="file" name="product_image" id="addproduct_image_input" accept="image/*" style="display: none;">
+                    <div id="addproduct_click_area" style="cursor: pointer;">
+                        <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                        <p>Kéo & thả hoặc nhấn để tải lên</p>
+                    </div>
+                    <div class="addproduct-preview-container" id="addproduct_preview_container" style="display: none;">
+                        <img id="addproduct_image_preview" class="img-thumbnail mt-2">
+                        <button type="button" class="btn btn-danger" id="addproduct_remove_image">Xóa</button>
+                    </div>
+                </div>
+                <span class="addproduct-file-name" id="addproduct_file_name"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-building"></i> Thương hiệu</label>
+                <% if (typeof data.brands !== "undefined" && Array.isArray(data.brands) && data.brands.length > 0) { %>
+                    <select class="form-control" name="brand_id">
+                        <option value="">Chọn thương hiệu</option>
+                        <% data.brands.forEach(function(brand) { %>
+                            <option value="<%= brand.brand_id %>"><%= brand.name %></option>
+                        <% }); %>
+                    </select>
+                <% } else { %>
+                    <p class="text-danger">Không có thương hiệu nào.</p>
+                <% } %>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-layer-group"></i> Danh mục</label>
+                <% if (typeof data.categories !== "undefined" && Array.isArray(data.categories) && data.categories.length > 0) { %>
+                    <select class="form-control" name="category_id" required>
+                        <option value="">Chọn danh mục</option>
+                        <% data.categories.forEach(function(category) { %>
+                            <option value="<%= category.category_id %>"><%= category.name %></option>
+                        <% }); %>
+                    </select>
+                <% } else { %>
+                    <p class="text-danger">Không có danh mục nào.</p>
+                <% } %>
+            </div>
+            
+            <button type="submit" class="btn addproduct-btn-add">
+                <i class="fas fa-check"></i> Thêm sản phẩm
+            </button>
+        </form>
+    </div>
+</div>
+<script>
+    CKEDITOR.replace('product_description');
+
+    document.addEventListener("DOMContentLoaded", function () {
+        let imgInput = document.getElementById("addproduct_image_input");
+        let clickArea = document.getElementById("addproduct_click_area");
+        let dropArea = document.getElementById("addproduct_drop_area");
+        let fileNameSpan = document.getElementById("addproduct_file_name");
+        let imgPreview = document.getElementById("addproduct_image_preview");
+        let previewContainer = document.getElementById("addproduct_preview_container");
+        let removeImageButton = document.getElementById("addproduct_remove_image");
+
+        clickArea.addEventListener("click", function () {
+            imgInput.click();
+        });
+
+        imgInput.addEventListener("change", function (event) {
+            let file = event.target.files[0];
+            if (file) {
+                fileNameSpan.textContent = file.name;
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    imgPreview.src = e.target.result;
+                    previewContainer.style.display = "flex";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        dropArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropArea.classList.add("highlight");
+        });
+
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.classList.remove("highlight");
+        });
+
+        dropArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropArea.classList.remove("highlight");
+
+            let file = e.dataTransfer.files[0];
+            if (file) {
+                imgInput.files = e.dataTransfer.files;
+                fileNameSpan.textContent = file.name;
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    imgPreview.src = e.target.result;
+                    previewContainer.style.display = "flex";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removeImageButton.addEventListener("click", function () {
+            imgInput.value = "";
+            imgPreview.src = "";
+            previewContainer.style.display = "none";
+            fileNameSpan.textContent = "";
+        });
+    });
+</script>

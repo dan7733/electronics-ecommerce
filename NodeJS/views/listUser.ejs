@@ -1,0 +1,118 @@
+<div class="container listuser-container">
+    <% if (data.message) { %>
+        <div class="alert alert-info"><%= data.message %></div>
+    <% } %>
+
+    <h4 class="mb-3 listuser-title">Danh sách Người dùng</h4>
+
+    <div class="d-flex justify-content-between mb-2 listuser-container">
+        <input type="text" id="user_searchInput" class="form-control w-50 listuser-searchinput"
+            placeholder="🔍 Tìm kiếm theo tên người dùng..." value="<%= data.search %>">
+
+        <div class="dropdown listuser-filter-container">
+            <button class="btn btn-secondary dropdown-toggle listuser-filter" type="button" id="filterDropdown"
+                data-bs-toggle="dropdown">
+                <i class="fa-solid fa-filter"></i> Lọc
+            </button>
+            <ul class="dropdown-menu listuser-option">
+                <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>">Reset</a></li>
+                <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&sort=role_asc">Quyền tăng</a></li>
+                <li><a class="dropdown-item" href="?page=1&search=<%= data.search %>&sort=role_desc">Quyền giảm</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="table-responsive rounded p-2">
+        <table class="table table-bordered listuser-table">
+            <thead class="table-light">
+                <tr>
+                    <th>STT</th>
+                    <th>Username</th>
+                    <th>Tên người dùng</th>
+                    <th>Email</th>
+                    <th>Điện thoại</th>
+                    <th>Vai trò</th>
+                    <th>Trạng thái</th>
+                    <th colspan="2">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (data.rows && data.rows.length > 0) { %>
+                    <% data.rows.forEach((user, index) => { %>
+                        <tr>
+                            <td><%= (data.currentPage - 1) * 5 + index + 1 %></td>
+                            <td><%- user.username || '<i class="fa fa-times text-danger"></i>' %></td>
+                            <td><%- user.fullname || '<i class="fa fa-times text-danger"></i>' %></td>
+                            <td><%- user.email || '<i class="fa fa-times text-danger"></i>' %></td>
+                            <td><%- user.phone || '<i class="fa fa-times text-danger"></i>' %></td>
+                            <td><%= user.role === 1 ? 'Admin' : 'User' %></td>
+                            <td><%- user.status || '<i class="fa fa-times text-danger"></i>' %></td>
+                            <td>
+                                <a href="/edituser/<%= user.user_id %>" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-pencil-square"></i> Sửa
+                                </a>
+                                <form action="/deleteuser" method="POST" style="display:inline-block;" 
+                                    onsubmit="return confirm('Bạn có chắc chắn muốn xóa người dùng này không?');">
+                                    <input type="hidden" name="user_id" value="<%= user.user_id %>" />
+                                    <button class="btn btn-sm btn-danger" type="submit">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr><td colspan="9">Không có người dùng nào được tìm thấy.</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <nav>
+        <ul class="pagination justify-content-center listuser-pagination">
+            <li class="page-item <%= data.currentPage === 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= data.currentPage - 1 %>&search=<%= data.search %>&sort=<%= data.sort %>">«</a>
+            </li>
+
+            <li class="page-item <%= data.currentPage === 1 ? 'active' : '' %>">
+                <a class="page-link" href="?page=1&search=<%= data.search %>&sort=<%= data.sort %>">1</a>
+            </li>
+
+            <% if (data.currentPage > 4) { %>
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            <% } %>
+
+            <% for (let i = Math.max(2, data.currentPage - 2); i <= Math.min(data.totalPages - 1, data.currentPage + 2); i++) { %>
+                <li class="page-item <%= data.currentPage === i ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= i %>&search=<%= data.search %>&sort=<%= data.sort %>"><%= i %></a>
+                </li>
+            <% } %>
+
+            <% if (data.currentPage < data.totalPages - 3) { %>
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            <% } %>
+
+            <% if (data.totalPages > 1) { %>
+                <li class="page-item <%= data.currentPage === data.totalPages ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= data.totalPages %>&search=<%= data.search %>&sort=<%= data.sort %>"><%= data.totalPages %></a>
+                </li>
+            <% } %>
+
+            <li class="page-item <%= data.currentPage === data.totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= data.currentPage + 1 %>&search=<%= data.search %>&sort=<%= data.sort %>">»</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script>
+document.getElementById('user_searchInput').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        const keyword = e.target.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('search', keyword);
+        urlParams.set('page', 1); // Reset về trang 1 khi tìm kiếm mới
+        window.location.href = `?${urlParams.toString()}`;
+    }
+});
+</script>

@@ -1,0 +1,87 @@
+<div class="container listreviews-container">
+    <h4 class="mb-3 listreviews-title">Thống kê Sản phẩm Đánh giá Cao</h4>
+  
+    <div class="mb-2">
+      <label for="limitSelect" class="form-label">Số sản phẩm hiển thị:</label>
+      <select id="limitSelect" class="form-select w-25" onchange="updateLimit(this.value)">
+        <option value="5" <%= data.limit == 5 ? 'selected' : '' %>>5</option>
+        <option value="10" <%= data.limit == 10 ? 'selected' : '' %>>10</option>
+        <option value="20" <%= data.limit == 20 ? 'selected' : '' %>>20</option>
+      </select>
+    </div>
+  
+    <div class="table-responsive rounded p-2">
+      <table class="table table-bordered listreviews-table">
+        <thead class="table-light">
+          <tr>
+            <th>STT</th>
+            <th>Sản phẩm</th>
+            <th>Ảnh</th>
+            <th>Điểm trung bình</th>
+            <th>Số đánh giá</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (data.rows && data.rows.length > 0) { %>
+            <% data.rows.forEach((item, index) => { %>
+              <tr>
+                <td><%= (data.currentPage - 1) * data.limit + index + 1 %></td>
+                <td><%= item.Product ? item.Product.name : 'N/A' %></td>
+                <td>
+                  <% if (item.Product && item.Product.product_img) { %>
+                    <img src="/images/products/<%= item.Product.product_img %>" alt="<%= item.Product.name %>" width="50">
+                  <% } else { %>
+                    Không có ảnh
+                  <% } %>
+                </td>
+                <td><%= parseFloat(item.dataValues.average_rating).toFixed(2) %></td>
+                <td><%= item.dataValues.review_count %></td>
+              </tr>
+            <% }) %>
+          <% } else { %>
+            <tr><td colspan="5">Không có sản phẩm nào được đánh giá.</td></tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  
+    <!-- Phân trang -->
+    <nav>
+      <ul class="pagination justify-content-center listreviews-pagination">
+        <li class="page-item <%= data.currentPage === 1 ? 'disabled' : '' %>">
+          <a class="page-link" href="?page=<%= data.currentPage - 1 %>&limit=<%= data.limit %>">«</a>
+        </li>
+        <li class="page-item <%= data.currentPage === 1 ? 'active' : '' %>">
+          <a class="page-link" href="?page=1&limit=<%= data.limit %>">1</a>
+        </li>
+        <% if (data.currentPage > 4) { %>
+          <li class="page-item disabled"><span class="page-link">...</span></li>
+        <% } %>
+        <% for (let i = Math.max(2, data.currentPage - 2); i <= Math.min(data.totalPages - 1, data.currentPage + 2); i++) { %>
+          <li class="page-item <%= data.currentPage === i ? 'active' : '' %>">
+            <a class="page-link" href="?page=<%= i %>&limit=<%= data.limit %>"><%= i %></a>
+          </li>
+        <% } %>
+        <% if (data.currentPage < data.totalPages - 3) { %>
+          <li class="page-item disabled"><span class="page-link">...</span></li>
+        <% } %>
+        <% if (data.totalPages > 1) { %>
+          <li class="page-item <%= data.currentPage === data.totalPages ? 'active' : '' %>">
+            <a class="page-link" href="?page=<%= data.totalPages %>&limit=<%= data.limit %>"><%= data.totalPages %></a>
+          </li>
+        <% } %>
+        <li class="page-item <%= data.currentPage === data.totalPages ? 'disabled' : '' %>">
+          <a class="page-link" href="?page=<%= data.currentPage + 1 %>&limit=<%= data.limit %>">»</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+  
+  <script>
+  function updateLimit(limit) {
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('limit', limit);
+    urlParams.set('page', 1);
+    window.location.href = `?${urlParams.toString()}`;
+  }
+  </script>

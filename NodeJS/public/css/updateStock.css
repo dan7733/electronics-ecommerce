@@ -1,0 +1,27 @@
+.updatestock-inforinput {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.updatestock-inforinput > h4 {
+    color: #218282;
+}
+
+.updatestock-inforinput h4 i {
+    color: #218282 !important;
+}
+
+.updatestock-btn-update {
+    background-color: #218282 !important;
+    color: white !important;
+    border: none;
+}
+
+.updatestock-btn-update i {
+    color: white !important;
+}
+
+.updatestock-btn-update:hover {
+    background-color: #176d6d !important;
+}

@@ -1,0 +1,103 @@
+.listreviews-container {
+    padding: none;
+  }
+  
+  .listreviews-table th,
+  .listreviews-table td {
+    text-align: center;
+    vertical-align: middle;
+  }
+  
+  .listreviews-table thead tr th {
+    background-color: #218282;
+    color: white;
+  }
+  
+  .listreviews-table tbody tr td {
+    color: #218282;
+  }
+  
+  .listreviews-title {
+    color: #218282;
+  }
+  
+  .listreviews-filter {
+    background-color: #218282;
+    color: white;
+  }
+  
+  .listreviews-option {
+    background-color: #218282;
+    color: white !important;
+  }
+  
+  .listreviews-option a {
+    color: white !important;
+  }
+  
+  .listreviews-option a:hover {
+    opacity: 0.7;
+    background: none;
+  }
+  
+  .listreviews-searchinput {
+    color: #218282;
+  }
+  
+  .listreviews-searchinput::placeholder {
+    color: #218282;
+  }
+  
+  .listreviews-pagination .page-link {
+    background-color: #218282;
+    color: white;
+    border: none;
+  }
+  
+  .listreviews-pagination .page-link:hover {
+    background-color: white;
+    color: #218282;
+    border: 1px solid #218282;
+  }
+  
+  .listreviews-pagination .active .page-link {
+    background-color: #125e5e;
+    color: white;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  }
+  
+  @media (max-width: 600px) {
+    .listreviews-container {
+      flex-direction: column !important;
+      gap: 10px;
+    }
+  
+    .listreviews-searchinput {
+      width: 100% !important;
+      margin-top: 5px;
+    }
+  
+    .listreviews-filter-container {
+      display: flex;
+      justify-content: flex-end;
+    }
+  }
+
+  .list-group {
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border: 1px solid #218282;
+  }
+  
+  .list-group-item {
+    color: #218282;
+    cursor: pointer;
+  }
+  
+  .list-group-item:hover {
+    background-color: #e0f7f7;
+    opacity: 0.9;
+  }

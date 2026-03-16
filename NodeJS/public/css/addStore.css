@@ -1,0 +1,34 @@
+.addstore-inforinput {
+    background: white;
+    padding: 20px;
+    box-shadow: none !important;
+    border: none; 
+    border-radius: 8px;
+}
+.addstore-inforinput * {
+    color: #218282 !important;
+}
+.addstore-btn-add {
+    background-color: #218282 !important;
+    color: white !important;
+    border: none;
+    padding: 10px 20px; /* Thêm padding để nút trông đẹp hơn */
+    border-radius: 5px; /* Bo góc nhẹ */
+    font-weight: bold; /* Chữ đậm để nổi bật */
+}
+.addstore-btn-add i {
+    color: white !important;
+}
+.addstore-btn-add:hover {
+    background-color: #176d6d !important; /* Màu tối hơn khi hover */
+    color: white !important; /* Đảm bảo chữ trắng khi hover */
+}
+.addstore-input-group-text {
+    background-color: #218282 !important;
+    border: none;
+    font-weight: bold;
+    padding: 8px;
+}
+.addstore-input-group-text > i {
+    color: white !important;
+}

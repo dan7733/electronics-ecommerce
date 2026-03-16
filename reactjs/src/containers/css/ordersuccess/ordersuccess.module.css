@@ -1,0 +1,61 @@
+.successSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.successIcon {
+    font-size: 100px;
+    color: #218282;
+    margin-bottom: 20px;
+    animation: bounce 1s infinite;
+}
+
+.successTitle {
+    font-size: 40px;
+    font-weight: bold;
+    color: #218282;
+}
+
+.successMessage {
+    font-size: 20px;
+    margin-top: 10px;
+    max-width: 600px;
+    color: #333;
+}
+
+.btnCustom {
+    background-color: #218282;
+    color: white;
+    border-radius: 50px;
+    padding: 12px 30px;
+    margin-top: 30px;
+    font-size: 18px;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btnCustom:hover {
+    background-color: #1a6c6c;
+    color: #fff;
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}

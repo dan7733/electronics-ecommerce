@@ -1,0 +1,76 @@
+.liststock-container {
+    padding: none;
+}
+
+.liststock-table th,
+.liststock-table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.liststock-table thead tr th {
+    background-color: #218282;
+    color: white;
+}
+
+.liststock-table tbody tr td {
+    color: #218282;
+}
+
+.action-btns .btn {
+    margin: 2px;
+}
+
+.liststock-title {
+    color: #218282;
+}
+
+.liststock-filter {
+    background-color: #218282;
+    color: white;
+}
+
+.liststock-option {
+    background-color: #218282;
+    color: white !important;
+}
+
+.liststock-option a {
+    color: white !important;
+}
+.liststock-option a:hover { 
+    opacity: 0.1;
+    background: none;
+}
+.liststock-searchinput {
+    color: #218282;
+}
+
+.liststock-searchinput::placeholder {
+    color: #218282;
+}
+
+.liststock-pagination .page-link {
+    background-color: #218282;
+    color: white;
+    border: none;
+}
+
+.liststock-pagination .page-link:hover {
+    background-color: white;
+    color: #218282;
+}
+
+.liststock-pagination .active .page-link {
+    background-color: #218282;
+    color: white;
+}
+
+.liststock-pagination .disabled .page-link {
+    background-color: #ddd;
+    color: #bbb;
+}
+
+.liststock-pagination .page-link {
+    border-radius: 0 !important;
+}

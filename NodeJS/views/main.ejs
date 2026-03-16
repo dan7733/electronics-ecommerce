@@ -1,0 +1,208 @@
+<div class="custom-content" id="content">
+    <div class="container-fluid">
+        <h2 class="mb-3">Tổng quan hệ thống</h2>
+        <div class="row mb-3">
+            <div class="col-md-3 col-6">
+                <div class="custom-card text-center">
+                    <div class="custom-card-header">Doanh thu</div>
+                    <div class="card-body"><%= new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(data.stats.revenue) %></div>
+                    <div class="card-footer">Cập nhật: <%= new Date().toLocaleTimeString('vi-VN') %></div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="custom-card text-center">
+                    <div class="custom-card-header">Sản phẩm</div>
+                    <div class="card-body"><%= data.stats.totalProducts %></div>
+                    <div class="card-footer">Đã bán: <%= data.stats.productsSold %></div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="custom-card text-center">
+                    <div class="custom-card-header">Đơn hàng</div>
+                    <div class="card-body"><%= data.stats.totalOrders %></div>
+                    <div class="card-footer">Đang giao: <%= data.stats.ordersShipping %></div>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="custom-card text-center">
+                    <div class="custom-card-header">Khách hàng</div>
+                    <div class="card-body"><%= data.stats.totalCustomers %></div>
+                    <div class="card-footer">Mới: <%= data.stats.newCustomers %></div>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-12">
+                <div class="card-custom">
+                    <div class="card-header-custom">Lọc thống kê</div>
+                    <form action="/" method="GET" class="mb-3">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <label for="filterType">Loại lọc:</label>
+                                <select name="filterType" id="filterType" class="form-control" onchange="toggleFilterFields()">
+                                    <option value="week" <%= data.filterType === 'week' ? 'selected' : '' %>>Tuần hiện tại</option>
+                                    <option value="custom" <%= data.filterType === 'custom' ? 'selected' : '' %>>Tùy chỉnh</option>
+                                    <option value="quarter" <%= data.filterType === 'quarter' ? 'selected' : '' %>>Quý</option>
+                                    <option value="year" <%= data.filterType === 'year' ? 'selected' : '' %>>Năm</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3" id="customDateFields" style="display: <%= data.filterType === 'custom' ? 'block' : 'none' %>;">
+                                <label for="startDate">Từ ngày:</label>
+                                <input type="date" name="startDate" id="startDate" class="form-control" value="<%= data.dateRange.startDate ? data.dateRange.startDate.toISOString().split('T')[0] : '' %>">
+                            </div>
+                            <div class="col-md-3" id="customEndDateFields" style="display: <%= data.filterType === 'custom' ? 'block' : 'none' %>;">
+                                <label for="endDate">Đến ngày:</label>
+                                <input type="date" name="endDate" id="endDate" class="form-control" value="<%= data.dateRange.endDate ? data.dateRange.endDate.toISOString().split('T')[0] : '' %>">
+                            </div>
+                            <div class="col-md-3" id="quarterFields" style="display: <%= data.filterType === 'quarter' ? 'block' : 'none' %>;">
+                                <label for="quarter">Quý:</label>
+                                <select name="quarter" id="quarter" class="form-control">
+                                    <option value="1" <%= data.quarter === '1' ? 'selected' : '' %>>Q1</option>
+                                    <option value="2" <%= data.quarter === '2' ? 'selected' : '' %>>Q2</option>
+                                    <option value="3" <%= data.quarter === '3' ? 'selected' : '' %>>Q3</option>
+                                    <option value="4" <%= data.quarter === '4' ? 'selected' : '' %>>Q4</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3" id="yearFields" style="display: <%= data.filterType === 'quarter' || data.filterType === 'year' ? 'block' : 'none' %>;">
+                                <label for="year">Năm:</label>
+                                <select name="year" id="year" class="form-control">
+                                    <% for (let y = new Date().getFullYear() - 5; y <= new Date().getFullYear(); y++) { %>
+                                        <option value="<%= y %>" <%= data.year == y ? 'selected' : '' %>><%= y %></option>
+                                    <% } %>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">Lọc</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <canvas id="salesChart"></canvas>
+            </div>
+            <div class="col-md-6">
+                <canvas id="weekChart"></canvas>
+            </div>
+        </div>
+        <div class="row">
+            <!-- Top 5 sản phẩm nổi bật -->
+            <div class="col-md-6 d-flex">
+                <div class="card card-custom flex-fill">
+                    <div class="card-header-custom">Top 5 sản phẩm nổi bật</div>
+                    <div class="mt-3">
+                        <!-- Top 5 sản phẩm mới được thêm vào -->
+                        <h6>Top 5 sản phẩm mới được thêm vào</h6>
+                        <% if (data.topProducts && data.topProducts.length > 0) { %>
+                            <ul class="list-unstyled">
+                                <% data.topProducts.forEach(product => { %>
+                                    <li>
+                                        <strong><%= product.name %></strong> 
+                                        (ID: <%= product.product_id %>)
+                                    </li>
+                                <% }) %>
+                            </ul>
+                        <% } else { %>
+                            <p>Chưa có dữ liệu sản phẩm mới.</p>
+                        <% } %>
+                        <!-- Top 5 sản phẩm được xem nhiều nhất -->
+                        <h6 class="mt-3">Top 5 sản phẩm được xem nhiều nhất</h6>
+                        <% if (data.topViewedProducts && data.topViewedProducts.length > 0) { %>
+                            <ul class="list-unstyled">
+                                <% data.topViewedProducts.forEach(product => { %>
+                                    <li>
+                                        <strong><%= product.name %></strong> 
+                                        (Lượt xem: <%= product.views %>)
+                                    </li>
+                                <% }) %>
+                            </ul>
+                        <% } else { %>
+                            <p>Chưa có dữ liệu sản phẩm được xem.</p>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            <!-- Thông tin Admin -->
+            <div class="col-md-6 d-flex">
+                <div class="card admin-card flex-fill">
+                    <img src="<%= data.user.avatar ? '/images/useravatar/' + data.user.avatar : '/images/useravatar/default-avatar.jpg' %>" alt="Admin Avatar">
+                    <h5><%= data.user.fullname %></h5>
+                    <p>Quản trị viên</p>
+                    <hr>
+                    <div class="text-start">
+                        <p><strong>Email:</strong> <%= data.user.email || 'Chưa cung cấp' %></p>
+                        <p><strong>Phone:</strong> <%= data.user.phone || 'Chưa cung cấp' %></p>
+                        <p><strong>Địa chỉ:</strong> <%= data.user.address || 'Chưa cung cấp' %></p>
+                    </div>
+                    <hr>
+                    <h6>Kết nối với Admin</h6>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-zalo"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggle filter fields based on filter type
+    function toggleFilterFields() {
+        const filterType = document.getElementById('filterType').value;
+        document.getElementById('customDateFields').style.display = filterType === 'custom' ? 'block' : 'none';
+        document.getElementById('customEndDateFields').style.display = filterType === 'custom' ? 'block' : 'none';
+        document.getElementById('quarterFields').style.display = filterType === 'quarter' ? 'block' : 'none';
+        document.getElementById('yearFields').style.display = filterType === 'quarter' || filterType === 'year' ? 'block' : 'none';
+    }
+
+    // Initialize charts
+    const salesChart = new Chart(document.getElementById('salesChart'), {
+        type: 'line',
+        data: {
+            labels: <%- JSON.stringify(data.chartData.labels) %>,
+            datasets: [{
+                label: 'Doanh thu',
+                data: <%- JSON.stringify(data.chartData.revenue) %>,
+                borderColor: '#218282',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    const weekChart = new Chart(document.getElementById('weekChart'), {
+        type: 'line',
+        data: {
+            labels: <%- JSON.stringify(data.chartData.weekLabels) %>,
+            datasets: [{
+                label: 'Số lượng bán',
+                data: <%- JSON.stringify(data.chartData.sales) %>,
+                borderColor: '#ff4500',
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>

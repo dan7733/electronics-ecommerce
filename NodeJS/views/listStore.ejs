@@ -1,0 +1,60 @@
+<div class="container liststore-container">
+    <% if (data.message) { %>
+        <div class="alert alert-info">
+            <%= data.message %> 
+        </div>
+    <% } %>
+    <h1 class="liststore-title">Danh sách cửa hàng</h1>
+    <div id="map"></div> 
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const stores = <%- JSON.stringify(data.liststore) %>;
+        console.log("Dữ liệu cửa hàng: ", stores);
+
+        let validStores = stores.filter(store => store.longitude && store.latitude);
+
+        if (validStores.length === 0) {
+            console.warn("Không có cửa hàng hợp lệ để hiển thị trên bản đồ.");
+            return;
+        }
+
+        // Khởi tạo bản đồ với vị trí trung tâm của cửa hàng đầu tiên
+        let firstStore = validStores[0];
+        let map = L.map('map').setView([firstStore.latitude, firstStore.longitude], 12);
+
+        // Thêm layer bản đồ nền OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        let markers = [];
+        let bounds = [];
+
+        validStores.forEach(store => {
+            let coords = [store.latitude, store.longitude];
+
+            let marker = L.marker(coords).addTo(map)
+                .bindPopup(`
+                    <div class="popup-content">
+                        <strong>${store.name}</strong><br>
+                        📍 ${store.address}<br>
+                        🕒 Mở cửa: ${store.open_hours} - Đóng cửa: ${store.close_hour}<br>
+                        <a href="/editstore/${store.store_id}" class="edit-button">Chỉnh sửa</a>
+                        <br>
+                        <a href="/deletestore/${store.store_id}" class="delete-button" style="color: red;">Xóa</a>
+                    </div>
+                `);
+
+            markers.push(marker);
+            bounds.push(coords);
+        });
+
+        // Nếu có nhiều cửa hàng, tự động điều chỉnh bản đồ để thấy tất cả
+        if (validStores.length > 1) {
+            map.fitBounds(bounds, { padding: [50, 50] });
+        } else {
+            map.setZoom(15); // Nếu chỉ có 1 cửa hàng, zoom gần hơn
+        }
+    });
+</script>   

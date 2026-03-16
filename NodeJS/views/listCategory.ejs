@@ -1,0 +1,135 @@
+<div class="container listcategory-container">
+    <% if (data.message) { %>
+        <div class="alert alert-info">
+        <!-- Hiển thị thông báo lỗi hoặc thành công -->
+            <%= data.message %> 
+        </div>
+    <% } %>
+    <h4 class="mb-3 listcategory-title">Danh sách Danh mục</h4>
+
+    <div class="d-flex justify-content-between mb-2 listcategory-container">
+        <!-- Ô tìm kiếm -->
+        <input type="text" id="category_searchInput" class="form-control w-50 listcategory-searchinput"
+            placeholder="🔍 Tìm kiếm theo tên danh mục..." value="<%= data.search %>">
+
+        <!-- Dropdown lọc & sắp xếp -->
+        <div class="dropdown listcategory-filter-container">
+            <button class="btn btn-secondary dropdown-toggle listcategory-filter" type="button" id="filterDropdown"
+                data-bs-toggle="dropdown">
+                <i class="fa-solid fa-filter"></i> Lọc
+            </button>
+            <ul class="dropdown-menu listcategory-option">
+                <li><a class="dropdown-item listcategory-filter-option" href="?page=1&search=<%= data.search %>">Reset theo STT</a></li>
+                <li><a class="dropdown-item listcategory-filter-option" href="?page=1&search=<%= data.search %>&sort=highlight_asc">Độ ưu tiên Tăng dần</a></li>
+                <li><a class="dropdown-item listcategory-filter-option" href="?page=1&search=<%= data.search %>&sort=highlight_desc">Độ ưu tiên Giảm dần</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="table-responsive rounded p-2">
+        <table class="table table-bordered listcategory-table">
+            <thead class="table-light">
+                <tr>
+                    <th>STT</th>
+                    <th>ID</th>
+                    <th>Tên danh mục</th>
+                    <th>Icon</th>
+                    <th>Highlight</th>
+                    <th colspan="2">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Duyệt qua mảng 'data.rows' để hiển thị từng dòng dữ liệu -->
+                <% if (data.rows && data.rows.length > 0) { %>
+                    <% data.rows.forEach((category, index) => { %>
+                    <tr>
+                        <td><%= (data.currentPage - 1) * 5 + index + 1 %></td>
+                        <td><%= category.category_id %></td>
+                        <td><%= category.name %></td>
+                        <td><i class="<%= category.icon ? category.icon : 'fa-solid fa-question' %>"></i></td>
+                        <td><%= category.highlight %></td>
+                        <td><a href="/editcategory/<%= category.category_id %>" class="btn btn-sm btn-primary"><i class="bi bi-pencil-square"></i> Sửa</a>
+                          <form action="/deletecategory" method="POST" style="display:inline-block;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa loại này không?');">
+                            <input type="hidden" name="category_id" value="<%= category.category_id %>" />
+                            <button class="btn btn-sm btn-danger" type="submit"><i class="bi bi-trash"></i> Xóa</button>
+                          </form>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr><td colspan="7">Không có danh mục nào được tìm thấy.</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+        <!-- Phân trang -->
+    <!-- Phân trang động rút gọn -->
+    <nav>
+        <!-- phân trang -->
+        <ul class="pagination justify-content-center listcategory-pagination">
+            <!-- Nút Previous -->
+            <li class="page-item <%= data.currentPage === 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= data.currentPage - 1 %>">«</a>
+            </li>
+
+            <!-- Trang đầu tiên -->
+            <li class="page-item <%= data.currentPage === 1 ? 'active' : '' %>">
+                <a class="page-link" href="?page=1">1</a>
+            </li>
+
+            <!-- Dấu "..." nếu trang hiện tại > 4 -->
+            <% if (data.currentPage > 4) { %>
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            <% } %>
+
+            <!-- In ra 2 trang trước và sau trang hiện tại -->
+            <% for (let i = Math.max(2, data.currentPage - 2); i <= Math.min(data.totalPages - 1, data.currentPage + 2); i++) { %>
+                <li class="page-item <%= data.currentPage === i ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                </li>
+            <% } %>
+
+            <!-- Dấu "..." nếu trang hiện tại cách xa trang cuối -->
+            <% if (data.currentPage < data.totalPages - 3) { %>
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            <% } %>
+
+            <!-- Trang cuối cùng -->
+            <% if (data.totalPages > 1) { %>
+                <li class="page-item <%= data.currentPage === data.totalPages ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= data.totalPages %>"><%= data.totalPages %></a>
+                </li>
+            <% } %>
+            <!-- Nút Next -->
+            <li class="page-item <%= data.currentPage === data.totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= data.currentPage + 1 %>">»</a>
+            </li>
+        </ul>
+    </nav>
+    <!-- Nút xem toàn bộ danh mục -->
+    <!-- <div class="text-center mt-3">
+        <a href="?all=true" class="btn btn-outline-primary">Xem toàn bộ danh mục</a>
+    </div> -->
+</div>
+<script>
+// Gắn sự kiện "keypress" cho ô input có id là 'category_searchInput'
+document.getElementById('category_searchInput').addEventListener('keypress', function (e) {
+    // Kiểm tra nếu người dùng bấm phím "Enter"
+    if (e.key === 'Enter') {
+        // Lấy giá trị (nội dung) trong ô input, chính là từ khoá tìm kiếm
+        const keyword = e.target.value;
+
+        // Lấy toàn bộ query parameters hiện tại trên URL (ví dụ: ?page=2&sort=name)
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Cập nhật hoặc thêm mới tham số 'search' với từ khoá vừa nhập
+        urlParams.set('search', keyword);
+
+        // Đặt lại trang về 1 (tránh trường hợp search ở trang khác)
+        urlParams.set('page', 1);
+
+        // Thay đổi URL bằng cách chuyển hướng sang URL mới với các tham số vừa cập nhật
+        window.location.href = `?${urlParams.toString()}`;
+    }
+});
+</script>

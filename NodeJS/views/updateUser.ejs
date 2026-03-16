@@ -1,0 +1,174 @@
+<div class="container">
+    <div class="updateuser-inforinput card shadow-sm mt-5">
+        <h4 class="mb-3">
+            <i class="fas fa-user-edit"></i> Sửa người dùng
+        </h4>
+
+        <% if (data && data.message) { %>
+            <div class="alert alert-info">
+                <%= data.message %>
+            </div>
+        <% } %>
+
+        <form action="/updateuser" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="user_id" value="<%= data.user.user_id %>">
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-user"></i> Tên đăng nhập</label>
+                <input type="text" class="form-control" name="username" value="<%= data.user.username %>" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-lock"></i> Mật khẩu</label>
+                <input type="password" class="form-control" name="password" placeholder="Nhập mật khẩu mới">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-address-card"></i> Họ và tên</label>
+                <input type="text" class="form-control" name="fullname" value="<%= data.user.fullname %>">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-envelope"></i> Email</label>
+                <input type="email" class="form-control" name="email" value="<%= data.user.email %>">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-phone"></i> Số điện thoại</label>
+                <input type="text" class="form-control" name="phone" value="<%= data.user.phone %>" 
+                    pattern="^0\d{9}$" title="Số điện thoại phải bắt đầu bằng 0 và có 10 chữ số" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-home"></i> Địa chỉ</label>
+                <input type="text" class="form-control" name="address" value="<%= data.user.address %>">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-venus-mars"></i> Giới tính</label>
+                <select class="form-control" name="sex">
+                    <option value="" <%= !data.user.sex ? 'selected' : '' %>>Chọn giới tính</option>
+                    <option value="Nam" <%= data.user.sex === 'Nam' ? 'selected' : '' %>>Nam</option>
+                    <option value="Nữ" <%= data.user.sex === 'Nữ' ? 'selected' : '' %>>Nữ</option>
+                    <option value="Khác" <%= data.user.sex === 'Khác' ? 'selected' : '' %>>Khác</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-calendar-alt"></i> Ngày sinh</label>
+                <input type="date" class="form-control" name="dateOfBirth" 
+                       value="<%= data.user.dateOfBirth && !isNaN(new Date(data.user.dateOfBirth).getTime()) ? new Date(data.user.dateOfBirth).toISOString().split('T')[0] : '' %>">
+            </div>
+            
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-image"></i> Ảnh đại diện</label>
+                <div class="updateuser-upload-box" id="avatar_drop_area">
+                    <input type="file" name="avatar" id="avatar_input" accept="image/*">
+                    <div id="avatar_click_area">
+                        <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                        <p>Kéo & thả hoặc nhấn để tải lên</p>
+                    </div>
+                    <div class="updateuser-preview-container" id="avatar_preview_container" style="<%= data.user.avatar ? 'display: flex;' : 'display: none;' %>">
+                        <img id="avatar_image_preview" class="img-thumbnail mt-2" src="<%= data.user.avatar ? '/images/useravatar/' + data.user.avatar : '' %>">
+                        <button type="button" class="btn btn-danger" id="avatar_remove_image">Xóa</button>
+                    </div>
+                </div>
+                <span class="updateuser-file-name" id="avatar_file_name"><%= data.user.avatar %></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-user-shield"></i> Quyền</label>
+                <select class="form-control" name="role">
+                    <option value="0" <%= data.user.role === 0 ? 'selected' : '' %>>Người dùng</option>
+                    <option value="1" <%= data.user.role === 1 ? 'selected' : '' %>>Quản trị viên</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-user-check"></i> Trạng thái</label>
+                <select class="form-control" name="status">
+                    <option value="active" <%= data.user.status === 'active' ? 'selected' : '' %>>Hoạt động</option>
+                    <option value="inactive" <%= data.user.status === 'inactive' ? 'selected' : '' %>>Không hoạt động</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-clock"></i> Lần đăng nhập cuối</label>
+                <input type="text" class="form-control" name="lastLogin" 
+                       value="<%= data.user.lastLogin ? new Date(data.user.lastLogin).toLocaleString() : 'Chưa đăng nhập' %>" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-globe"></i> Nhà cung cấp</label>
+                <input type="text" class="form-control" name="provider" value="<%= data.user.provider %>" readonly>
+            </div>
+
+            <button type="submit" class="btn updateuser-btn-add">
+                <i class="fas fa-check"></i> Cập nhật người dùng
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let imgInput = document.getElementById("avatar_input");
+        let clickArea = document.getElementById("avatar_click_area");
+        let dropArea = document.getElementById("avatar_drop_area");
+        let fileNameSpan = document.getElementById("avatar_file_name");
+        let imgPreview = document.getElementById("avatar_image_preview");
+        let previewContainer = document.getElementById("avatar_preview_container");
+        let removeImageButton = document.getElementById("avatar_remove_image");
+
+        clickArea.addEventListener("click", function () {
+            imgInput.click();
+        });
+
+        imgInput.addEventListener("change", function (event) {
+            let file = event.target.files[0];
+            if (file) {
+                fileNameSpan.textContent = file.name;
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    imgPreview.src = e.target.result;
+                    previewContainer.style.display = "flex";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        dropArea.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            dropArea.classList.add("highlight");
+        });
+
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.classList.remove("highlight");
+        });
+
+        dropArea.addEventListener("drop", (e) => {
+            e.preventDefault();
+            dropArea.classList.remove("highlight");
+
+            let file = e.dataTransfer.files[0];
+            if (file) {
+                imgInput.files = e.dataTransfer.files;
+                fileNameSpan.textContent = file.name;
+                let reader = new FileReader();
+                reader.onload = function (e) {
+                    imgPreview.src = e.target.result;
+                    previewContainer.style.display = "flex";
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removeImageButton.addEventListener("click", function () {
+            imgInput.value = "";
+            imgPreview.src = "";
+            previewContainer.style.display = "none";
+            fileNameSpan.textContent = "";
+        });
+    });
+</script>

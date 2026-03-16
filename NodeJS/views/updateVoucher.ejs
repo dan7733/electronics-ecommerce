@@ -1,0 +1,43 @@
+<div class="container">
+    <div class="updatevoucher-inforinput card p-4 shadow-sm">
+        <h4 class="mb-3">
+            <i class="fas fa-edit text-primary"></i> Cập nhật voucher
+        </h4>
+        <% if (data.message) { %>
+            <div class="alert alert-info">
+                <%= data.message %> 
+            </div>
+        <% } %>
+        <form action="/updatevoucher" method="POST">
+            <input type="hidden" name="id" value="<%= data.voucher.id %>">
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-tag"></i> Mã voucher</label>
+                <input type="text" class="form-control" name="voucher" 
+                       value="<%= data.voucher.voucher %>" placeholder="Nhập mã voucher">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-percentage"></i> Giảm giá (%)</label>
+                <input type="number" class="form-control" name="value" 
+                       value="<%= data.voucher.value %>" placeholder="Nhập phần trăm giảm giá" min="0" max="100">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-calendar-alt"></i> Ngày tạo</label>
+                <input type="date" class="form-control" name="create_at" 
+                       value="<%= data.voucher.create_at ? new Date(data.voucher.create_at).toISOString().split('T')[0] : '' %>">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-calendar-alt"></i> Ngày hết hạn</label>
+                <input type="date" class="form-control" name="end_at" 
+                       value="<%= data.voucher.end_at ? new Date(data.voucher.end_at).toISOString().split('T')[0] : '' %>">
+            </div>
+
+            <button type="submit" class="btn btn-primary updatevoucher-btn-add">
+                <i class="fas fa-save"></i> Lưu cập nhật
+            </button>
+        </form>
+    </div>
+</div>

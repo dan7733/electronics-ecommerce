@@ -1,0 +1,37 @@
+/* Hero Section */
+.about-hero {
+    margin-top: 30px;
+    background-color: #218282;
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+  }
+  
+  /* Section chung */
+  .about-section {
+    padding: 40px 0;
+  }
+  
+  .about-section img {
+    max-width: 100%;
+    border-radius: 8px;
+  }
+  
+  /* Về chúng tôi */
+  .about-icon-title {
+    color: #218282;
+  }
+  .about-icon-title i {
+    color: #218282;
+    margin-right: 8px;
+  }
+  
+  /* Sứ mệnh */
+  .about-mission-title {
+    color: #218282;
+  }
+  .about-mission-title i {
+    color: #218282;
+    margin-right: 8px;
+  }
+  

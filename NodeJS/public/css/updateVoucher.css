@@ -1,0 +1,36 @@
+.updatevoucher-inforinput {
+    background: white;
+    padding: 20px;
+    box-shadow: none !important;
+    border: none; 
+    border-radius: 8px;
+}
+
+.updatevoucher-inforinput * {
+    color: #218282 !important;
+}
+
+.updatevoucher-btn-add {
+    background-color: #218282 !important;
+    color: white !important;
+    border: none;
+}
+
+.updatevoucher-btn-add i {
+    color: white !important;
+}
+
+.updatevoucher-btn-add:hover {
+    background-color: #176d6d !important;
+}
+
+.updatevoucher-input-group-text {
+    background-color: #218282 !important;
+    border: none;
+    font-weight: bold;
+    padding: 8px;
+}
+
+.updatevoucher-input-group-text > i {
+    color: white !important;
+}

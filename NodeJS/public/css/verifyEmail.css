@@ -1,0 +1,23 @@
+body {
+    background-color: #ffffff;
+  }
+  
+  .card {
+    background-color: #ffffff;
+    border-color: #218282;
+  }
+  
+  h2 {
+    color: #218282;
+  }
+  
+  .btn-teal {
+    background-color: #218282;
+    border-color: #218282;
+  }
+  
+  .btn-teal:hover {
+    background-color: #1a6e6e;
+    border-color: #1a6e6e;
+  }
+  

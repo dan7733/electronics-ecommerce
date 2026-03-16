@@ -1,0 +1,58 @@
+<div class="container">
+    <div class="updatestock-inforinput card p-4 shadow-sm">
+        <h4 class="mb-3">
+            <i class="fas fa-warehouse text-primary"></i> Cập nhật tồn kho
+        </h4>
+
+        <% if (data && data.message) { %>
+            <div class="alert alert-info"><%= data.message %></div>
+        <% } %>
+
+        <form action="/updatestock" method="POST">
+            <!-- Hidden -->
+            <input type="hidden" name="product_id" value="<%= data.stock ? data.stock.product_id : '' %>">
+
+            <!-- Tổng nhập kho -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-database"></i> Tổng nhập kho</label>
+                <input type="number" class="form-control" value="<%= data.stock ? data.stock.stock_in : 0 %>" readonly>
+            </div>
+
+            <!-- Nhập thêm -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-arrow-down"></i> Nhập thêm</label>
+                <input type="number" class="form-control" name="stock_in" placeholder="Số lượng nhập thêm" value="0">
+            </div>
+
+            <!-- Tổng xuất kho -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-database"></i> Tổng xuất kho</label>
+                <input type="number" class="form-control" value="<%= data.stock ? data.stock.stock_out : 0 %>" readonly>
+            </div>
+
+            <!-- Xuất thêm -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-arrow-up"></i> Xuất thêm</label>
+                <input type="number" class="form-control" name="stock_out" placeholder="Số lượng xuất thêm" value="0">
+            </div>
+
+            <!-- Tồn kho hiện tại -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-boxes"></i> Tồn kho hiện tại</label>
+                <input type="number" class="form-control" name="quantity" placeholder="Số lượng tồn kho"
+                    value="<%= data.stock ? data.stock.quantity : 0 %>" readonly>
+            </div>
+
+            <!-- Ghi chú -->
+            <div class="mb-3">
+                <label class="form-label"><i class="fas fa-sticky-note"></i> Ghi chú</label>
+                <input type="text" class="form-control" name="note" placeholder="Ghi chú"
+                    value="<%= data.stock ? data.stock.note : '' %>">
+            </div>
+
+            <button type="submit" class="btn updatestock-btn-update">
+                <i class="fas fa-save"></i> Cập nhật
+            </button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,96 @@
+<div class="container listnews-container">
+    <% if (data.message) { %>
+        <div class="alert alert-info">
+            <%= data.message %>
+        </div>
+    <% } %>
+
+    <h4 class="mb-3 listnews-title">Danh sách Tin tức</h4>
+
+    <div class="d-flex justify-content-between mb-2 listnews-container">
+        <input type="text" id="news_searchInput" class="form-control w-50 listnews-searchinput"
+            placeholder="🔍 Tìm kiếm tiêu đề..." value="<%= data.search %>">
+
+        <div class="dropdown listnews-filter-container">
+            <button class="btn btn-secondary dropdown-toggle listnews-filter" type="button" id="filterDropdown"
+                data-bs-toggle="dropdown">
+                <i class="fa-solid fa-filter"></i> Lọc
+            </button>
+            <ul class="dropdown-menu listnews-option">
+                <li><a class="dropdown-item listnews-filter-option" href="?page=1&search=<%= data.search %>">Mặc định</a></li>
+                <li><a class="dropdown-item listnews-filter-option" href="?page=1&search=<%= data.search %>&sort=date_asc">Ngày cập nhật Tăng dần</a></li>
+                <li><a class="dropdown-item listnews-filter-option" href="?page=1&search=<%= data.search %>&sort=date_desc">Ngày cập nhật Giảm dần</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="table-responsive rounded p-2">
+        <table class="table table-bordered listnews-table">
+            <thead class="table-light">
+                <tr>
+                    <th>STT</th>
+                    <th>Tiêu đề</th>
+                    <th>Ngày thêm</th>
+                    <th>Ngày cập nhật</th>
+                    <th colspan="2">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (data.rows && data.rows.length > 0) { %>
+                    <% data.rows.forEach((news, index) => { %>
+                        <tr>
+                            <td><%= (data.currentPage - 1) * 5 + index + 1 %></td>
+                            <td><%= news.title %></td>
+                            <td><%= news.created_at.toLocaleDateString() %></td>
+                            <td><%= news.updated_at.toLocaleDateString() %></td>
+                            <td>
+                                <a href="/editnews/<%= news.news_id %>" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-pencil-square"></i> Sửa
+                                </a>
+                                <form action="/deletenews" method="POST" style="display:inline-block;" 
+                                      onsubmit="return confirm('Bạn có chắc chắn muốn xóa tin tức này không?');">
+                                    <input type="hidden" name="news_id" value="<%= news.news_id %>" />
+                                    <button class="btn btn-sm btn-danger" type="submit">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr><td colspan="4">Không có tin tức nào được tìm thấy.</td></tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <nav>
+        <ul class="pagination justify-content-center listnews-pagination">
+            <li class="page-item <%= data.currentPage === 1 ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= data.currentPage - 1 %>">«</a>
+            </li>
+
+            <% for (let i = 1; i <= data.totalPages; i++) { %>
+                <li class="page-item <%= data.currentPage === i ? 'active' : '' %>">
+                    <a class="page-link" href="?page=<%= i %>"><%= i %></a>
+                </li>
+            <% } %>
+
+            <li class="page-item <%= data.currentPage === data.totalPages ? 'disabled' : '' %>">
+                <a class="page-link" href="?page=<%= data.currentPage + 1 %>">»</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script>
+document.getElementById('news_searchInput').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        const keyword = e.target.value;
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('search', keyword);
+        urlParams.set('page', 1);
+        window.location.href = `?${urlParams.toString()}`;
+    }
+});
+</script>
