@@ -78,7 +78,7 @@ const addProduct = async (req, res) => {
 
     res.render("home", {
       data: {
-        page: 'addproduct',
+        page: 'addProduct',
         categories: categories,
         brands: Brands,
         message: result ? "Thêm sản phẩm thành công!" : "Thêm sản phẩm thất bại, vui lòng thử lại."

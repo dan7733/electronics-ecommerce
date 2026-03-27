@@ -46,7 +46,7 @@ const editStock = async (req, res) => {
         res.render('home', {
             data: {
                 title: 'Cập nhật chi tiết sản phẩm',
-                page: 'updatestock',
+                page: 'updateStock',
                 stock: result,
                 message: message,
             }

@@ -39,7 +39,7 @@ const addNews = async (req, res) => {
       if (!newsTitle || !newsContent) {
         deleteNewsImage(images); 
         return res.render("home", { 
-            data: { page: 'addnews', message: "Tiêu đề và nội dung tin tức không được để trống!" } 
+            data: { page: 'addNews', message: "Tiêu đề và nội dung tin tức không được để trống!" } 
           });
       }
       const result = await newsModel.addNews(
@@ -55,7 +55,7 @@ const addNews = async (req, res) => {
 
       res.render("home", {
         data: {
-          page: 'addnews',
+          page: 'addNews',
           message: result 
             ? "Thêm tin tức thành công!" 
             : "Thêm tin tức thất bại, vui lòng thử lại."
@@ -143,7 +143,7 @@ const editNews = async (req, res) => {
   return res.render('home', {
     data: {
       title: 'Update News',
-      page: 'updatenews',
+      page: 'updateNews',
       news: news,
       message: message
     }
