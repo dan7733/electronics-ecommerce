@@ -1,191 +1,199 @@
+/* auth.module.css (Dùng chung cho cả Login và Register) */
 .containerLogin {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 50px;
-  flex-grow: 1;
+  min-height: calc(100vh - 150px);
   padding: 20px;
+  background-color: #f8f9fa; /* Thêm màu nền nhẹ để form nổi bật hơn */
 }
 
 .leftSideImg {
   width: 100%;
-  max-width: 500px; /* Adjusted to support both Login and Register images */
+  max-width: 450px;
   object-fit: contain;
 }
 
 .rightSide {
-  border: 1px solid #ccc;
-  padding: 30px;
-  max-width: 400px;
+  background: #ffffff;
+  padding: 40px 30px;
+  max-width: 420px;
   width: 100%;
   margin: 0 auto;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 12px; /* Bo góc to hơn, hiện đại hơn */
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08); /* Đổ bóng mềm mại hơn */
+  border: 1px solid #eaeaea; /* Viền nhạt tinh tế */
 }
 
-.tabs span {
-  cursor: pointer;
-  font-weight: bold;
-  margin: 0 10px;
+.tabs {
+  margin-bottom: 25px;
+}
+
+.tabs a {
+  font-weight: 600;
+  margin: 0 15px;
   font-size: 16px;
+  color: #a0a0a0; /* Màu mặc định khi chưa active */
+  text-decoration: none;
+  padding-bottom: 5px;
+  transition: color 0.3s ease;
 }
 
 .tabs .active {
-  text-decoration: none;
-  color: black;
-  cursor: pointer;
+  color: #000;
+  border-bottom: 2px solid #000; /* Gạch dưới nút đang chọn */
 }
 
-.tabs .active:hover {
-  text-decoration: underline;
-  color: #333; /* hoặc màu nào bạn thích */
+.tabs a:hover {
+  color: #333;
 }
 
-.active:first-letter {
-  margin-left: 10px;
-}
 .formControl {
-  background-color: #f0f4ff;
-  border: 1px solid #d1d5db;
-  border-radius: 5px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 15px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.formControl:focus {
+  border-color: #000;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+  outline: none;
+  background-color: #fff;
 }
 
 .loginBtn {
   width: 100%;
-  padding: 10px;
-  background-color: black;
+  padding: 12px;
+  background-color: #000;
   color: white;
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 16px;
   border: none;
-  margin-top: 10px;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+  margin-top: 15px;
+  border-radius: 8px;
+  transition: background-color 0.3s, transform 0.1s;
 }
 
-.loginBtn:hover {
+.loginBtn:hover:not(:disabled) {
   background-color: #333;
 }
 
+.loginBtn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.loginBtn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
 .forgotPassword {
-  border: none;
-  background: none;
   color: #007bff;
   text-decoration: none;
   font-size: 14px;
+  font-weight: 500;
 }
 
 .forgotPassword:hover {
   text-decoration: underline;
 }
 
+/* KHU VỰC NÚT SOCIAL LOGIN CỦA BẠN ĐƯỢC FIX TẠI ĐÂY */
+.socialContainer {
+  margin-top: 20px;
+}
+
 .socialButtons {
   display: flex;
-  justify-content: space-around;
+  justify-content: center; /* Canh giữa */
+  gap: 15px; /* Khoảng cách đều giữa 2 nút */
+  align-items: center;
 }
 
-.socialButtons button {
-  border: 1px solid #ccc;
+.socialBtnFb {
+  border: 1px solid #d1d5db;
   background-color: white;
-  padding: 8px 16px;
+  color: #3b5998;
+  font-weight: 500;
+  height: 40px; /* Bắt buộc set height 40px để ngang bằng với iframe của Google */
+  padding: 0 20px;
   display: flex;
   align-items: center;
-  gap: 5px;
-  border-radius: 5px;
-  transition: background-color 0.3s;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  width: 100%; /* Cho phép dãn đều */
+  max-width: 200px;
 }
 
-.socialButtons button:hover {
-  background-color: #f5f5f5;
+.socialBtnFb:hover {
+  background-color: #f3f4f6;
 }
 
-.socialButtons img {
+.socialBtnFb img {
   width: 20px;
   height: 20px;
 }
 
-.wave img {
+/* Căn chỉnh lại Google Button để không phá layout */
+.googleWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 40px;
   width: 100%;
-  height: 100px;
-  object-fit: cover;
+  max-width: 200px;
 }
 
-/* Mobile Responsiveness */
+.wave img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+}
+
+.loadingOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* RESPONSIVE MOBILE TỐI ƯU LẠI */
 @media (max-width: 768px) {
   .containerLogin {
-    flex-direction: column;
+    padding: 10px;
     margin-top: 20px;
-    padding: 15px;
   }
 
   .leftSideImg {
-    display: none;
+    display: none; /* Ẩn ảnh bên trái để form rộng rãi hơn */
   }
 
   .rightSide {
-    max-width: 90%;
-    padding: 20px;
-    margin: 0 auto;
-  }
-
-  .formControl,
-  .loginBtn {
-    font-size: 16px;
-    padding: 12px;
-  }
-
-  .tabs span {
-    font-size: 14px;
-    margin: 0 5px;
+    padding: 30px 20px;
+    max-width: 100%;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
   }
 
   .socialButtons {
-    flex-direction: row;
-    justify-content: space-between;
+    flex-direction: column; /* Trên mobile, 2 nút xếp dọc sẽ đẹp và đỡ chữ bị chen chúc */
     gap: 10px;
   }
 
-  .socialButtons button {
-    flex: 1;
-    justify-content: center;
-    padding: 8px 10px;
-    font-size: 14px;
+  .socialBtnFb, .googleWrapper {
+    max-width: 100%; /* Nút full width trên mobile */
   }
 
   .wave img {
-    height: 60px;
-    object-fit: cover;
-  }
-}
-
-@media (max-width: 576px) {
-  .rightSide {
-    padding: 15px;
-    margin: 0 auto;
-  }
-
-  .formControl,
-  .loginBtn {
-    font-size: 14px;
-    padding: 10px;
-  }
-
-  .tabs span {
-    font-size: 12px;
-  }
-
-  .socialButtons button {
-    font-size: 12px;
-    padding: 6px 8px;
-  }
-
-  .socialButtons img {
-    width: 18px;
-    height: 18px;
-  }
-
-  .wave img {
-    height: 40px;
-    object-fit: cover;
+    height: 70px;
   }
 }

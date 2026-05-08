@@ -1,28 +1,58 @@
-/* Topbar cơ bản */
+/* ================= TOP BAR ================= */
 .topbar {
-  background: #f8f8f8;
-  padding: 10px 20px;
-  font-size: 14px;
+  background: #f8f9fa;
+  padding: 8px 20px;
+  font-size: 13px;
+  border-bottom: 1px solid #eaeaea;
 }
 
 .topbar-address {
-  font-weight: bold;
+  font-weight: 500;
+  color: #333;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 .topbar-action-item {
-  font-weight: bold;
-  margin-right: 20px;
+  font-weight: 500;
   display: flex;
   align-items: center;
+  color: #333;
+  text-decoration: none;
+  transition: color 0.2s;
 }
 
-/* Cần gạt chuyển dark/light mode */
+.topbar-action-item:hover {
+  color: #218282;
+  cursor: pointer;
+}
+
+.topbar-phone {
+  color: #333;
+  font-weight: bold;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.topbar-phone:hover {
+  color: #218282;
+}
+
+.topbar-icon-content {
+  margin-right: 6px;
+  color: #218282;
+}
+
+/* ================= DARK/LIGHT MODE SWITCH ================= */
 .topbar-theme-switch {
-  margin-right: 20px;
   position: relative;
   background-color: #dfdfdf;
-  width: 60px;
-  height: 30px;
+  width: 50px;
+  height: 26px;
   border-radius: 20px;
   display: flex;
   align-items: center;
@@ -32,179 +62,66 @@
   transition: background-color 0.3s ease;
 }
 
-.topbar-theme-switch .topbar-sun,
-.topbar-theme-switch .topbar-moon {
-  font-size: 18px;
+.topbar-sun,
+.topbar-moon {
+  font-size: 14px;
   z-index: 2;
 }
 
-.topbar-sun {
-  color: #f39c12;
-}
-
-.topbar-moon {
-  color: #555;
-}
+.topbar-sun { color: #f39c12; }
+.topbar-moon { color: #555; }
 
 .topbar-switch-slider {
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   background-color: white;
   border-radius: 50%;
   transition: all 0.3s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-/* Dark mode style */
-.topbar-theme-switch.dark-mode {
-  background-color: #555;
-}
+.topbar-theme-switch.dark-mode { background-color: #555; }
+.topbar-theme-switch.dark-mode .topbar-switch-slider { left: calc(100% - 23px); }
+.topbar-theme-switch.dark-mode .topbar-sun { color: #888; }
+.topbar-theme-switch.dark-mode .topbar-moon { color: #fff; }
 
-.topbar-theme-switch.dark-mode .topbar-switch-slider {
-  left: calc(100% - 27px);
-  /* trượt slider sang phải */
-}
+body.dark-mode .topbar { background-color: #222; border-bottom: 1px solid #333; }
+body.dark-mode .topbar-address,
+body.dark-mode .topbar-action-item,
+body.dark-mode .topbar-phone { color: #ccc; }
 
-.topbar-theme-switch.dark-mode .topbar-sun {
-  color: #888;
-}
-
-.topbar-theme-switch.dark-mode .topbar-moon {
-  color: #fff;
-}
-
-body.dark-mode {
-  background-color: #222;
-  color: #fff;
-}
-
-/* Ngôn ngữ */
-.topbar-language-switch {
-  background-color: #dfdfdf;
-  padding: 5px 10px;
-  display: flex;
-  align-items: center;
-  border-radius: 20px;
-  cursor: pointer;
-  position: relative;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-/* Hiệu ứng hover */
-.topbar-language-switch:hover {
-  background-color: #c8c8c8;
-  transform: scale(1.05);
-}
-
-/* Hiệu ứng active */
-.topbar-language-switch:active {
-  transform: scale(0.95);
-}
-
-/* Tùy chỉnh container của Google Translate */
-#google_translate_element {
-  display: flex;
-  align-items: center;
-}
-
-/* Tùy chỉnh dropdown của Google Translate */
-#google_translate_element select {
-  background-color: transparent;
-  border: none;
-  font-size: 14px;
-  color: #333;
-  cursor: pointer;
-  padding: 5px;
-  outline: none;
-  font-family: inherit; /* Đồng bộ font với giao diện */
-  transition: color 0.3s ease;
-}
-
-/* Tùy chỉnh option trong dropdown */
-#google_translate_element select option {
-  background-color: #fff;
-  color: #333;
-}
-
-/* Hiệu ứng hover cho select */
-#google_translate_element select:hover {
-  color: #000;
-}
-
-/* Dark mode cho Google Translate */
-body.dark-mode .topbar-language-switch {
-  background-color: #444;
-}
-
-body.dark-mode #google_translate_element select {
-  color: #fff;
-}
-
-body.dark-mode #google_translate_element select option {
-  background-color: #333;
-  color: #fff;
-}
-
-.topbar-text-content {
-  margin-right: 4px;
-  color: black;
-  text-decoration: none;
-}
-
-.topbar-text-content:hover {
-  cursor: pointer;
-}
-
-.topbar-icon-content {
-  margin-right: 5px;
-}
-
-/* Responsive */
+/* ================= RESPONSIVE OPTIMIZATION ================= */
 @media (max-width: 992px) {
-  .topbar {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center;
-    height: 60px;
-    text-align: center;
-  }
-
-  .topbar .d-flex {
-    width: 100% !important;
-    justify-content: space-evenly;
-  }
-
-  .topbar-action-item {
-    display: flex;
-    align-items: center;
-  }
-
-  .topbar-action-item i {
-    font-size: 20px;
-  }
-
-  .topbar-text-content {
-    display: none; /* Ẩn text khi thu nhỏ */
-  }
-
-  .topbar-language-switch {
-    padding: 3px 8px;
-  }
-
-  #google_translate_element select {
-    font-size: 12px;
-  }
+  .topbar-address { display: none; } /* Ẩn cụm địa chỉ dài trên Tablet/Mobile */
+  .topbar { justify-content: center !important; }
 }
 
-@media (max-width: 410px) {
+@media (max-width: 576px) {
   .topbar {
-    display: none !important;
+    padding: 8px 10px;
+    display: flex !important; 
   }
-
-  .topbar-language-switch {
-    display: none; /* Ẩn Google Dịch trên màn hình nhỏ */
+  .topbar-actions {
+    width: 100%;
+    justify-content: space-between; /* Dàn đều 3 cụm ra 2 bên và giữa */
+    gap: 5px;
+  }
+  
+  /* Thu nhỏ font để không bị rớt dòng trên màn hình bé */
+  .topbar-action-item, .topbar-phone {
+    font-size: 12px; 
+  }
+  
+  /* Chỉ ẩn chữ "Tư vấn" để nhường chỗ cho SĐT và chữ Cửa hàng */
+  .topbar-text-consult { 
+    display: none; 
+  }
+  
+  .topbar-icon-content { 
+    margin-right: 4px; 
+    font-size: 14px;
   }
 }
