@@ -9,12 +9,8 @@ import DFavatar from '../../img/avatar/avatar.png';
 const Header = () => {
   const { user, logoutContext } = useContext(Context);
   const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [brands, setBrands] = useState([]);
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const API_URL = process.env.REACT_APP_BACKEND_URL;
 
   const handleLogout = async (e) => {
     e.preventDefault();
@@ -26,13 +22,22 @@ const Header = () => {
     }
   };
 
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+
   useEffect(() => {
     axios.get(`${API_URL}/api/v1/listcategory`)
-      .then(response => setCategories(response.data.categories || []))
+      .then(response => {
+        setCategories(response.data.categories || []);
+      })
       .catch(error => console.error('Error fetching categories:', error));
 
     axios.get(`${API_URL}/api/v1/listbrand`)
-      .then(response => setBrands(response.data.brands || []))
+      .then(response => {
+        setBrands(response.data.brands || []);
+      })
       .catch(error => console.error('Error fetching brands:', error));
   }, [API_URL]);
 
@@ -147,7 +152,6 @@ const Header = () => {
 
       {/* Main Menu */}
       <nav className={`navbar navbar-expand-lg ${styles.navMenu}`} id="navmenu">
-        {/* FIX TRỌNG TÂM: Thêm container-fluid để đồng bộ căn lề trái phải trên thiết bị di động */}
         <div className="container-fluid">
           <div className={menuOpen ? "collapse navbar-collapse show" : "collapse navbar-collapse"} id="mainMenu">
             <ul className="navbar-nav">
@@ -189,9 +193,6 @@ const Header = () => {
 
               <li className="nav-item">
                 <Link className="nav-link text-white" to="/newslist">Tin Tức</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link text-white" to="/lien-he">Liên Hệ</Link>
               </li>
               <li className="nav-item">
                 <Link className="nav-link text-white" to="/compare">So sánh</Link>

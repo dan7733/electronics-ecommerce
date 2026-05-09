@@ -9,11 +9,9 @@ const ProductDisplay = () => {
   const [laptopProducts, setLaptopProducts] = useState([]);
   const [tabletProducts, setTabletProducts] = useState([]);
 
-  // Lấy URL trực tiếp từ biến môi trường .env
   const API_URL = process.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
-    // Sử dụng API_URL cho tất cả các yêu cầu lấy danh sách sản phẩm
     axios.get(`${API_URL}/api/v1/latestproducts`)
       .then(response => setNewProducts(response.data.products))
       .catch(error => console.error('Error fetching new products:', error));
@@ -33,29 +31,37 @@ const ProductDisplay = () => {
 
   const renderProduct = (product) => (
     <Link key={product.product_id} className={styles['product-card']} to={`/detailproduct/${product.product_id}`}>
-      {/* Cập nhật đường dẫn ảnh từ server thông qua biến môi trường */}
+      
       <img
         src={`${API_URL}/images/products/${product.product_img}`}
         alt={product.name}
       />
-      <h5 className={styles['product-title']}>{product.name}</h5>
-      <p className="text-danger">Giá quá rẻ</p>
-      {product.discount_price > 0 && (
+      
+      {/* Khối Info tự co giãn để gióng thẳng các dòng bên dưới */}
+      <div className={styles['product-info']}>
+        <h5 className={styles['product-title']}>{product.name}</h5>
+        <p className={styles['product-promo']}>Giá quá rẻ</p>
+      </div>
+
+      {/* Khối Giá tiền */}
+      <div className={styles['product-pricing']}>
         <p className={styles['product-old-price']}>
-          {product.price.toLocaleString()} Đ
+          {/* Dùng \u00A0 để tạo khoảng trống tàng hình thay vì dấu "-" */}
+          {product.discount_price > 0 ? `${product.price.toLocaleString()} Đ` : '\u00A0'}
         </p>
-      )}
-      <p className={styles['product-new-price']}>
-        {(product.discount_price > 0 ? product.discount_price : product.price).toLocaleString()} Đ
-      </p>
+        <p className={styles['product-new-price']}>
+          {(product.discount_price > 0 ? product.discount_price : product.price).toLocaleString()} Đ
+        </p>
+      </div>
+      
     </Link>
   );
 
   return (
     <>
       {/* SẢN PHẨM MỚI */}
-      <div className={`container-lg mt-3 ${styles['product-container']}`}>
-      <div className={`${styles['product-category-bar']} ${styles['newsproduct-category-bar']}`}>
+      <div className={`container-lg mt-4 ${styles['product-container']}`}>
+        <div className={`${styles['product-category-bar']} ${styles['newsproduct-category-bar']}`}>
           <span className="text-white fw-bold">SẢN PHẨM MỚI</span>
           <div className={styles['product-category-links']}>
             <Link to="#">HOT</Link>
@@ -72,7 +78,7 @@ const ProductDisplay = () => {
       </div>
 
       {/* ĐIỆN THOẠI */}
-      <div className={`container-lg mt-3 ${styles['product-container']}`}>
+      <div className={`container-lg mt-4 ${styles['product-container']}`}>
         <div className={styles['product-category-bar']}>
           <span className="text-white fw-bold">ĐIỆN THOẠI</span>
           <div className={styles['product-category-links']}>
@@ -90,7 +96,7 @@ const ProductDisplay = () => {
       </div>
 
       {/* LAPTOP */}
-      <div className={`container-lg mt-3 ${styles['product-container']}`}>
+      <div className={`container-lg mt-4 ${styles['product-container']}`}>
         <div className={styles['product-category-bar']}>
           <span className="text-white fw-bold">LAPTOP</span>
           <div className={styles['product-category-links']}>
@@ -108,7 +114,7 @@ const ProductDisplay = () => {
       </div>
 
       {/* MÁY TÍNH BẢNG */}
-      <div className={`container-lg mt-3 ${styles['product-container']}`}>
+      <div className={`container-lg mt-4 ${styles['product-container']}`}>
         <div className={styles['product-category-bar']}>
           <span className="text-white fw-bold">MÁY TÍNH BẢNG</span>
           <div className={styles['product-category-links']}>

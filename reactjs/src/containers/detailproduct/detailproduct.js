@@ -22,15 +22,23 @@ const DetailProduct = () => {
   const navigate = useNavigate();
   const { user } = useContext(Context);
 
-  // Sử dụng trực tiếp biến môi trường từ .env
   const API_URL = process.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
+    // 1. Tự động cuộn lên đầu trang thật mượt mà khi đổi sản phẩm
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // 2. Đặt lại state về null để kích hoạt màn hình Loading Spinner
+    setDetailProduct(null);
+    setAverageRating(0);
+    setReviewCount(0);
+    setShowFullInfo(false); // Reset lại trạng thái thu gọn bài viết
+    setShowFullSpecs(false);
+
     // Fetch product details
     axios
       .get(`${API_URL}/api/v1/productdetail/${id}`)
       .then((response) => {
-        console.log('Fetched product:', response.data.product);
         setDetailProduct(response.data.product);
       })
       .catch((error) => {
@@ -54,7 +62,7 @@ const DetailProduct = () => {
       .catch((error) => {
         console.error('Error fetching reviews:', error);
       });
-  }, [id, API_URL]);
+  }, [id, API_URL]); // Chạy lại hiệu ứng này mỗi khi ID trên URL thay đổi
 
   const showTemporaryNotification = (message) => {
     setNotification({ show: true, message });
@@ -74,7 +82,6 @@ const DetailProduct = () => {
     setIsAddingToCart(true);
 
     if (!detailProduct?.product_id) {
-      console.error('Product ID is missing:', detailProduct);
       setIsAddingToCart(false);
       return;
     }
@@ -111,7 +118,6 @@ const DetailProduct = () => {
     setIsAddingToCompare(true);
 
     if (!detailProduct?.product_id) {
-      console.error('Product ID is missing:', detailProduct);
       setIsAddingToCompare(false);
       return;
     }
@@ -156,7 +162,6 @@ const DetailProduct = () => {
     setIsAddingToWishlist(true);
 
     if (!detailProduct?.product_id) {
-      console.error('Product ID is missing:', detailProduct);
       setIsAddingToWishlist(false);
       return;
     }
@@ -200,8 +205,9 @@ const DetailProduct = () => {
 
   if (!detailProduct) {
     return (
-      <div className={styles['detailproduct-loading']}>
-        Đang tải thông tin sản phẩm...
+      <div className={styles['loading-container']}>
+        <div className={styles.spinner}></div>
+        <p>Đang tải thông tin sản phẩm...</p>
       </div>
     );
   }

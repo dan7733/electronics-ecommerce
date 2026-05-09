@@ -11,7 +11,6 @@ const PopularProductDisplay = () => {
 
   useEffect(() => {
     // Fetch popularity-based recommendations
-    // Thay thế localhost bằng API_URL
     axios.get(`${API_URL}/api/v1/recommend/popularity-based`)
       .then(response => {
         if (response.data.errCode === 0) {
@@ -30,25 +29,31 @@ const PopularProductDisplay = () => {
       to={`/detailproduct/${product.product_id}`}
     >
       <img
-        // Cập nhật đường dẫn ảnh từ server
         src={`${API_URL}/images/products/${product.product_img}`}
         alt={product.name}
       />
-      <h5 className={styles['product-title']}>{product.name}</h5>
-      <p className="text-danger">Giá quá rẻ</p>
-      {product.discount_price > 0 && (
+      
+      {/* KHỐI THÔNG TIN: Tự co giãn để gióng thẳng các dòng giá bên dưới */}
+      <div className={styles['product-info']}>
+        <h5 className={styles['product-title']}>{product.name}</h5>
+        <p className={styles['product-promo']}>Giá quá rẻ</p>
+      </div>
+
+      {/* KHỐI GIÁ TIỀN: Luôn nằm ở dưới cùng */}
+      <div className={styles['product-pricing']}>
         <p className={styles['product-old-price']}>
-          {product.price.toLocaleString()} Đ
+          {/* Sử dụng \u00A0 để tạo khoảng trống tàng hình nếu không có discount */}
+          {product.discount_price > 0 ? `${product.price.toLocaleString()} Đ` : '\u00A0'}
         </p>
-      )}
-      <p className={styles['product-new-price']}>
-        {(product.discount_price > 0 ? product.discount_price : product.price).toLocaleString()} Đ
-      </p>
+        <p className={styles['product-new-price']}>
+          {(product.discount_price > 0 ? product.discount_price : product.price).toLocaleString()} Đ
+        </p>
+      </div>
     </Link>
   );
 
   return (
-    <div className={`container-lg mt-3 ${styles['product-container']}`}>
+    <div className={`container-lg mt-4 ${styles['product-container']}`}>
       <div className={`${styles['product-category-bar']} ${styles['popularproduct-category-bar']}`}>
         <span className="text-white fw-bold">SẢN PHẨM PHỔ BIẾN</span>
         <div className={styles['product-category-links']}>
