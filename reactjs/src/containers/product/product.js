@@ -9,24 +9,38 @@ const ProductDisplay = () => {
   const [laptopProducts, setLaptopProducts] = useState([]);
   const [tabletProducts, setTabletProducts] = useState([]);
 
+  // Thêm 4 state loading cho 4 khu vực độc lập
+  const [loadingNew, setLoadingNew] = useState(true);
+  const [loadingPhone, setLoadingPhone] = useState(true);
+  const [loadingLaptop, setLoadingLaptop] = useState(true);
+  const [loadingTablet, setLoadingTablet] = useState(true);
+
   const API_URL = process.env.REACT_APP_BACKEND_URL;
 
   useEffect(() => {
+    // Tải Sản Phẩm Mới
     axios.get(`${API_URL}/api/v1/latestproducts`)
       .then(response => setNewProducts(response.data.products))
-      .catch(error => console.error('Error fetching new products:', error));
+      .catch(error => console.error('Error fetching new products:', error))
+      .finally(() => setLoadingNew(false));
 
+    // Tải Điện thoại
     axios.get(`${API_URL}/api/v1/latestproducts/1`)
       .then(response => setPhoneProducts(response.data.products))
-      .catch(error => console.error('Error fetching phone products:', error));
+      .catch(error => console.error('Error fetching phone products:', error))
+      .finally(() => setLoadingPhone(false));
 
+    // Tải Laptop
     axios.get(`${API_URL}/api/v1/latestproducts/2`)
       .then(response => setLaptopProducts(response.data.products))
-      .catch(error => console.error('Error fetching laptop products:', error));
+      .catch(error => console.error('Error fetching laptop products:', error))
+      .finally(() => setLoadingLaptop(false));
 
+    // Tải Máy tính bảng
     axios.get(`${API_URL}/api/v1/latestproducts/9`)
       .then(response => setTabletProducts(response.data.products))
-      .catch(error => console.error('Error fetching tablet products:', error));
+      .catch(error => console.error('Error fetching tablet products:', error))
+      .finally(() => setLoadingTablet(false));
   }, [API_URL]);
 
   const renderProduct = (product) => (
@@ -59,7 +73,7 @@ const ProductDisplay = () => {
 
   return (
     <>
-      {/* SẢN PHẨM MỚI */}
+      {/* ================= SẢN PHẨM MỚI ================= */}
       <div className={`container-lg mt-4 ${styles['product-container']}`}>
         <div className={`${styles['product-category-bar']} ${styles['newsproduct-category-bar']}`}>
           <span className="text-white fw-bold">SẢN PHẨM MỚI</span>
@@ -73,11 +87,20 @@ const ProductDisplay = () => {
           </div>
         </div>
         <div className={`mt-3 ${styles['product-wrapper']} ${styles['newsproduct-wrapper']}`}>
-          {Array.isArray(newProducts) && newProducts.map(renderProduct)}
+          {loadingNew ? (
+            <div className={styles['loading-container']}>
+              <div className={`${styles['spinner']} ${styles['spinner-red']}`}></div>
+              <span className={styles['text-red']}>Đang tải...</span>
+            </div>
+          ) : Array.isArray(newProducts) && newProducts.length > 0 ? (
+            newProducts.map(renderProduct)
+          ) : (
+            <p className={styles['no-product']}>Không có sản phẩm nào.</p>
+          )}
         </div>
       </div>
 
-      {/* ĐIỆN THOẠI */}
+      {/* ================= ĐIỆN THOẠI ================= */}
       <div className={`container-lg mt-4 ${styles['product-container']}`}>
         <div className={styles['product-category-bar']}>
           <span className="text-white fw-bold">ĐIỆN THOẠI</span>
@@ -91,11 +114,20 @@ const ProductDisplay = () => {
           </div>
         </div>
         <div className={`mt-3 ${styles['product-wrapper']}`}>
-          {Array.isArray(phoneProducts) && phoneProducts.map(renderProduct)}
+          {loadingPhone ? (
+            <div className={styles['loading-container']}>
+              <div className={styles['spinner']}></div>
+              <span>Đang tải...</span>
+            </div>
+          ) : Array.isArray(phoneProducts) && phoneProducts.length > 0 ? (
+            phoneProducts.map(renderProduct)
+          ) : (
+            <p className={styles['no-product']}>Không có sản phẩm nào.</p>
+          )}
         </div>
       </div>
 
-      {/* LAPTOP */}
+      {/* ================= LAPTOP ================= */}
       <div className={`container-lg mt-4 ${styles['product-container']}`}>
         <div className={styles['product-category-bar']}>
           <span className="text-white fw-bold">LAPTOP</span>
@@ -109,11 +141,20 @@ const ProductDisplay = () => {
           </div>
         </div>
         <div className={`mt-3 ${styles['product-wrapper']}`}>
-          {Array.isArray(laptopProducts) && laptopProducts.map(renderProduct)}
+          {loadingLaptop ? (
+            <div className={styles['loading-container']}>
+              <div className={styles['spinner']}></div>
+              <span>Đang tải...</span>
+            </div>
+          ) : Array.isArray(laptopProducts) && laptopProducts.length > 0 ? (
+            laptopProducts.map(renderProduct)
+          ) : (
+            <p className={styles['no-product']}>Không có sản phẩm nào.</p>
+          )}
         </div>
       </div>
 
-      {/* MÁY TÍNH BẢNG */}
+      {/* ================= MÁY TÍNH BẢNG ================= */}
       <div className={`container-lg mt-4 ${styles['product-container']}`}>
         <div className={styles['product-category-bar']}>
           <span className="text-white fw-bold">MÁY TÍNH BẢNG</span>
@@ -127,7 +168,16 @@ const ProductDisplay = () => {
           </div>
         </div>
         <div className={`mt-3 ${styles['product-wrapper']}`}>
-          {Array.isArray(tabletProducts) && tabletProducts.map(renderProduct)}
+          {loadingTablet ? (
+            <div className={styles['loading-container']}>
+              <div className={styles['spinner']}></div>
+              <span>Đang tải...</span>
+            </div>
+          ) : Array.isArray(tabletProducts) && tabletProducts.length > 0 ? (
+            tabletProducts.map(renderProduct)
+          ) : (
+            <p className={styles['no-product']}>Không có sản phẩm nào.</p>
+          )}
         </div>
       </div>
     </>

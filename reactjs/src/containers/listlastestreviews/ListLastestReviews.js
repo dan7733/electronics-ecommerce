@@ -78,10 +78,18 @@ const ListLastestReviews = () => {
         {reviews.length > 0 ? (
           reviews.map(renderReview)
         ) : !loading && !error ? (
-          <p className={`${styles['no-reviews']} text-center col-12`}>No reviews to display.</p>
+          <p className={`${styles['no-reviews']} text-center col-12`}>Không có đánh giá nào.</p>
         ) : null}
       </div>
-      {loading && <div className={`${styles.loading} text-center mt-4`}>Loading...</div>}
+      
+      {/* HIỆU ỨNG LOADING MỚI */}
+      {loading && (
+        <div className={styles['loading-container']}>
+          <div className={styles['spinner']}></div>
+          <span>Đang tải...</span>
+        </div>
+      )}
+
       {error && <div className={`${styles.error} text-center mt-4 text-danger`}>{error}</div>}
     </section>
   );

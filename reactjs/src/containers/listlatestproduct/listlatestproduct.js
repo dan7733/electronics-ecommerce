@@ -10,7 +10,7 @@ const ListLastestProduct = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [hasMore, setHasMore] = useState(true);
-  const limit = 4; // Fetch 4 products per page
+  const limit = 4;
 
   // Lấy URL trực tiếp từ biến môi trường
   const BASE_URL = process.env.REACT_APP_BACKEND_URL;
@@ -26,7 +26,6 @@ const ListLastestProduct = () => {
           params: { page, limit }
         });
 
-        // Expecting response structure: { errCode, message, listProduct, hasMore }
         const newProducts = response.data.listProduct || [];
         setProducts(prev => [...prev, ...newProducts]);
         setHasMore(response.data.hasMore || newProducts.length === limit);
@@ -91,8 +90,17 @@ const ListLastestProduct = () => {
           <p>Không có sản phẩm nào để hiển thị.</p>
         ) : null}
       </div>
-      {loading && <div className="text-center my-3">Đang tải...</div>}
+      
+      {/* HIỆU ỨNG LOADING MỚI */}
+      {loading && (
+        <div className={styles['loading-container']}>
+          <div className={styles['spinner']}></div>
+          <span>Đang tải...</span>
+        </div>
+      )}
+
       {error && <div className="text-danger text-center my-3">{error}</div>}
+      
       {hasMore && !loading && !error && (
         <div className="text-center my-3">
           <button

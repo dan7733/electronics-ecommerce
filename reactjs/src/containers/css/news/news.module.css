@@ -141,6 +141,33 @@
   align-items: start;
 }
 
+/* === SPINNER LOADING (NEW) === */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: #ff0000; /* Dùng màu đỏ cho hợp với News */
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #ffe6e6; /* Đỏ nhạt */
+  border-top-color: #ff0000; /* Đỏ đậm */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+/* ============================= */
+
 @media (max-width: 992px) and (min-width: 768px) {
   .regular-news {
     grid-template-columns: repeat(2, 1fr);
