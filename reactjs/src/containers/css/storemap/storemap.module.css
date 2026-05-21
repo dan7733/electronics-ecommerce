@@ -186,3 +186,30 @@
     font-size: 1rem;
   }
 }
+
+/* === SPINNER LOADING (NEW) === */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: #218282; 
+  font-weight: 600;
+  font-size: 1.1rem;
+  width: 100%;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e0e0e0; 
+  border-top-color: #218282; 
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -1,39 +1,42 @@
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import CryptoJS from 'crypto-js';
 import { logout } from './userService';
 
 const Context = createContext();
+const SECRET_KEY = process.env.REACT_APP_STORAGE_SECRET;
 
 const ContextProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('user') || sessionStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : { auth: false, username: '' };
+    if (savedUser) {
+        try {
+            const bytes = CryptoJS.AES.decrypt(savedUser, SECRET_KEY);
+            return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+        } catch {
+            return { auth: false, username: '' };
+        }
+    }
+    return { auth: false, username: '' };
   });
 
-  useEffect(() => {
-    const currentStorage = localStorage.getItem('user') ? localStorage : sessionStorage;
-    currentStorage.setItem('user', JSON.stringify(user));
-  }, [user]);
-
   const loginContext = (userData, remember = false) => {
-    // Validate userData
-    if (!userData || typeof userData !== 'object') {
-      console.error('Invalid userData provided to loginContext:', userData);
-      return;
-    }
-
+    if (!userData || typeof userData !== 'object') return;
     const newUser = { ...userData, auth: true };
     setUser(newUser);
+    
+    // Mã hóa trước khi lưu
     const storage = remember ? localStorage : sessionStorage;
-    storage.setItem('user', JSON.stringify(newUser));
+    const encryptedData = CryptoJS.AES.encrypt(JSON.stringify(newUser), SECRET_KEY).toString();
+    storage.setItem('user', encryptedData);
   };
 
   const logoutContext = async () => {
     setUser({ username: '', auth: false });
     localStorage.removeItem('user');
     sessionStorage.removeItem('user');
-    localStorage.removeItem('wishlist'); // Clear wishlist on logout
-    localStorage.removeItem('readingList'); // Clear reading list on logout
+    localStorage.removeItem('wishlist'); 
+    localStorage.removeItem('readingList'); 
 
     try {
       await logout();
@@ -42,19 +45,8 @@ const ContextProvider = ({ children }) => {
     }
   };
 
-  const refreshAccessToken = async () => {
-    try {
-      const response = await axios.get('/api/v1/refresh-token', { withCredentials: true });
-      const { accessToken } = response.data;
-      setUser((prevUser) => ({ ...prevUser, accessToken }));
-    } catch (error) {
-      console.error('Failed to refresh access token', document.location, error);
-      logoutContext();
-    }
-  };
-
   return (
-    <Context.Provider value={{ user, loginContext, logoutContext, refreshAccessToken }}>
+    <Context.Provider value={{ user, loginContext, logoutContext }}>
       {children}
     </Context.Provider>
   );

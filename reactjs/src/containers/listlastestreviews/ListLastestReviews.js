@@ -30,8 +30,9 @@ const ListLastestReviews = () => {
     fetchReviews();
   }, [REVIEW_API_URL]);
 
-  const renderReview = (review) => (
-    <div className="col-lg-3 col-md-6 col-12 mb-4 d-flex align-items-stretch" key={review.review_id}>
+  // Thêm index vào đây để tạo key kết hợp không sợ trùng lặp
+  const renderReview = (review, index) => (
+    <div className="col-lg-3 col-md-6 col-12 mb-4 d-flex align-items-stretch" key={`${review.review_id}-${index}`}>
       <Link
         className={`${styles['review-card']} w-100`}
         to={`/detailproduct/${review.product_id}`}
@@ -76,7 +77,8 @@ const ListLastestReviews = () => {
       </div>
       <div className="row">
         {reviews.length > 0 ? (
-          reviews.map(renderReview)
+          // Truyền rõ ràng cả review và index vào hàm render
+          reviews.map((review, index) => renderReview(review, index))
         ) : !loading && !error ? (
           <p className={`${styles['no-reviews']} text-center col-12`}>Không có đánh giá nào.</p>
         ) : null}

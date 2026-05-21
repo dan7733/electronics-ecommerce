@@ -93,7 +93,7 @@ const UserLayout = () => {
                   </Link>
                   <Link
                     className={styles.navLink}
-                    to="/account/notification-settings"
+                    to="/account"
                     onClick={closeSidebar}
                   >
                     Cài đặt thông báo
@@ -109,7 +109,7 @@ const UserLayout = () => {
               </Link>
               <Link
                 className={styles.navLink}
-                to="/account/addresses"
+                to="/account"
                 onClick={closeSidebar}
               >
                 <i className="fa-solid fa-location-dot me-2"></i>Sổ địa chỉ
@@ -130,7 +130,7 @@ const UserLayout = () => {
               </Link>
               <Link
                 className={styles.navLink}
-                to="/account/notifications"
+                to="/account"
                 onClick={closeSidebar}
               >
                 <i className="fa-solid fa-bell me-2"></i>Thông báo

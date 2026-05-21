@@ -43,9 +43,13 @@ const ProductDisplay = () => {
       .finally(() => setLoadingTablet(false));
   }, [API_URL]);
 
-  const renderProduct = (product) => (
-    <Link key={product.product_id} className={styles['product-card']} to={`/detailproduct/${product.product_id}`}>
-      
+  // THÊM index và sectionName vào hàm renderProduct để tạo key duy nhất
+  const renderProduct = (product, index, sectionName) => (
+    <Link 
+      key={`${sectionName}-${product.product_id}-${index}`} 
+      className={styles['product-card']} 
+      to={`/detailproduct/${product.product_id}`}
+    >
       <img
         src={`${API_URL}/images/products/${product.product_img}`}
         alt={product.name}
@@ -67,7 +71,6 @@ const ProductDisplay = () => {
           {(product.discount_price > 0 ? product.discount_price : product.price).toLocaleString()} Đ
         </p>
       </div>
-      
     </Link>
   );
 
@@ -93,7 +96,8 @@ const ProductDisplay = () => {
               <span className={styles['text-red']}>Đang tải...</span>
             </div>
           ) : Array.isArray(newProducts) && newProducts.length > 0 ? (
-            newProducts.map(renderProduct)
+            // Truyền thêm "new" làm sectionName
+            newProducts.map((product, index) => renderProduct(product, index, 'new'))
           ) : (
             <p className={styles['no-product']}>Không có sản phẩm nào.</p>
           )}
@@ -120,7 +124,8 @@ const ProductDisplay = () => {
               <span>Đang tải...</span>
             </div>
           ) : Array.isArray(phoneProducts) && phoneProducts.length > 0 ? (
-            phoneProducts.map(renderProduct)
+            // Truyền thêm "phone" làm sectionName
+            phoneProducts.map((product, index) => renderProduct(product, index, 'phone'))
           ) : (
             <p className={styles['no-product']}>Không có sản phẩm nào.</p>
           )}
@@ -147,7 +152,8 @@ const ProductDisplay = () => {
               <span>Đang tải...</span>
             </div>
           ) : Array.isArray(laptopProducts) && laptopProducts.length > 0 ? (
-            laptopProducts.map(renderProduct)
+            // Truyền thêm "laptop" làm sectionName
+            laptopProducts.map((product, index) => renderProduct(product, index, 'laptop'))
           ) : (
             <p className={styles['no-product']}>Không có sản phẩm nào.</p>
           )}
@@ -174,7 +180,8 @@ const ProductDisplay = () => {
               <span>Đang tải...</span>
             </div>
           ) : Array.isArray(tabletProducts) && tabletProducts.length > 0 ? (
-            tabletProducts.map(renderProduct)
+            // Truyền thêm "tablet" làm sectionName
+            tabletProducts.map((product, index) => renderProduct(product, index, 'tablet'))
           ) : (
             <p className={styles['no-product']}>Không có sản phẩm nào.</p>
           )}

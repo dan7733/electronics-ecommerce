@@ -33,7 +33,7 @@ const initAPIRoute = (app) => {
     router.post('/login', userMiddlewareController.userLoginAPI)
     router.get('/refresh-token', userMiddlewareController.userMiddlewareAPI, userMiddlewareController.refreshTokenAPI)
     router.get('/logout', userMiddlewareController.userMiddlewareAPI, userMiddlewareController.userLogoutAPI)
-    router.get('/account', userMiddlewareController.getAccountAPI)
+    router.get('/account', userMiddlewareController.userMiddlewareAPI, userMiddlewareController.getAccountAPI);
 
     router.get('/detailuserbyusername/:username', userMiddlewareController.userMiddlewareAPI, userMiddlewareController.getdetailUserbyUsernameAPI)
     // đơn hàng

@@ -132,8 +132,13 @@ const ListNews = () => {
           </select>
         </div>
       </div>
+      
+      {/* HIỆU ỨNG LOADING MỚI */}
       {loading ? (
-        <p className={styles['loading']}>Đang tải...</p>
+        <div className={styles['loading-container']}>
+          <div className={styles.spinner}></div>
+          <span>Đang tải...</span>
+        </div>
       ) : (
         <div className={styles['news-list']}>
           {news.length > 0 ? (
@@ -163,7 +168,8 @@ const ListNews = () => {
           )}
         </div>
       )}
-      {totalPages > 1 && (
+
+      {totalPages > 1 && !loading && (
         <div className={styles['custom-pagination']}>
           <Link
             to={`?page=${page - 1}`}

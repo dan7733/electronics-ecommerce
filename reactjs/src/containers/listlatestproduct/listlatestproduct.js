@@ -43,16 +43,16 @@ const ListLastestProduct = () => {
     setPage(prev => prev + 1);
   };
 
-  const renderProduct = (product) => (
+  // Thêm index vào đây để tạo key độc nhất
+  const renderProduct = (product, index) => (
     <Link
-      key={product.product_id}
+      key={`${product.product_id}-${index}`}
       className={`${styles['product-card']} ${styles['product-card--animate']}`}
       to={`/detailproduct/${product.product_id}`}
       aria-label={`Xem chi tiết ${product.name}, giá ${(product.discount_price > 0 ? product.discount_price : product.price).toLocaleString()} VND`}
     >
       <div className={styles['image-wrapper']}>
         <img
-          // Thay thế localhost bằng BASE_URL cho ảnh sản phẩm
           src={product.product_img ? `${BASE_URL}/images/products/${product.product_img}` : dfproduct}
           alt={`Hình ảnh ${product.name}`}
           onError={(e) => (e.target.src = dfproduct)}
@@ -85,7 +85,8 @@ const ListLastestProduct = () => {
       </div>
       <div className={`mt-3 ${styles['product-wrapper']}`}>
         {products.length > 0 ? (
-          products.map(renderProduct)
+          // Truyền rõ ràng cả product và index vào hàm render
+          products.map((product, index) => renderProduct(product, index))
         ) : !loading && !error ? (
           <p>Không có sản phẩm nào để hiển thị.</p>
         ) : null}

@@ -36,7 +36,6 @@ const StoreMap = () => {
   useEffect(() => {
     const fetchStores = async () => {
       try {
-        // SỬ DỤNG BIẾN MÔI TRƯỜNG CHO URL
         const res = await axios.get(`${BACKEND_URL}/api/v1/liststore`);
         if (res.data.errCode === 0) {
           setStores(res.data.data);
@@ -107,7 +106,6 @@ const StoreMap = () => {
     try {
       const res = await axios.post(directionsUrl, body, {
         headers: {
-          // SỬ DỤNG BIẾN MÔI TRƯỜNG CHO API KEY
           Authorization: ORS_API_KEY,
           'Content-Type': 'application/json; charset=utf-8',
           Accept: 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8',
@@ -132,7 +130,6 @@ const StoreMap = () => {
     }
   };
 
-  // ... (Phần MapController và return giữ nguyên không đổi)
   const MapController = () => {
     const map = useMap();
     useEffect(() => {
@@ -149,15 +146,11 @@ const StoreMap = () => {
 
   return (
     <div className={styles.container}>
-       {/* ... Giữ nguyên phần JSX UI ... */}
-       {/* Chỉ cần copy lại phần return UI của bạn vào đây */}
-       <div className={styles.sidebar}>
+      <div className={styles.sidebar}>
         <h2 className={styles.title}>
           <i className="fas fa-store me-2"></i> Danh sách cửa hàng
         </h2>
-        {/* ... code cũ ... */}
-        {/* Để tiết kiệm không gian, tôi không paste lại toàn bộ JSX vì nó không thay đổi */}
-        {/* Bạn hãy giữ nguyên phần return UI như cũ nhé */}
+        
         <div className={styles.inputGroup}>
           <input
             type="text"
@@ -170,11 +163,12 @@ const StoreMap = () => {
             <i className="fas fa-search me-2"></i> 
           </button>
         </div>
+
+        {/* ÁP DỤNG HIỆU ỨNG LOADING ĐỒNG BỘ */}
         {isLoading ? (
-          <div className="text-center mt-3">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Đang tải...</span>
-            </div>
+          <div className={styles['loading-container']}>
+            <div className={styles.spinner}></div>
+            <span>Đang tải...</span>
           </div>
         ) : (
           <>
@@ -199,17 +193,19 @@ const StoreMap = () => {
                     </li>
                   ))
                 ) : (
-                  <p className="text-muted mt-3">Không có cửa hàng nào.</p>
+                  <p className="text-muted mt-3 text-center">Không có cửa hàng nào.</p>
                 )}
               </ul>
             </div>
-            {/* ... Phần Mobile và MapContainer giữ nguyên ... */}
-             <div className={styles.storeListMobile}>
-                 {/* ...Code mobile... */}
-             </div>
+            
+            {/* Nếu có Offcanvas Mobile thì bạn cứ giữ nguyên ở đây nhé */}
+            <div className={styles.storeListMobile}>
+              {/* Nút hoặc phần UI offcanvas Mobile */}
+            </div>
           </>
         )}
       </div>
+
       <MapContainer
         center={[10.0478, 105.769]}
         zoom={13}

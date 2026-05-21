@@ -5,13 +5,13 @@ import styles from '../css/listproduct/listproduct.module.css';
 
 const ProductList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const keyword = searchParams.get('searchkeyword') || ''; // Lấy từ khóa từ URL
+  const keyword = searchParams.get('searchkeyword') || '';
   const [products, setProducts] = useState([]);
-  const [minPrice, setMinPrice] = useState(''); // Giá tối thiểu nhập
-  const [maxPrice, setMaxPrice] = useState(''); // Giá tối đa nhập
-  const [filterMinPrice, setFilterMinPrice] = useState(0); // Giá tối thiểu gửi API
-  const [filterMaxPrice, setFilterMaxPrice] = useState(0); // Giá tối đa gửi API
-  const [rangeMaxPrice, setRangeMaxPrice] = useState(0); // Giá tối đa từ API
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [filterMinPrice, setFilterMinPrice] = useState(0);
+  const [filterMaxPrice, setFilterMaxPrice] = useState(0);
+  const [rangeMaxPrice, setRangeMaxPrice] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortOption, setSortOption] = useState('default');
@@ -19,14 +19,47 @@ const ProductList = () => {
   const [brand, setBrand] = useState([]);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const [showAllBrands, setShowAllBrands] = useState(false);
+  
+  const [loading, setLoading] = useState(false); 
 
-  // Khai báo biến môi trường cho API
+  // STATE: Quản lý Đóng/Mở thẻ sản phẩm trên Mobile
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const [isBrandOpen, setIsBrandOpen] = useState(false);
+
   const API_URL = process.env.REACT_APP_BACKEND_URL;
 
   const categoryId = searchParams.get('categoryId');
   const brandId = searchParams.get('brandId');
 
-  // Reset trạng thái khi categoryId hoặc brandId thay đổi
+  // HIỆU ỨNG CUỘN LÊN ĐẦU TRANG KHI ĐỔI TRANG
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
+
+  // HÀM HELPER: Xử lý URL cho Danh mục (Ấn 1 lần chọn, ấn lại bỏ chọn)
+  const buildCategoryUrl = (catId) => {
+    const params = new URLSearchParams(searchParams);
+    if (categoryId === String(catId)) {
+      params.delete('categoryId'); // Đã chọn rồi -> Ấn lại là Bỏ chọn
+    } else {
+      params.set('categoryId', catId); // Chưa chọn -> Chọn mới
+    }
+    params.set('page', 1); // Đổi bộ lọc thì quay về trang 1
+    return `?${params.toString()}`;
+  };
+
+  // HÀM HELPER: Xử lý URL cho Nhãn hàng (Ấn 1 lần chọn, ấn lại bỏ chọn)
+  const buildBrandUrl = (brdId) => {
+    const params = new URLSearchParams(searchParams);
+    if (brandId === String(brdId)) {
+      params.delete('brandId'); 
+    } else {
+      params.set('brandId', brdId); 
+    }
+    params.set('page', 1);
+    return `?${params.toString()}`;
+  };
+
   useEffect(() => {
     setMinPrice('');
     setMaxPrice('');
@@ -38,9 +71,9 @@ const ProductList = () => {
     setShowAllBrands(false);
   }, [categoryId, brandId]);
 
-  // Fetch dữ liệu sản phẩm
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       try {
         const params = {};
         if (currentPage) params.page = currentPage;
@@ -51,9 +84,6 @@ const ProductList = () => {
         if (filterMaxPrice > 0) params.maxPrice = filterMaxPrice;
         if (sortOption) params.sort = sortOption;
 
-        console.log('Fetching with params:', params); // Debug
-
-        // Thay thế localhost bằng API_URL
         const response = await axios.get(`${API_URL}/api/v1/listproduct`, { params });
         const productList = response.data.listProduct || [];
         const categoryList = response.data.categories || [];
@@ -64,7 +94,6 @@ const ProductList = () => {
         setBrand(brandList);
         setTotalPages(response.data.totalPages || 1);
 
-        // Tính giá cao nhất từ danh sách sản phẩm
         const highestPrice = productList.reduce((max, product) => {
           const price = product.discount_price > 0 ? product.discount_price : product.price;
           return price > max ? price : max;
@@ -73,13 +102,14 @@ const ProductList = () => {
         setRangeMaxPrice(highestPrice);
       } catch (error) {
         console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProducts();
   }, [categoryId, brandId, keyword, currentPage, filterMinPrice, filterMaxPrice, sortOption, API_URL]);
 
-  // Xử lý áp dụng bộ lọc giá
   const handleApplyPrice = () => {
     const min = minPrice ? parseFloat(minPrice.replace(/[^0-9]/g, '')) : 0;
     const max = maxPrice ? parseFloat(maxPrice.replace(/[^0-9]/g, '')) : 0;
@@ -99,27 +129,24 @@ const ProductList = () => {
     setCurrentPage(1);
   };
 
-  // Xử lý thay đổi giá tối thiểu
   const handleMinPriceChange = (e) => {
-    const value = e.target.value.replace(/[^0-9]/g, ''); // Chỉ cho phép số
+    const value = e.target.value.replace(/[^0-9]/g, '');
     if (value) {
-      setMinPrice(Number(value).toLocaleString('vi-VN')); // Format giá
+      setMinPrice(Number(value).toLocaleString('vi-VN'));
     } else {
       setMinPrice('');
     }
   };
 
-  // Xử lý thay đổi giá tối đa
   const handleMaxPriceChange = (e) => {
-    const value = e.target.value.replace(/[^0-9]/g, ''); // Chỉ cho phép số
+    const value = e.target.value.replace(/[^0-9]/g, '');
     if (value) {
-      setMaxPrice(Number(value).toLocaleString('vi-VN')); // Format giá
+      setMaxPrice(Number(value).toLocaleString('vi-VN'));
     } else {
       setMaxPrice('');
     }
   };
 
-  // Xử lý thay đổi tìm kiếm
   const handleSearchChange = (e) => {
     const value = e.target.value;
     searchParams.set('searchkeyword', value);
@@ -127,27 +154,9 @@ const ProductList = () => {
     setCurrentPage(1);
   };
 
-  // Toggle ẩn/hiện tag filter ở mobile
-  useEffect(() => {
-    const toggles = document.querySelectorAll(`.${styles['dropdown-toggle']}`);
-    const containers = document.querySelectorAll(`.${styles['tags-container']}`);
-    const handleClick = (index) => () => {
-      containers[index].classList.toggle('active');
-    };
-    toggles.forEach((toggle, index) => {
-      toggle.addEventListener('click', handleClick(index));
-    });
-    return () => {
-      toggles.forEach((toggle, index) => {
-        toggle.removeEventListener('click', handleClick(index));
-      });
-    };
-  }, []);
-
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      // Update URL with new page
       const params = new URLSearchParams(searchParams);
       params.set('page', page);
       setSearchParams(params);
@@ -156,45 +165,30 @@ const ProductList = () => {
 
   const handleSortChange = (e) => setSortOption(e.target.value);
 
-  // Hàm xây dựng URL cho phân trang
   const buildPageUrl = (page) => {
     const params = new URLSearchParams(searchParams);
     params.set('page', page);
     return `?${params.toString()}`;
   };
 
-  // Pagination Logic
   const renderPagination = () => {
     const pages = [];
-
-    // Always show the first page
     pages.push(1);
-
-    // Add ellipsis if current page is greater than 4
     if (currentPage > 4) {
       pages.push('...');
     }
-
-    // Calculate the range of nearby pages (2 pages before and after)
     const startPage = Math.max(2, currentPage - 2);
     const endPage = Math.min(totalPages - 1, currentPage + 2);
-
-    // Add nearby pages
     for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
+      if (i > 1 && i < totalPages) pages.push(i);
     }
-
-    // Add ellipsis if current page is far from the last page
     if (currentPage < totalPages - 3) {
       pages.push('...');
     }
-
-    // Always show the last page if there are at least 2 pages
     if (totalPages > 1) {
       pages.push(totalPages);
     }
-
-    return pages;
+    return [...new Set(pages)];
   };
 
   return (
@@ -203,10 +197,9 @@ const ProductList = () => {
         {/* Sidebar */}
         <div className={`col-md-3 px-4 ${styles.sidebar_product}`}>
           <div className={`${styles.title} breadcrumb mb-3`}>
-            TRANG CHỦ / <span className="text-success">LAPTOP</span>
+            TRANG CHỦ / <span className="text-success">SẢN PHẨM</span>
           </div>
 
-          {/* Tìm kiếm */}
           <div className="mb-3">
             <div className="input-group">
               <input
@@ -222,7 +215,6 @@ const ProductList = () => {
             </div>
           </div>
 
-          {/* Bộ lọc giá */}
           <div className="mb-4">
             <label className="form-label">Giá</label>
             <div className="row g-2">
@@ -263,18 +255,20 @@ const ProductList = () => {
           <div className={styles['filter-title']} style={{ color: '#218282' }}>
             DANH MỤC SẢN PHẨM
           </div>
-
-          <div className={styles['filter-title']}>Danh mục sản phẩm</div>
           <div className={styles['product-tags']}>
-            <div className={styles['dropdown-toggle']}>THẺ SẢN PHẨM</div>
-            <div className={styles['tags-container']}>
+            <div 
+              className={styles['dropdown-toggle']}
+              onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+            >
+              <span>THẺ SẢN PHẨM</span>
+              <i className={`fas fa-chevron-${isCategoryOpen ? 'up' : 'down'}`}></i>
+            </div>
+            <div className={`${styles['tags-container']} ${isCategoryOpen ? styles['mobile-open'] : ''}`}>
               {category.length > 0 ? (
-                (showAllCategories ? category : category.slice(0, 10)).map((cat) => (
+                (showAllCategories ? category : category.slice(0, 10)).map((cat, index) => (
                   <Link
-                    key={cat.category_id}
-                    to={`?categoryId=${cat.category_id}${brandId ? `&brandId=${brandId}` : ''}${
-                      keyword ? `&searchkeyword=${keyword}` : ''
-                    }`}
+                    key={`${cat.category_id}-${index}`}
+                    to={buildCategoryUrl(cat.category_id)}
                     className={`${styles['tag']} ${
                       categoryId === String(cat.category_id) ? styles['tag-active'] : ''
                     }`}
@@ -297,17 +291,23 @@ const ProductList = () => {
           </div>
 
           {/* Nhãn hàng sản phẩm */}
-          <div className={styles['filter-title']}>Nhãn hàng sản phẩm</div>
+          <div className={styles['filter-title']} style={{ marginTop: '20px', color: '#218282' }}>
+            NHÃN HÀNG SẢN PHẨM
+          </div>
           <div className={styles['product-tags']}>
-            <div className={styles['dropdown-toggle']}>THẺ SẢN PHẨM</div>
-            <div className={styles['tags-container']}>
+            <div 
+              className={styles['dropdown-toggle']}
+              onClick={() => setIsBrandOpen(!isBrandOpen)}
+            >
+              <span>THẺ SẢN PHẨM</span>
+              <i className={`fas fa-chevron-${isBrandOpen ? 'up' : 'down'}`}></i>
+            </div>
+            <div className={`${styles['tags-container']} ${isBrandOpen ? styles['mobile-open'] : ''}`}>
               {brand.length > 0 ? (
-                (showAllBrands ? brand : brand.slice(0, 10)).map((brd) => (
+                (showAllBrands ? brand : brand.slice(0, 10)).map((brd, index) => (
                   <Link
-                    key={brd.brand_id}
-                    to={`?brandId=${brd.brand_id}${categoryId ? `&categoryId=${categoryId}` : ''}${
-                      keyword ? `&searchkeyword=${keyword}` : ''
-                    }`}
+                    key={`${brd.brand_id}-${index}`}
+                    to={buildBrandUrl(brd.brand_id)}
                     className={`${styles['tag']} ${
                       brandId === String(brd.brand_id) ? styles['tag-active'] : ''
                     }`}
@@ -331,59 +331,80 @@ const ProductList = () => {
         </div>
 
         {/* Danh sách sản phẩm */}
-        <div className="col-md-9">
-          <select
-            className={`${styles['form-select']} ${styles['dropdown-sort']}`}
-            style={{ width: '200px', color: '#218282' }}
-            value={sortOption}
-            onChange={handleSortChange}
-          >
-            <option value="default">Thứ tự mặc định</option>
-            <option value="price_asc">Giá: Thấp đến cao</option>
-            <option value="price_desc">Giá: Cao đến thấp</option>
-          </select>
+        <div className="col-md-9 d-flex flex-column" style={{ minHeight: '80vh' }}>
+          
+          <div className="d-flex justify-content-end mb-3">
+            <select
+              className={`${styles['form-select']} ${styles['dropdown-sort']}`}
+              style={{ width: '200px', color: '#218282' }}
+              value={sortOption}
+              onChange={handleSortChange}
+            >
+              <option value="default">Thứ tự mặc định</option>
+              <option value="price_asc">Giá: Thấp đến cao</option>
+              <option value="price_desc">Giá: Cao đến thấp</option>
+            </select>
+          </div>
 
-          <div className="row g-3 my-5">
-            {Array.isArray(products) && products.length > 0 ? (
-              products.map((product) => (
-                <div className="col-6 col-md-3" key={product.product_id}>
-                  <Link to={`/detailproduct/${product.product_id}`} className={`${styles['product-link']}`}>
-                    <div className={`${styles['product-card']} text-center`}>
-                      <img
-                        // Thay thế localhost bằng API_URL cho ảnh sản phẩm
-                        src={`${API_URL}/images/products/${product.product_img}`}
-                        className={`${styles['product-image']} img-fluid`}
-                        alt={product.name}
-                      />
-                      <p className="mb-1 text-muted">{product.Category?.name}</p>
-                      <p className="mb-1">{product.name}</p>
-                      {product.discount_price > 0 ? (
-                        <>
-                          <div className={styles['old-price']}>
-                            {Number(product.price).toLocaleString('vi-VN')}₫
-                          </div>
-                          <div className={styles['new-price']}>
-                            {Number(product.discount_price).toLocaleString('vi-VN')}₫
-                          </div>
-                        </>
-                      ) : (
-                        <div className={styles['new-price']}>
-                          {Number(product.price).toLocaleString('vi-VN')}₫
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                </div>
-              ))
+          <div className="flex-grow-1">
+            {loading ? (
+              <div className={styles['loading-container']}>
+                <div className={styles.spinner}></div>
+                <span>Đang tải...</span>
+              </div>
             ) : (
-              <p>Không có sản phẩm nào để hiển thị.</p>
+              <div className="row g-3 mb-4">
+                {Array.isArray(products) && products.length > 0 ? (
+                  products.map((product, index) => (
+                    <div className="col-6 col-md-3" key={`${product.product_id}-${index}`}>
+                      <Link to={`/detailproduct/${product.product_id}`} className={`${styles['product-link']}`}>
+                        
+                        {/* BỌC LẠI KHUNG CARD ĐỂ CHỐNG TRÀN CHỮ */}
+                        <div className={styles['product-card']}>
+                          <div className={styles['product-img-wrapper']}>
+                            <img
+                              src={`${API_URL}/images/products/${product.product_img}`}
+                              className={styles['product-image']}
+                              alt={product.name}
+                            />
+                          </div>
+                          
+                          <div className={styles['product-info']}>
+                            <p className={styles['product-category']}>{product.Category?.name}</p>
+                            <p className={styles['product-name']}>{product.name}</p>
+                          </div>
+
+                          <div className={styles['product-price-wrapper']}>
+                            {product.discount_price > 0 ? (
+                              <>
+                                <div className={styles['old-price']}>
+                                  {Number(product.price).toLocaleString('vi-VN')}₫
+                                </div>
+                                <div className={styles['new-price']}>
+                                  {Number(product.discount_price).toLocaleString('vi-VN')}₫
+                                </div>
+                              </>
+                            ) : (
+                              <div className={styles['new-price']}>
+                                {Number(product.price).toLocaleString('vi-VN')}₫
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                      </Link>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center w-100 mt-5">Không có sản phẩm nào để hiển thị.</p>
+                )}
+              </div>
             )}
           </div>
 
-          {/* Custom Smart Pagination with Links */}
-          {totalPages > 1 && (
+          {/* Custom Smart Pagination */}
+          {totalPages > 1 && !loading && (
             <div className={styles['custom-pagination']}>
-              {/* Previous Page Link */}
               <Link
                 to={buildPageUrl(currentPage - 1)}
                 className={`${styles['custom-pagination-button']} ${styles['arrow']} ${
@@ -397,7 +418,6 @@ const ProductList = () => {
                 &lt;
               </Link>
 
-              {/* Pagination Pages */}
               {renderPagination().map((page, index) =>
                 page === '...' ? (
                   <span
@@ -409,7 +429,7 @@ const ProductList = () => {
                   </span>
                 ) : (
                   <Link
-                    key={page}
+                    key={`page-${page}`}
                     to={buildPageUrl(page)}
                     className={`${styles['custom-pagination-button']} ${
                       currentPage === page ? styles['active'] : ''
@@ -421,7 +441,6 @@ const ProductList = () => {
                 )
               )}
 
-              {/* Next Page Link */}
               <Link
                 to={buildPageUrl(currentPage + 1)}
                 className={`${styles['custom-pagination-button']} ${styles['arrow']} ${

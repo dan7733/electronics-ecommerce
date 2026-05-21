@@ -32,19 +32,27 @@ const Login = () => {
 
         const googleResponse = await loginWithGoogle(googleId, email, fullname);
         if (googleResponse.data.errCode !== 0) {
-          setErrorMessage(googleResponse.data.message);
+          // Đã ẩn lỗi chi tiết từ backend, thay bằng câu chung chung
+          setErrorMessage('Đăng nhập Google không thành công. Vui lòng thử lại!');
           return;
         }
 
+        const accessToken = googleResponse.data.accessToken;
+
+        // 1. Lưu TẠM token vào context để Axios Interceptor có chìa khóa gọi API account
+        loginContext({ accessToken }, true);
+
         const userResponse = await account();
         if (!userResponse.data || userResponse.data.errCode !== 0) {
-          throw new Error(userResponse.data.message || 'Invalid account data');
+          throw new Error('Invalid account data');
         }
 
+        // 2. Lưu HOÀN CHỈNH thông tin vào Context (Giữ lại accessToken)
         const userData = {
           username: userResponse.data.data.user,
           fullname: userResponse.data.data.fullname,
           avatar: userResponse.data.data.avatar,
+          accessToken: accessToken
         };
 
         loginContext(userData, true);
@@ -103,27 +111,38 @@ const Login = () => {
     setErrorMessage('');
     try {
       const items = await login(stateInput.user, stateInput.pass);
-      if (items.data.errCode !== 0) {
-        setErrorMessage(items.data.message);
+      
+      // Kiểm tra token trả về từ backend
+      if (!items.data || !items.data.accessToken) {
+        setErrorMessage('Tài khoản, mật khẩu không chính xác hoặc đăng nhập không thành công!');
         return;
       }
 
+      const accessToken = items.data.accessToken;
+
+      // 1. Lưu TẠM token vào context để Axios Interceptor tự động gắn vào Header khi gọi API account
+      loginContext({ accessToken }, stateInput.remember);
+
+      // Bây giờ gọi API account thì chắc chắn thành công
       const userResponse = await account();
       if (!userResponse.data || userResponse.data.errCode !== 0) {
-         throw new Error(userResponse.data.message || 'Invalid account data');
+         throw new Error('Invalid account data');
       }
 
+      // 2. Lưu HOÀN CHỈNH thông tin
       const userData = {
          username: userResponse.data.data.user,
          fullname: userResponse.data.data.fullname,
          avatar: userResponse.data.data.avatar,
+         accessToken: accessToken
       };
 
       loginContext(userData, stateInput.remember);
       navigate('/');
     } catch (err) {
       console.error('Login error:', err);
-      setErrorMessage('Đăng nhập không thành công. Vui lòng thử lại!');
+      // Đã ẩn hoàn toàn lỗi từ backend. Dù sai mật khẩu hay lỗi server thì chỉ hiện 1 câu chung chung:
+      setErrorMessage('Tài khoản, mật khẩu không chính xác hoặc đăng nhập không thành công!');
     }
   };
 

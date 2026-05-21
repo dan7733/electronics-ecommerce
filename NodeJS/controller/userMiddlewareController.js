@@ -96,59 +96,64 @@ const verifyToken = (token) => {
     }
 };
 
-
-
-// Xác thực Middleware
+// Xác thực Middleware (Đã chuẩn hóa để đọc Access Token từ React gửi lên)
 const userMiddlewareAPI = (req, res, next) => {
-    const token = req.cookies.jwt; // Lấy token từ cookie
-    if (!token) {
+    const authHeader = req.headers.authorization; 
+
+    // Kiểm tra Header
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({
-            err: 0,
+            errCode: 1,
             message: 'Vui lòng đăng nhập để tiếp tục.'
         });
     }
+
+    // Tách lấy Token
+    const token = authHeader.split(' ')[1]; 
     const decoded = verifyToken(token); // Giải mã token
+
     if (!decoded) {
-        return res.status(403).json({
-            err: 0,
-            message: 'Token không hợp lệ, vui lòng đăng nhập lại.'
+        return res.status(401).json({
+            errCode: 1,
+            message: 'Token không hợp lệ hoặc đã hết hạn.'
         });
     }
-    req.user = decoded;
-    // Nếu route có req.params.username thì kiểm tra quyền truy cập
+    
+    // Gắn thông tin user vào request để truyền sang hàm getAccountAPI
+    req.user = decoded; 
+
+    // Kiểm tra quyền (giữ nguyên logic cũ của bạn)
     const usernameInUrl = req.params.username;
     if (usernameInUrl) {
-        const tokenUsername = decoded.username;
-        // Nếu không phải admin và không đúng user thì chặn
-        if (decoded.role !== 'admin' && usernameInUrl !== tokenUsername) {
+        if (decoded.role !== 'admin' && usernameInUrl !== decoded.username) {
             return res.status(403).json({
-                err: 0,
+                errCode: 1,
                 message: 'Bạn chỉ có thể thao tác trên tài khoản của mình.'
             });
         }
     }
-    next();
+    
+    next(); // Cho phép đi tiếp qua hàm getAccountAPI
 };
 
-// lấy thông tin người dùng
+// lấy thông tin người dùng (Đã sửa cho gọn lại)
 const getAccountAPI = (req, res) => {
   try {
-    const token = req.cookies.jwt;
-    const decoded = verifyToken(token);
-    if (decoded) {
+    // Thông tin req.user đã được middleware ở trên xử lý và truyền xuống
+    if (req.user) {
       return res.status(200).json({
         errCode: 0,
         message: 'Thành công',
         data: {
-          user: decoded.username,
-          fullname: decoded.fullname,
-          avatar: decoded.avatar,
+          user: req.user.username,
+          fullname: req.user.fullname,
+          avatar: req.user.avatar,
         },
       });
     }
     return res.status(401).json({
       errCode: 1,
-      message: 'Token không hợp lệ hoặc đã hết hạn',
+      message: 'Không lấy được thông tin người dùng',
     });
   } catch (error) {
     console.error('Lỗi khi lấy thông tin tài khoản:', error);
