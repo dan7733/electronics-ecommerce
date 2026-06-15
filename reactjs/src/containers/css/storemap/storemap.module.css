@@ -3,6 +3,7 @@
   flex-direction: row;
   height: 100vh;
   background-color: #f8f9fa;
+  position: relative; 
 }
 
 .sidebar {
@@ -25,7 +26,7 @@
 
 .inputGroup {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 20px;
 }
 
@@ -33,20 +34,31 @@
   border-radius: 0.25rem;
   box-shadow: none;
   font-size: 0.95rem;
+  flex-grow: 1;
 }
 
 .inputGroup button {
   border-radius: 0.25rem;
   transition: background-color 0.3s;
   font-size: 0.95rem;
-  padding: 8px 16px;
-  background-color: #218282; /* Màu chủ đạo */
+  padding: 8px 12px;
+  background-color: #218282; 
   border-color: #218282;
+  color: white;
+  border: none;
+  cursor: pointer;
 }
 
 .inputGroup button:hover {
-  background-color: #1a6666; /* Màu đậm hơn khi hover */
-  border-color: #1a6666;
+  background-color: #1a6666; 
+}
+
+.btnGps {
+  background-color: #6c757d !important;
+}
+
+.btnGps:hover {
+  background-color: #5a6268 !important;
 }
 
 .storeList {
@@ -59,11 +71,17 @@
   padding: 15px;
   border-bottom: 1px solid #e9ecef;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  border-left: 4px solid transparent;
 }
 
 .storeItem:hover {
-  background-color: #e6f0f0; /* Màu nền hover dựa trên tông #218282 */
+  background-color: #e6f0f0; 
+}
+
+.activeStore {
+  background-color: #e6f0f0;
+  border-left: 4px solid #218282;
 }
 
 .storeItem div {
@@ -77,8 +95,22 @@
 }
 
 .storeItem i {
-  color: #218282; /* Màu biểu tượng */
+  color: #218282; 
   margin-right: 8px;
+}
+
+.routeDetails {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background-color: #fff;
+  border: 1px dashed #218282;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #d9534f;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .map {
@@ -100,20 +132,9 @@
     width: 300px;
     padding: 15px;
   }
-
-  .title {
-    font-size: 1.3rem;
-  }
-
-  .inputGroup {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .inputGroup input,
-  .inputGroup button {
-    width: 100%;
-  }
+  .title { font-size: 1.3rem; }
+  .inputGroup { flex-wrap: wrap; }
+  .inputGroup input { width: 100%; }
 }
 
 @media (max-width: 768px) {
@@ -122,72 +143,44 @@
     height: auto;
     min-height: 100vh;
   }
-
   .sidebar {
     width: 100%;
     box-shadow: none;
     border-bottom: 1px solid #dee2e6;
   }
-
   .map {
     height: 60vh;
     min-height: 400px;
   }
-
-  .storeListDesktop {
-    display: none;
-  }
-
+  .storeListDesktop { display: none; }
   .storeListMobile {
     display: block;
     margin-top: 10px;
   }
-
   .offcanvas-body .storeList {
     max-height: calc(100vh - 150px);
     overflow-y: auto;
   }
-
-  /* Màu cho nút mở offcanvas */
   .storeListMobile button {
     background-color: #218282;
     border-color: #218282;
   }
-
   .storeListMobile button:hover {
     background-color: #1a6666;
     border-color: #1a6666;
   }
-
-  /* Màu cho tiêu đề offcanvas */
-  .offcanvas-title {
-    color: #218282;
-  }
+  .offcanvas-title { color: #218282; }
 }
 
 @media (max-width: 576px) {
-  .sidebar {
-    padding: 10px;
-  }
-
-  .title {
-    font-size: 1.2rem;
-  }
-
-  .storeItem {
-    padding: 10px;
-  }
-
-  .storeItem div {
-    font-size: 0.9rem;
-  }
-
-  .storeItem strong {
-    font-size: 1rem;
-  }
+  .sidebar { padding: 10px; }
+  .title { font-size: 1.2rem; }
+  .storeItem { padding: 10px; }
+  .storeItem div { font-size: 0.9rem; }
+  .storeItem strong { font-size: 1rem; }
 }
 
-/* === SPINNER LOADING (NEW) === */
+/* === SPINNER LOADING === */
 .loading-container {
   display: flex;
   flex-direction: column;

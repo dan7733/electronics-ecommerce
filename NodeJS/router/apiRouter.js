@@ -31,7 +31,8 @@ const initAPIRoute = (app) => {
 
     // đăng nhập và đăng xuất
     router.post('/login', userMiddlewareController.userLoginAPI)
-    router.get('/refresh-token', userMiddlewareController.userMiddlewareAPI, userMiddlewareController.refreshTokenAPI)
+    // lưu ý
+    router.get('/refresh-token', userMiddlewareController.refreshTokenAPI)
     router.get('/logout', userMiddlewareController.userMiddlewareAPI, userMiddlewareController.userLogoutAPI)
     router.get('/account', userMiddlewareController.userMiddlewareAPI, userMiddlewareController.getAccountAPI);
 

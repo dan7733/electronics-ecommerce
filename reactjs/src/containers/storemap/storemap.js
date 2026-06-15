@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import {
   MapContainer,
@@ -11,6 +11,8 @@ import {
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import polyline from '@mapbox/polyline';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import styles from '../css/storemap/storemap.module.css';
 
 // Sửa lỗi icon mặc định của Leaflet
@@ -21,18 +23,36 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
+// Hàm tính khoảng cách đường chim bay (Haversine Formula) - Đơn vị: km
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; 
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return (R * c).toFixed(1); 
+};
+
 const StoreMap = () => {
   const [stores, setStores] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
   const [routeCoordinates, setRouteCoordinates] = useState([]);
   const [inputLocation, setInputLocation] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  
+  // State quản lý UI
+  const [activeStoreId, setActiveStoreId] = useState(null);
+  const [routeInfo, setRouteInfo] = useState(null); 
+  const [isLocating, setIsLocating] = useState(false); 
+  const [focusedLocation, setFocusedLocation] = useState(null); 
 
-  // Lấy các biến môi trường
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
   const ORS_API_KEY = process.env.REACT_APP_ORS_API_KEY;
 
-  // Lấy danh sách cửa hàng từ API
   useEffect(() => {
     const fetchStores = async () => {
       try {
@@ -40,11 +60,12 @@ const StoreMap = () => {
         if (res.data.errCode === 0) {
           setStores(res.data.data);
         } else {
-          console.error('Lỗi API:', res.data.message);
+          console.error('Lỗi Logic API:', res.data.message);
+          toast.error('Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.');
         }
       } catch (err) {
-        console.error('Lỗi khi lấy danh sách cửa hàng:', err);
-        alert('Không thể tải danh sách cửa hàng.');
+        console.error('Lỗi kết nối danh sách cửa hàng (Dev Only):', err);
+        toast.error('Hệ thống đang bảo trì hoặc mất kết nối. Vui lòng thử lại sau.');
       } finally {
         setIsLoading(false);
       }
@@ -52,24 +73,21 @@ const StoreMap = () => {
     fetchStores();
   }, [BACKEND_URL]);
 
-  const getNearestStore = (userLat, userLng) => {
-    let nearest = null;
-    let minDist = Infinity;
-    stores.forEach((store) => {
-      const dist = Math.sqrt(
-        Math.pow(store.latitude - userLat, 2) + Math.pow(store.longitude - userLng, 2)
-      );
-      if (dist < minDist) {
-        minDist = dist;
-        nearest = store;
-      }
-    });
-    return nearest;
-  };
+  // Tự động sắp xếp cửa hàng từ gần đến xa
+  const sortedStores = useMemo(() => {
+    if (!userLocation) return stores;
+    
+    const storesWithDistance = stores.map((store) => ({
+      ...store,
+      distanceToUser: parseFloat(calculateDistance(userLocation[0], userLocation[1], store.latitude, store.longitude))
+    }));
+
+    return storesWithDistance.sort((a, b) => a.distanceToUser - b.distanceToUser);
+  }, [stores, userLocation]);
 
   const geocodeLocation = async () => {
     if (!inputLocation) {
-      alert('Vui lòng nhập vị trí.');
+      toast.warning('Vui lòng nhập vị trí của bạn để tìm kiếm.');
       return;
     }
     try {
@@ -81,71 +99,124 @@ const StoreMap = () => {
         const parsedLat = parseFloat(lat);
         const parsedLon = parseFloat(lon);
         setUserLocation([parsedLat, parsedLon]);
-        await drawRoute(parsedLat, parsedLon);
+        setFocusedLocation([parsedLat, parsedLon]);
+        
       } else {
-        alert('Không tìm thấy vị trí bạn nhập.');
+        toast.error('Không tìm thấy vị trí này trên bản đồ. Vui lòng nhập rõ hơn.');
       }
     } catch (err) {
-      console.error('Lỗi khi tìm vị trí:', err);
-      alert('Lỗi khi tìm vị trí. Vui lòng thử lại.');
+      console.error('Lỗi Geocode Nominatim (Dev Only):', err);
+      toast.error('Dịch vụ tìm kiếm địa chỉ đang bận. Vui lòng thử lại sau.');
     }
   };
 
-  const drawRoute = async (lat, lng) => {
-    const nearestStore = getNearestStore(lat, lng);
-    if (!nearestStore) {
-      alert('Không tìm thấy cửa hàng nào gần vị trí này.');
+  const getCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.warning('Trình duyệt hoặc thiết bị của bạn không hỗ trợ định vị.');
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        setUserLocation([latitude, longitude]);
+        setInputLocation('Vị trí hiện tại của bạn');
+        setFocusedLocation([latitude, longitude]);
+        setIsLocating(false);
+      },
+      (error) => {
+        setIsLocating(false);
+        console.error('Lỗi GPS (Dev Only):', error);
+        toast.error('Không thể lấy được vị trí. Vui lòng cấp quyền GPS cho trình duyệt.');
+      }
+    );
+  };
+
+  const drawRoute = async (startLat, startLng, endLat, endLng) => {
+    const apiKey = ORS_API_KEY;
+
+    if (!apiKey) {
+      toast.error('Lỗi: Hệ thống thiếu API Key tìm đường.');
       return;
     }
 
-    const directionsUrl = 'https://api.openrouteservice.org/v2/directions/driving-car';
-    const body = {
-      coordinates: [[lng, lat], [nearestStore.longitude, nearestStore.latitude]],
-    };
-
     try {
-      const res = await axios.post(directionsUrl, body, {
-        headers: {
-          Authorization: ORS_API_KEY,
-          'Content-Type': 'application/json; charset=utf-8',
-          Accept: 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8',
-        },
+      const res = await axios.get('https://api.openrouteservice.org/v2/directions/driving-car', {
+        params: {
+          api_key: apiKey,
+          start: `${startLng},${startLat}`,
+          end: `${endLng},${endLat}`,
+          radiuses: '-1|-1'
+        }
       });
 
-      if (res.data && res.data.routes && res.data.routes.length > 0) {
-        const geometry = res.data.routes[0].geometry;
-        if (typeof geometry === 'string') {
-          const decodedCoords = polyline.decode(geometry);
-          const coords = decodedCoords.map(([lat, lng]) => [lat, lng]);
-          setRouteCoordinates(coords);
-        } else {
-          alert('Dữ liệu tuyến đường không hợp lệ: Geometry không phải chuỗi polyline.');
-        }
+      if (res.data && res.data.features && res.data.features.length > 0) {
+        const routeFeature = res.data.features[0];
+        
+        const coordinates = routeFeature.geometry.coordinates;
+        const coords = coordinates.map(([lng, lat]) => [lat, lng]);
+        setRouteCoordinates(coords);
+
+        const summary = routeFeature.properties.summary;
+        const distanceKm = (summary.distance / 1000).toFixed(1); 
+        const durationMin = Math.round(summary.duration / 60); 
+        setRouteInfo({ distance: distanceKm, duration: durationMin });
+
       } else {
-        alert('Không tìm thấy tuyến đường. Vui lòng kiểm tra tọa độ hoặc API key.');
+        toast.warning('Không thể tìm thấy tuyến đường khả dụng giữa hai điểm này.');
+        setRouteInfo(null);
       }
     } catch (err) {
-      console.error('Lỗi khi vẽ tuyến đường:', err);
-      alert('Lỗi khi kết nối OpenRouteService: ' + (err.response?.data?.error?.message || err.message));
+      console.error('Lỗi OpenRouteService (Dev Only):', err);
+      setRouteInfo(null);
+      
+      const serverMessage = err.response?.data?.error?.message || '';
+      
+      if (serverMessage.includes('Could not find routable point')) {
+        toast.warning('Vị trí nằm quá xa đường bộ. Xin hãy chọn điểm gần lộ hơn!');
+      } else {
+        toast.error('Hệ thống chỉ đường đang tạm gián đoạn. Vui lòng thử lại sau.');
+      }
+    }
+  };
+
+  const handleStoreClick = (store) => {
+    setActiveStoreId(store.store_id);
+    setFocusedLocation([store.latitude, store.longitude]); 
+    
+    if (userLocation) {
+      drawRoute(userLocation[0], userLocation[1], store.latitude, store.longitude);
+    } else {
+      setRouteCoordinates([]);
+      setRouteInfo(null);
     }
   };
 
   const MapController = () => {
     const map = useMap();
+    
     useEffect(() => {
-      if (stores.length > 0) {
+      if (!map) return;
+
+      map.stop(); 
+
+      if (routeCoordinates.length > 0) {
+        map.fitBounds(routeCoordinates, { padding: [50, 50] });
+      } else if (focusedLocation) {
+        map.flyTo(focusedLocation, 16, { duration: 1.2 });
+      } else if (stores.length > 0 && !userLocation) {
         const bounds = L.latLngBounds(stores.map((store) => [store.latitude, store.longitude]));
         map.fitBounds(bounds);
       }
-      if (userLocation) {
-        map.setView(userLocation, 16);
-      }
-    }, [stores, userLocation, map]);
+    }, [stores, userLocation, routeCoordinates, focusedLocation, map]);
+    
     return null;
   };
 
   return (
     <div className={styles.container}>
+      <ToastContainer position="top-right" autoClose={3000} />
+
       <div className={styles.sidebar}>
         <h2 className={styles.title}>
           <i className="fas fa-store me-2"></i> Danh sách cửa hàng
@@ -157,31 +228,32 @@ const StoreMap = () => {
             className="form-control"
             value={inputLocation}
             onChange={(e) => setInputLocation(e.target.value)}
-            placeholder="Nhập vị trí của bạn..."
+            placeholder="Nhập vị trí..."
+            onKeyDown={(e) => e.key === 'Enter' && geocodeLocation()}
           />
-          <button className="btn btn-primary" onClick={geocodeLocation}>
-            <i className="fas fa-search me-2"></i> 
+          <button className={styles.btnGps} onClick={getCurrentLocation} title="Vị trí tự động">
+            {isLocating ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-location-arrow"></i>}
+          </button>
+          <button onClick={geocodeLocation} title="Tìm kiếm">
+            <i className="fas fa-search"></i> 
           </button>
         </div>
 
-        {/* ÁP DỤNG HIỆU ỨNG LOADING ĐỒNG BỘ */}
         {isLoading ? (
           <div className={styles['loading-container']}>
             <div className={styles.spinner}></div>
-            <span>Đang tải...</span>
+            <span>Đang tải dữ liệu...</span>
           </div>
         ) : (
           <>
             <div className={styles.storeListDesktop}>
               <ul className={styles.storeList}>
-                {stores.length > 0 ? (
-                  stores.map((store) => (
+                {sortedStores.length > 0 ? (
+                  sortedStores.map((store) => (
                     <li
                       key={store.store_id}
-                      className={styles.storeItem}
-                      onClick={() => {
-                        setUserLocation([store.latitude, store.longitude]);
-                      }}
+                      className={`${styles.storeItem} ${activeStoreId === store.store_id ? styles.activeStore : ''}`}
+                      onClick={() => handleStoreClick(store)}
                     >
                       <div>
                         <strong>{store.name}</strong>
@@ -189,18 +261,32 @@ const StoreMap = () => {
                         <i className="fas fa-map-marker-alt me-1"></i> {store.address}
                         <br />
                         <i className="fas fa-clock me-1"></i> {store.open_hours} - {store.close_hour}
+                        
+                        {/* Hiện khoảng cách chim bay nếu đã nhập vị trí */}
+                        {userLocation && store.distanceToUser !== undefined && (
+                          <div style={{ marginTop: '5px', color: '#666', fontSize: '0.85rem' }}>
+                            <i className="fas fa-ruler-horizontal me-1"></i> Cách bạn ~{store.distanceToUser} km
+                          </div>
+                        )}
+
+                        {/* Hiện thông tin tuyến đường cụ thể khi được chọn */}
+                        {activeStoreId === store.store_id && routeInfo && (
+                          <div className={styles.routeDetails}>
+                            <i className="fas fa-car side-icon"></i> 
+                            Quãng đường xe: {routeInfo.distance} km (~{routeInfo.duration} phút)
+                          </div>
+                        )}
                       </div>
                     </li>
                   ))
                 ) : (
-                  <p className="text-muted mt-3 text-center">Không có cửa hàng nào.</p>
+                  <p className="text-muted mt-3 text-center">Không có dữ liệu cửa hàng.</p>
                 )}
               </ul>
             </div>
             
-            {/* Nếu có Offcanvas Mobile thì bạn cứ giữ nguyên ở đây nhé */}
             <div className={styles.storeListMobile}>
-              {/* Nút hoặc phần UI offcanvas Mobile */}
+              {/* Giữ nguyên phần Mobile của bạn */}
             </div>
           </>
         )}
@@ -211,29 +297,31 @@ const StoreMap = () => {
         zoom={13}
         className={styles.map}
       >
+        {/* ĐÃ CẬP NHẬT TILELAYER SANG GOOGLE MAPS ĐỂ LẤY HÌNH ẢNH MỚI NHẤT */}
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="© OpenStreetMap contributors"
+          url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+          attribution='© <a href="https://maps.google.com/">Google Maps</a>'
         />
         <MapController />
+        
         {stores.map((store) => (
           <Marker key={store.store_id} position={[store.latitude, store.longitude]}>
             <Popup>
               <b>{store.name}</b>
-              <br />
-              {store.address}
-              <br />
-              Giờ mở: {store.open_hours} - {store.close_hour}
+              <br />{store.address}
+              <br />Giờ mở: {store.open_hours} - {store.close_hour}
             </Popup>
           </Marker>
         ))}
+        
         {userLocation && (
           <Marker position={userLocation}>
             <Popup>Vị trí của bạn</Popup>
           </Marker>
         )}
+        
         {routeCoordinates.length > 0 && (
-          <Polyline positions={routeCoordinates} color="blue" />
+          <Polyline positions={routeCoordinates} color="#218282" weight={5} opacity={0.8} />
         )}
       </MapContainer>
     </div>

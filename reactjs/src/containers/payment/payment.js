@@ -178,7 +178,7 @@ const Payment = () => {
     setAddressError('');
 
     if (!stores.length) {
-      setAddressError('Không tìm thấy cửa hàng nào.');
+      setAddressError('Không tìm thấy hệ thống cửa hàng.');
       return;
     }
 
@@ -211,52 +211,59 @@ const Payment = () => {
     setRouteDistance(minDistance);
 
     try {
-      const directionsUrl = 'https://api.openrouteservice.org/v2/directions/driving-car';
-      const body = {
-        coordinates: [
-          [tempCoords.lon, tempCoords.lat],
-          [closestStore.longitude, closestStore.latitude],
-        ],
-      };
+      const apiKey = ORS_API_KEY;
 
-      const response = await axios.post(directionsUrl, body, {
-        headers: {
-          Authorization: ORS_API_KEY,
-          'Content-Type': 'application/json; charset=utf-8',
-          Accept: 'application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8',
-        },
+      if (!apiKey) {
+        console.error('Lỗi cấu hình: Thiếu REACT_APP_ORS_API_KEY trong file .env');
+        setAddressError('Hệ thống đang gặp sự cố nhỏ khi tính khoảng cách. Đang sử dụng khoảng cách ước tính.');
+        return;
+      }
+
+      const response = await axios.get('https://api.openrouteservice.org/v2/directions/driving-car', {
+        params: {
+          api_key: apiKey,
+          start: `${tempCoords.lon},${tempCoords.lat}`,
+          end: `${closestStore.longitude},${closestStore.latitude}`,
+          radiuses: '-1|-1'
+        }
       });
 
-      if (response.data && response.data.routes && response.data.routes.length > 0) {
-        const route = response.data.routes[0];
-        const distanceKm = route.summary.distance / 1000;
-        const geometry = route.geometry;
-        if (typeof geometry === 'string') {
-          const decodedCoords = polyline.decode(geometry);
-          const coords = decodedCoords.map(([lat, lng]) => [lat, lng]);
-          setRouteCoordinates(coords);
-          setRouteDistance(distanceKm);
-          console.log('OpenRouteService distance:', distanceKm, 'km');
-          console.log('Route coordinates:', coords);
+      if (response.data && response.data.features && response.data.features.length > 0) {
+        const routeFeature = response.data.features[0];
+        
+        const coordinates = routeFeature.geometry.coordinates;
+        const coords = coordinates.map(([lng, lat]) => [lat, lng]); 
+        
+        const summary = routeFeature.properties.summary;
+        const distanceKm = summary.distance / 1000;
 
-          if (map) {
-            const bounds = L.latLngBounds([
-              [tempCoords.lat, tempCoords.lon],
-              [closestStore.latitude, closestStore.longitude],
-            ]);
-            map.fitBounds(bounds);
-          }
-        } else {
-          console.warn('Invalid geometry format from OpenRouteService');
-          setAddressError('Dữ liệu tuyến đường không hợp lệ. Sử dụng khoảng cách ước tính.');
+        setRouteCoordinates(coords);
+        setRouteDistance(distanceKm);
+        console.log('OpenRouteService distance:', distanceKm, 'km');
+
+        if (map) {
+          const bounds = L.latLngBounds([
+            [tempCoords.lat, tempCoords.lon],
+            [closestStore.latitude, closestStore.longitude],
+          ]);
+          map.fitBounds(bounds);
         }
       } else {
         console.warn('No routes found from OpenRouteService');
-        setAddressError('Không tìm thấy tuyến đường. Sử dụng khoảng cách ước tính.');
+        setAddressError('Không thể tìm thấy tuyến đường tối ưu. Đang sử dụng khoảng cách ước tính.');
       }
     } catch (error) {
-      console.error('Error fetching route from OpenRouteService:', error);
-      setAddressError('Không thể tính đường đi. Sử dụng khoảng cách ước tính.');
+      console.error('Lỗi OpenRouteService (Dev Only):', error);
+      
+      const serverMessage = error.response?.data?.error?.message || '';
+      
+      // Khách hàng nhập vị trí quá hiểm trở, xa lộ lớn (rơi vào vùng sông nước, sân bay)
+      if (serverMessage.includes('Could not find routable point')) {
+         setAddressError('Vị trí được chọn nằm khá xa trục đường giao thông chính. Đang áp dụng khoảng cách ước tính để tính phí giao hàng.');
+      } else {
+         // Các lỗi kỹ thuật khác (Network Error, CORS, Sai Token) được gom thành thông báo chung thân thiện
+         setAddressError('Hệ thống tính phí tự động đang bảo trì. Đang áp dụng khoảng cách ước tính.');
+      }
     }
   };
 
@@ -538,9 +545,10 @@ const Payment = () => {
                       setMap(mapInstance);
                     }}
                   >
+                    {/* ĐÃ ĐỒNG BỘ SỬ DỤNG LỚP ẢNH GOOGLE MAPS ĐỜI MỚI SAU SÁP NHẬP */}
                     <TileLayer
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+                      attribution='© <a href="https://maps.google.com/">Google Maps</a>'
                     />
                     {(tempCoords || userCoords) && (
                       <Marker position={tempCoords ? [tempCoords.lat, tempCoords.lon] : [userCoords.lat, userCoords.lon]}>
