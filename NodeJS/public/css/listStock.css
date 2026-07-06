@@ -50,6 +50,7 @@
     color: #218282;
 }
 
+/* PHẦN PHÂN TRANG (PAGINATION) Y HỆT LIST PRODUCT */
 .liststock-pagination .page-link {
     background-color: #218282;
     color: white;
@@ -59,18 +60,45 @@
 .liststock-pagination .page-link:hover {
     background-color: white;
     color: #218282;
+    border: 1px solid #218282;
 }
 
 .liststock-pagination .active .page-link {
-    background-color: #218282;
+    background-color: #125e5e;
     color: white;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
 
-.liststock-pagination .disabled .page-link {
-    background-color: #ddd;
-    color: #bbb;
-}
+/* RESPONSIVE MOBILE Y HỆT LIST PRODUCT */
+@media (max-width: 600px) {
+    .liststock-filter-search-container {
+        flex-direction: column;
+    }
 
-.liststock-pagination .page-link {
-    border-radius: 0 !important;
+    .liststock-searchinput {
+        width: 100% !important;
+        margin-top: 5px;
+    }
+
+    .liststock-action-btns {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .liststock-action-btns .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .liststock-container {
+        flex-direction: column !important;
+        gap: 10px;
+    }
+
+    .liststock-filter-container {
+        display: flex;
+        justify-content: flex-end;
+    }
 }

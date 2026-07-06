@@ -220,11 +220,17 @@ const deleteUser = async (idUser) => {
     try {
         const user = await User.findOne({
             where: { user_id: idUser },
-            attributes: ['avatar']
+            // Bổ sung lấy thêm 'username' để kiểm tra
+            attributes: ['username', 'avatar'] 
         });
 
         if (!user) {
             return null;
+        }
+
+        // CHẶN XÓA TÀI KHOẢN TEST
+        if (user.username === 'test') {
+            throw new Error('Không thể xóa tài khoản hệ thống!');
         }
 
         const result = await User.destroy({

@@ -81,10 +81,10 @@ const ProductDisplay = () => {
         <div className={`${styles['product-category-bar']} ${styles['newsproduct-category-bar']}`}>
           <span className="text-white fw-bold">SẢN PHẨM MỚI</span>
           <div className={styles['product-category-links']}>
-            <Link to="#">HOT</Link>
-            <Link to="#">FLASH SALE</Link>
-            <Link to="#">TRENDING</Link>
-            <Link to="#" className={styles['product-more']}>
+            <Link to="/productlist/?page=1">HOT</Link>
+            <Link to="/productlist/?page=1">FLASH SALE</Link>
+            <Link to="/productlist/?page=1">TRENDING</Link>
+            <Link to="/productlist/?page=1" className={styles['product-more']}>
               Nhiều hơn <i className="fa-solid fa-angle-double-right"></i>
             </Link>
           </div>
@@ -109,10 +109,10 @@ const ProductDisplay = () => {
         <div className={styles['product-category-bar']}>
           <span className="text-white fw-bold">ĐIỆN THOẠI</span>
           <div className={styles['product-category-links']}>
-            <Link to="#">NOKIA</Link>
-            <Link to="#">IPHONE</Link>
-            <Link to="#">SAMSUNG</Link>
-            <Link to="#" className={styles['product-more']}>
+            <Link to="/productlist/?page=1&categoryId=1&brandId=32">XIAOMI</Link>
+            <Link to="/productlist/?page=1&categoryId=1&brandId=29">IPHONE</Link>
+            <Link to="/productlist/?page=1&categoryId=1&brandId=30">SAMSUNG</Link>
+            <Link to="/productlist/?page=1&categoryId=1" className={styles['product-more']}>
               Nhiều hơn <i className="fa-solid fa-angle-double-right"></i>
             </Link>
           </div>
@@ -137,10 +137,10 @@ const ProductDisplay = () => {
         <div className={styles['product-category-bar']}>
           <span className="text-white fw-bold">LAPTOP</span>
           <div className={styles['product-category-links']}>
-            <Link to="#">DELL</Link>
-            <Link to="#">HP</Link>
-            <Link to="#">MACBOOK</Link>
-            <Link to="#" className={styles['product-more']}>
+            <Link to="/productlist/?page=1&categoryId=2&brandId=2">MSI</Link>
+            <Link to="/productlist/?page=1&categoryId=2&brandId=31">ASUS</Link>
+            <Link to="/productlist/?page=1&categoryId=2&brandId=29">MACBOOK</Link>
+            <Link to="/productlist/?page=1&categoryId=2" className={styles['product-more']}>
               Nhiều hơn <i className="fa-solid fa-angle-double-right"></i>
             </Link>
           </div>
@@ -165,10 +165,10 @@ const ProductDisplay = () => {
         <div className={styles['product-category-bar']}>
           <span className="text-white fw-bold">MÁY TÍNH BẢNG</span>
           <div className={styles['product-category-links']}>
-            <Link to="#">XIAOMI</Link>
-            <Link to="#">SAMSUNG</Link>
-            <Link to="#">IPAD</Link>
-            <Link to="#" className={styles['product-more']}>
+            <Link to="/productlist/?page=1&categoryId=9&brandId=32">XIAOMI</Link>
+            <Link to="/productlist/?page=1&categoryId=9&brandId=30">SAMSUNG</Link>
+            <Link to="/productlist/?page=1&categoryId=9&brandId=29">IPAD</Link>
+            <Link to="/productlist/?page=1&categoryId=9" className={styles['product-more']}>
               Nhiều hơn <i className="fa-solid fa-angle-double-right"></i>
             </Link>
           </div>

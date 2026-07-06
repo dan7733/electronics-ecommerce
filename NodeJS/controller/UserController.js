@@ -137,15 +137,25 @@ const listUser = async (req, res) => {
 // Xóa người dùng
 const deleteUser = async (req, res) => {
   try {
-    const { user_id } = req.body; // Lấy product_id từ request body
-    const avatar = await userModel.deleteUser(user_id); // Gọi hàm xóa sản phẩm
-    if (avatar) {
-      deleteUserImage(avatar); // Xóa ảnh nếu có
+    const { user_id } = req.body; 
+    const currentUserId = req.session.user.user_id; // Lấy ID của Admin đang thao tác
+
+    // CHẶN: Nếu ID gửi lên đòi xóa trùng với ID đang đăng nhập
+    if (parseInt(user_id) === currentUserId) {
+        return res.redirect('/listuser?message=' + encodeURIComponent('Hành động bị từ chối: Không thể tự xóa tài khoản của chính mình!'));
     }
+
+    const avatar = await userModel.deleteUser(user_id); 
+
+    if (avatar) {
+      deleteUserImage(avatar); 
+    }
+    
     res.redirect('/listuser?message=Xóa người dùng thành công');
   } catch (error) {
     console.error(error);
-    res.redirect('/listuser?message=Xóa người dùng thất bại');
+    const errorMessage = error.message || 'Xóa người dùng thất bại';
+    res.redirect(`/listuser?message=${encodeURIComponent(errorMessage)}`);
   }
 };
 

@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom'; // Bổ sung import Link
 import img12 from '../../img/slider/1.2.png';
 import img13 from '../../img/slider/1.3.png';
 import img14 from '../../img/slider/1.4.png';
@@ -15,10 +16,12 @@ const Slider = () => {
   const autoSlideRef = useRef(null);
 
   const images = [sl1, img12, img13, img14];
+  
+  // Đã sửa lại đường dẫn đồng bộ về "/" như yêu cầu trước đó
   const smallBanners = [
-    { img: sl2, link: 'https://example.com/khuyen-mai-2' },
-    { img: sl3, link: 'https://example.com/khuyen-mai-3' },
-    { img: sl4, link: 'https://example.com/khuyen-mai-4' },
+    { img: sl2, link: '/' },
+    { img: sl3, link: '/' },
+    { img: sl4, link: '/' },
   ];
 
   const updateSliderPosition = () => {
@@ -76,11 +79,14 @@ const Slider = () => {
               className={styles['slider-item']}
               ref={el => (slideRefs.current[idx] = el)}
             >
-              <a href={`https://example.com/khuyen-mai-${idx + 1}`} target="_blank" rel="noreferrer" />
-              <img src={img} alt={`Khuyến mãi ${idx + 1}`} />
+              {/* Bọc thẻ img bên trong thẻ Link */}
+              <Link to="/" className={styles['slider-link']}>
+                <img src={img} alt={`Khuyến mãi ${idx + 1}`} />
+              </Link>
             </div>
           ))}
         </div>
+        
         <button className={`${styles['slider-btn']} ${styles['slider-btn-prev']}`} onClick={() => { stopAutoSlide(); prevSlide(); startAutoSlide(); }}>
           <i className="fa fa-chevron-left"></i>
         </button>
@@ -93,8 +99,10 @@ const Slider = () => {
         <div className={styles['slider-small-banner-row']}>
           {smallBanners.map((banner, idx) => (
             <div key={idx} className={styles['slider-small-banner']}>
-              <img src={banner.img} alt={`Khuyến mãi nhỏ ${idx + 2}`} />
-              <a href={banner.link} target="_blank" rel="noreferrer" />
+               {/* Bọc thẻ img bên trong thẻ Link */}
+              <Link to={banner.link} className={styles['slider-link']}>
+                <img src={banner.img} alt={`Khuyến mãi nhỏ ${idx + 2}`} />
+              </Link>
             </div>
           ))}
         </div>
