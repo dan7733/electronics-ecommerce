@@ -163,18 +163,23 @@ const deleteUser = async (req, res) => {
 //lấy chi tiết người dùng
 const editUser = async (req, res) => {
   try {
-    const { userid } = req.params; // Lấy user_id từ params
-    const userDetail = await userModel.getUserById(userid); // Gọi hàm lấy chi tiết người dùng
+    const { userid } = req.params; 
+    const userDetail = await userModel.getUserById(userid); 
 
     if (!userDetail) {
       return res.status(404).send("Người dùng không tồn tại.");
     }
+    // chặn xóa tài khoản hệ thống
+    if (userDetail.username === 'test') {
+        return res.redirect('/listuser?message=' + encodeURIComponent('Hành động bị từ chối: Không thể xem hoặc sửa tài khoản hệ thống!'));
+    }
+
     const message = req.query.message || '';
     res.render('home', {
       data: {
         title: 'Update User',
         page: 'updateUser',
-        user: userDetail, // Truyền thông tin người dùng vào view
+        user: userDetail,
         message: message
       }
     });
@@ -189,15 +194,18 @@ const updateUser = async (req, res) => {
   try {
     const { user_id, username, password, fullname, email, phone, address, sex, dateOfBirth, role, status, provider } = req.body;
 
-    // Validate required fields
     if (!user_id || !username) {
       throw new Error("Thiếu thông tin bắt buộc: user_id hoặc username.");
     }
 
-    // Retrieve the old user data
     const oldUser = await userModel.getUserById(user_id);
     if (!oldUser) {
       throw new Error("Người dùng không tồn tại.");
+    }
+
+    // chặn xóa tk hệ thống
+    if (oldUser.username === 'test') {
+        throw new Error("Hành động bị từ chối: Không thể sửa tài khoản hệ thống!");
     }
 
     // Handle avatar upload
@@ -205,7 +213,7 @@ const updateUser = async (req, res) => {
     if (req.file) {
       newAvatar = req.file.filename;
       if (oldUser.avatar && newAvatar !== oldUser.avatar) {
-        deleteUserImage(oldUser.avatar); // Delete old avatar if a new one is uploaded
+        deleteUserImage(oldUser.avatar); 
       }
     }
 
@@ -219,19 +227,8 @@ const updateUser = async (req, res) => {
 
     // Update user
     const updatedUser = await userModel.updateUser(
-      user_id,
-      username,
-      hashedPassword,
-      fullname,
-      address,
-      sex,
-      email,
-      phone,
-      newAvatar,
-      status,
-      dateOfBirth,
-      role,
-      provider
+      user_id, username, hashedPassword, fullname, address, sex, 
+      email, phone, newAvatar, status, dateOfBirth, role, provider
     );
 
     if (!updatedUser) {
@@ -241,14 +238,12 @@ const updateUser = async (req, res) => {
     res.redirect(`/edituser/${user_id}?message=Cập nhật thành công`);
   } catch (error) {
     console.error("Lỗi cập nhật người dùng:", error);
-    // Delete new avatar if an error occurs
     if (req.file) {
       deleteUserImage(req.file.filename);
     }
     res.redirect(`/edituser/${req.body.user_id}?message=${encodeURIComponent(error.message)}`);
   }
 };
-
 
 
 

@@ -261,6 +261,12 @@ const getUserById = async (userid) => {
 // Cập nhật người dùng
 const updateUser = async (idUser, username, password, fullname, address, sex, email, phone, avatar, status, dateOfBirth, role, provider) => {
     try {
+        // chặn xóa tài khoản hệ thống
+        const targetUser = await User.findOne({ where: { user_id: idUser } });
+        if (targetUser && targetUser.username === 'test') {
+            throw new Error('Hệ thống từ chối: Không thể cập nhật tài khoản hệ thống!');
+        }
+
         if (!provider) {
             provider = 'local';
         }

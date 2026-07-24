@@ -56,19 +56,30 @@
                                     </td>
                                     <td><%- user.status || '<i class="fa fa-times text-danger"></i>' %></td>
                                     <td>
-                                        <a href="/edituser/<%= user.user_id %>" class="btn btn-sm btn-primary">
-                                            <i class="bi bi-pencil-square"></i> Sửa
-                                        </a>
+                                        <% if (user.username === 'test') { %>
+                                            <!-- Hiển thị nút Sửa bị vô hiệu hóa cho tài khoản test -->
+                                            <button class="btn btn-sm btn-secondary" disabled title="Không thể sửa tài khoản hệ thống" style="cursor: not-allowed; opacity: 0.6;">
+                                                <i class="bi bi-pencil-square"></i> Sửa
+                                            </button>
+                                            <!-- Hiển thị nút Xóa bị vô hiệu hóa cho tài khoản test -->
+                                            <button class="btn btn-sm btn-secondary" disabled title="Không thể xóa tài khoản hệ thống" style="cursor: not-allowed; opacity: 0.6;">
+                                                <i class="bi bi-trash"></i> Xóa
+                                            </button>
+                                        <% } else { %>
+                                            <!-- Nút Sửa bình thường -->
+                                            <a href="/edituser/<%= user.user_id %>" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-pencil-square"></i> Sửa
+                                            </a>
 
-                                        <!-- KIỂM TRA ĐỂ CHẶN TỰ HỦY -->
-                                        <% if (session.user.user_id !==user.user_id) { %>
-                                            <form action="/deleteuser" method="POST" style="display:inline-block;"
-                                                onsubmit="return confirm('Bạn có chắc chắn muốn xóa người dùng này không?');">
-                                                <input type="hidden" name="user_id" value="<%= user.user_id %>" />
-                                                <button class="btn btn-sm btn-danger" type="submit">
-                                                    <i class="bi bi-trash"></i> Xóa
-                                                </button>
-                                            </form>
+                                            <!-- KIỂM TRA ĐỂ CHẶN TỰ HỦY -->
+                                            <% if (session.user.user_id !== user.user_id) { %>
+                                                <form action="/deleteuser" method="POST" style="display:inline-block;"
+                                                    onsubmit="return confirm('Bạn có chắc chắn muốn xóa người dùng này không?');">
+                                                    <input type="hidden" name="user_id" value="<%= user.user_id %>" />
+                                                    <button class="btn btn-sm btn-danger" type="submit">
+                                                        <i class="bi bi-trash"></i> Xóa
+                                                    </button>
+                                                </form>
                                             <% } else { %>
                                                 <!-- Hiển thị nút Xóa bị vô hiệu hóa cho chính tài khoản đang đăng nhập -->
                                                 <button class="btn btn-sm btn-secondary" disabled
@@ -76,7 +87,8 @@
                                                     style="cursor: not-allowed; opacity: 0.6;">
                                                     <i class="bi bi-trash"></i> Xóa
                                                 </button>
-                                                <% } %>
+                                            <% } %>
+                                        <% } %>
                                     </td>
                                 </tr>
                                 <% }) %>
