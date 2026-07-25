@@ -1,5 +1,6 @@
 import { sequelize, DataTypes } from '../configs/connectDatabase.js';
 import { Op } from 'sequelize';
+import logger from '../configs/logger.js'; // Import custom logger
 import { Brand } from './brandModel.js';
 import { Category } from './categoryModel.js';
 
@@ -69,7 +70,7 @@ Category.hasMany(Product, { foreignKey: 'category_id' });
 const addProduct = async (name, price, discount_price, description, product_img, brand_id, category_id) => {
     try {
         if(!brand_id){
-            brand_id = null; // Nếu không có brand_id thì gán là null
+            brand_id = null;
         }
         const result = await Product.create({
             name: name,
@@ -81,9 +82,9 @@ const addProduct = async (name, price, discount_price, description, product_img,
             category_id: category_id
         });
         
-        return result;  // Trả về bản ghi sản phẩm vừa được tạo
+        return result;
     } catch (error) {
-        console.error('Lỗi khi thêm sản phẩm:', error);
+        logger.error('Lỗi khi thêm sản phẩm', { error: error.message, stack: error.stack });
         throw error;
     }
 };
@@ -105,26 +106,21 @@ const listProduct = async (offset = null, limit = null, searchKeyword = '', sort
             ]
         };
 
-        // Tìm kiếm theo tên sản phẩm
         if (searchKeyword) {
             queryOptions.where.name = { [Op.like]: `%${searchKeyword}%` };
         }
 
-        // Lọc theo thương hiệu (nếu có)
         if (brandFilter) {
             queryOptions.include[0].where = { brand_id: brandFilter };
         }
 
-        // Lọc theo danh mục (nếu có)
         if (categoryFilter) {
             queryOptions.include[1].where = { category_id: categoryFilter };
         }
 
-        // Giới hạn và phân trang
         if (offset !== null) queryOptions.offset = offset;
         if (limit !== null) queryOptions.limit = limit;
 
-        // Sắp xếp theo giá
         if (sortOption === 'price_asc') {
             queryOptions.order = [['price', 'ASC']];
         } else if (sortOption === 'price_desc') {
@@ -136,29 +132,25 @@ const listProduct = async (offset = null, limit = null, searchKeyword = '', sort
         const products = await Product.findAll(queryOptions);
         return products;
     } catch (error) {
-        console.error('Lỗi khi tải danh sách sản phẩm:', error);
+        logger.error('Lỗi khi tải danh sách sản phẩm', { error: error.message, stack: error.stack });
         throw error;
     }
 };
 
-// Đếm số lượng brands
 const countProduct = async (searchKeyword = '', brandFilter = '', categoryFilter = '') => {
     try {
         const queryOptions = {
             where: {}
         };
 
-        // Tìm kiếm theo tên sản phẩm
         if (searchKeyword) {
             queryOptions.where.name = { [Op.like]: `%${searchKeyword}%` };
         }
 
-        // Lọc theo thương hiệu (nếu có)
         if (brandFilter) {
             queryOptions.where.brand_id = brandFilter;
         }
 
-        // Lọc theo danh mục (nếu có)
         if (categoryFilter) {
             queryOptions.where.category_id = categoryFilter;
         }
@@ -166,37 +158,33 @@ const countProduct = async (searchKeyword = '', brandFilter = '', categoryFilter
         const total = await Product.count(queryOptions);
         return total;
     } catch (error) {
-        console.error('Lỗi khi đếm sản phẩm:', error);
+        logger.error('Lỗi khi đếm sản phẩm', { error: error.message, stack: error.stack });
         throw error;
     }
 };
 
-// Xóa sản phẩm
 const deleteProduct = async (idProduct) => {
     try {
-        // Tìm sản phẩm trước khi xóa để lấy tên ảnh
         const product = await Product.findOne({
             where: { product_id: idProduct },
-            attributes: ['product_img'] // Chỉ lấy trường product_img
+            attributes: ['product_img']
         });
 
         if (!product) {
-            return null; // Không tìm thấy sản phẩm
+            return null;
         }
 
-        // Xóa sản phẩm
         const result = await Product.destroy({
             where: { product_id: idProduct }
         });
 
-        return result ? product.product_img : null; // Trả về tên ảnh nếu xóa thành công
+        return result ? product.product_img : null;
     } catch (error) {
-        console.error('Lỗi khi xóa sản phẩm:', error);
+        logger.error('Lỗi khi xóa sản phẩm', { error: error.message, stack: error.stack, idProduct });
         throw error;
     }
 };
 
-// Lấy chi tiết sản phẩm theo ID
 const getProductById = async (productId) => {
     if (!productId) {
         throw new Error('Yêu cầu id sản phẩm');
@@ -205,16 +193,15 @@ const getProductById = async (productId) => {
         const result = await Product.findOne({ where: { product_id: productId } });
         return result;
     } catch (error) {
-        console.error('Lỗi khi tìm sản phẩm:', error);
+        logger.error('Lỗi khi tìm sản phẩm', { error: error.message, stack: error.stack, productId });
         throw error;
     }
 };
 
-// Cập nhật sản phẩm
 const updateProduct = async (idProduct, name, price, discount_price, description, product_img, brand_id, category_id) => {
     try {
         if(!brand_id){
-            brand_id = null; // Nếu không có brand_id thì gán là null
+            brand_id = null;
         }
         const result = await Product.update(
             { 
@@ -232,12 +219,11 @@ const updateProduct = async (idProduct, name, price, discount_price, description
         );
         return result;
     } catch (error) {
-        console.error('Lỗi khi update sản phẩm:', error);
+        logger.error('Lỗi khi update sản phẩm', { error: error.message, stack: error.stack, idProduct });
         throw error;
     }
 };
 
-// lấy sản phẩm mới và sản phẩm theo loại tối đa 4
 const getlatestProductsAPI = async (category_id = null) => {
     try {
         const whereClause = category_id ? { category_id } : {};
@@ -256,12 +242,11 @@ const getlatestProductsAPI = async (category_id = null) => {
 
         return products;
     } catch (error) {
-        console.error('Error fetching latest products:', error);
+        logger.error('Error fetching latest products', { error: error.message, stack: error.stack });
         throw new Error('Could not fetch latest products.');
     }
 };
 
-// lấy chi tiết sản phẩm theo id
 const getProductDetailAPI = async (product_id) => {
     try {
         console.log(`Processing getProductDetailAPI for product_id: ${product_id}`);
@@ -294,12 +279,11 @@ const getProductDetailAPI = async (product_id) => {
         console.log(`Returning product with views: ${product.views}`);
         return product;
     } catch (error) {
-        console.error('Error fetching product detail:', error);
+        logger.error('Error fetching product detail', { error: error.message, stack: error.stack, product_id });
         throw new Error('Could not fetch product detail.');
     }
 };
 
-// danh sách sản phẩm
 const listProductAPI = async (
     offset = null,
     limit = null,
@@ -326,12 +310,10 @@ const listProductAPI = async (
             ]
         };
 
-        // Tìm kiếm theo tên sản phẩm
         if (searchKeyword) {
             queryOptions.where.name = { [Op.like]: `%${searchKeyword}%` };
         }
 
-        // Lọc theo giá tối đa (từ 0 đến maxPrice)
         if (maxPrice !== null || minPrice !== null) {
             queryOptions.where.price = {};
             if (minPrice !== null) {
@@ -342,21 +324,17 @@ const listProductAPI = async (
             }
         }
 
-        // Lọc theo thương hiệu (nếu có)
         if (brandFilter) {
             queryOptions.where.brand_id = brandFilter;
         }
 
-        // Lọc theo danh mục (nếu có)
         if (categoryFilter) {
             queryOptions.where.category_id = categoryFilter;
         }
 
-        // Phân trang
         if (offset !== null) queryOptions.offset = offset;
         if (limit !== null) queryOptions.limit = limit;
 
-        // Sắp xếp
         switch (sortOption) {
             case 'price_asc':
                 queryOptions.order = [['price', 'ASC']];
@@ -371,7 +349,7 @@ const listProductAPI = async (
         const products = await Product.findAll(queryOptions);
         return products;
     } catch (error) {
-        console.error('Lỗi khi tải danh sách sản phẩm:', error);
+        logger.error('Lỗi khi tải danh sách sản phẩm', { error: error.message, stack: error.stack });
         throw error;
     }
 };
@@ -413,12 +391,11 @@ const countProductAPI = async (
         const total = await Product.count(queryOptions);
         return total;
     } catch (error) {
-        console.error('Lỗi khi đếm sản phẩm:', error);
+        logger.error('Lỗi khi đếm sản phẩm', { error: error.message, stack: error.stack });
         throw error;
     }
 };
 
-// Lấy danh sách sản phẩm mới nhất
 const listLatestProductAPI = async (offset, limit) => {
     try {
         const queryOptions = {
@@ -443,20 +420,20 @@ const listLatestProductAPI = async (offset, limit) => {
         const products = await Product.findAll(queryOptions);
         return products;
     } catch (error) {
-        console.error('Lỗi khi tải danh sách sản phẩm mới nhất:', error);
+        logger.error('Lỗi khi tải danh sách sản phẩm mới nhất', { error: error.message, stack: error.stack });
         throw error;
     }
 };
-// Đếm tổng số sản phẩm mới
+
 const countListLastestProductAPI = async () => {
     try {
         const total = await Product.count();
         return total;
     } catch (error) {
-        console.error('Lỗi khi đếm sản phẩm:', error);
+        logger.error('Lỗi khi đếm sản phẩm', { error: error.message, stack: error.stack });
         throw error;
     }
-  };
+};
 
 export { Product };
 export default { 

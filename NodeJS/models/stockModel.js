@@ -1,7 +1,7 @@
 import { sequelize, DataTypes } from '../configs/connectDatabase.js';
 import { Op } from 'sequelize';
-import { Product } from './productModel.js'; // Nếu productModel xuất dạng object { Product }
-
+import logger from '../configs/logger.js'; // Import custom logger
+import { Product } from './productModel.js';
 
 const Stock = sequelize.define('Stock', {
     stock_id: {
@@ -13,7 +13,7 @@ const Stock = sequelize.define('Stock', {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Product, // Sử dụng đúng mô hình Product thay vì Product.Product
+            model: Product,
             key: 'product_id'
         },
         onDelete: 'CASCADE'
@@ -47,44 +47,34 @@ const Stock = sequelize.define('Stock', {
 Product.hasOne(Stock, { foreignKey: 'product_id' });
 Stock.belongsTo(Product, { foreignKey: 'product_id' });
 
-
-
-
 const addStock = async (productId) => {
     try {
-        // Kiểm tra xem sản phẩm đã có trong kho chưa
         let stock = await Stock.findOne({
             where: { product_id: productId }
         });
 
         if (stock) {
-            // Nếu sản phẩm đã có trong kho, cập nhật số lượng tồn kho
             stock.quantity += (stock.stock_in - stock.stock_out);
-            stock.stock_in = 0; // Reset stock_in sau khi cập nhật
-            stock.stock_out = 0; // Reset stock_out sau khi cập nhật
-            stock.updated_at = new Date(); // Cập nhật thời gian
-            await stock.save(); // Lưu lại thay đổi
+            stock.stock_in = 0;
+            stock.stock_out = 0;
+            stock.updated_at = new Date();
+            await stock.save();
         } else {
-            // Nếu chưa có sản phẩm trong kho, tạo mới một bản ghi kho
             stock = await Stock.create({
                 product_id: productId,
-                quantity: 0, // Mới thêm nên số lượng ban đầu là 0
+                quantity: 0,
                 stock_in: 0,
                 stock_out: 0
             });
         }
 
-        return stock; // Trả về bản ghi kho đã được thêm hoặc cập nhật
+        return stock;
     } catch (error) {
-        console.error('Lỗi khi thêm hoặc cập nhật kho:', error);
+        logger.error('Lỗi khi thêm hoặc cập nhật kho', { error: error.message, stack: error.stack, productId });
         throw error;
     }
 };
 
-
-
-
-// lấy số lượng sản phẩm trong kho
 const listStock = async (offset = null, limit = null, searchKeyword = '', sortOption = 'default') => {
     try {
         const queryOptions = {
@@ -92,21 +82,20 @@ const listStock = async (offset = null, limit = null, searchKeyword = '', sortOp
             attributes: ['product_id', 'quantity', 'updated_at'],
             include: [
                 {
-                    model: Product, // Sử dụng đúng mô hình Product
+                    model: Product,
                     attributes: ['name'],
                     required: true
                 }
             ]
         };
-        // Tìm kiếm theo tên sản phẩm
+
         if (searchKeyword) {
             queryOptions.where['$Product.name$'] = { [Op.like]: `%${searchKeyword}%` };
         }
-        // Giới hạn và phân trang
+
         if (offset !== null) queryOptions.offset = offset;
         if (limit !== null) queryOptions.limit = limit;
 
-        // Sắp xếp theo số lượng sản phẩm
         if (sortOption === 'quantity_asc') {
             queryOptions.order = [['quantity', 'ASC']];
         } else if (sortOption === 'quantity_desc') {
@@ -118,26 +107,24 @@ const listStock = async (offset = null, limit = null, searchKeyword = '', sortOp
         const stocks = await Stock.findAll(queryOptions);
         return stocks;
     } catch (error) {
-        console.error('Lỗi khi tải danh sách kho:', error);
+        logger.error('Lỗi khi tải danh sách kho', { error: error.message, stack: error.stack });
         throw error;
     }
 };
 
-// Đếm số lượng stocks
 const countStock = async (searchKeyword = '') => {
     try {
         const queryOptions = {
             where: {},
             include: [
                 {
-                    model: Product, // Sử dụng đúng mô hình Product
-                    attributes: [], // Không cần lấy thuộc tính từ Product nếu chỉ cần đếm
+                    model: Product,
+                    attributes: [],
                     required: true
                 }
             ]
         };
 
-        // Tìm kiếm theo tên sản phẩm
         if (searchKeyword) {
             queryOptions.where['$Product.name$'] = { [Op.like]: `%${searchKeyword}%` };
         }
@@ -145,13 +132,11 @@ const countStock = async (searchKeyword = '') => {
         const total = await Stock.count(queryOptions);
         return total;
     } catch (error) {
-        console.error('Lỗi khi đếm kho:', error);
+        logger.error('Lỗi khi đếm kho', { error: error.message, stack: error.stack });
         throw error;
     }
 };
 
-
-// Lấy thông tin kho theo product_id
 const getStockByProductId = async (product_id) => {
     try {
         const stock = await Stock.findOne({
@@ -159,7 +144,7 @@ const getStockByProductId = async (product_id) => {
             include: [
                 {
                     model: Product,
-                    attributes: ['name'], // Lấy thêm tên sản phẩm nếu cần
+                    attributes: ['name'],
                 }
             ]
         });
@@ -170,14 +155,11 @@ const getStockByProductId = async (product_id) => {
 
         return stock;
     } catch (error) {
-        console.error('Lỗi khi lấy thông tin kho theo product_id:', error);
+        logger.error('Lỗi khi lấy thông tin kho theo product_id', { error: error.message, stack: error.stack, product_id });
         throw error;
     }
 };
 
-
-
-// Cập nhật thông tin tồn kho
 const updateStock = async (product_id, stock_in, stock_out) => {
     try {
         const stock = await Stock.findOne({ where: { product_id } });
@@ -186,7 +168,6 @@ const updateStock = async (product_id, stock_in, stock_out) => {
             throw new Error(`Không tìm thấy kho cho sản phẩm có ID: ${product_id}`);
         }
 
-        // Cộng dồn thay vì ghi đè
         stock.stock_in += stock_in;
         stock.stock_out += stock_out;
         stock.quantity += (stock_in - stock_out);
@@ -195,14 +176,11 @@ const updateStock = async (product_id, stock_in, stock_out) => {
         await stock.save();
         return stock;
     } catch (error) {
-        console.error('Lỗi khi cập nhật kho:', error);
+        logger.error('Lỗi khi cập nhật kho', { error: error.message, stack: error.stack, product_id });
         throw error;
     }
 };
 
-
-
-// Lấy thông tin kho theo product_id
 const getStockByProductIdAPI = async (product_id) => {
     try {
         const stock = await Stock.findOne({
@@ -214,11 +192,10 @@ const getStockByProductIdAPI = async (product_id) => {
         }
         return stock;
     } catch (error) {
-        console.error('Lỗi khi lấy thông tin kho theo product_id:', error);
+        logger.error('Lỗi khi lấy thông tin kho theo product_id', { error: error.message, stack: error.stack, product_id });
         throw error;
     }
 };
-
 
 export { Stock };
 export default {

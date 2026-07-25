@@ -20,7 +20,7 @@ const ListLastestReviews = () => {
         const response = await axios.get(REVIEW_API_URL);
         setReviews(response.data.data || []);
       } catch (err) {
-        setError('Unable to load reviews. Please try again.');
+        setError('Không thể tải đánh giá. Vui lòng thử lại.');
         console.error('Error fetching reviews:', err);
       } finally {
         setLoading(false);

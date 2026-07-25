@@ -1,5 +1,6 @@
 import { sequelize, DataTypes } from '../configs/connectDatabase.js';
 import { Op } from 'sequelize';
+import logger from '../configs/logger.js'; // Import custom logger
 
 const News = sequelize.define('News', {
     news_id: {
@@ -50,11 +51,10 @@ const addNews = async (title, summary, content, image) => {
 
         return result; // Trả về bản ghi tin tức vừa được tạo
     } catch (error) {
-        console.error('Lỗi khi thêm tin tức:', error);
+        logger.error('Lỗi khi thêm tin tức', { error: error.message, stack: error.stack, title });
         throw error;
     }
 };
-
 
 // Lấy tất cả tin tức
 const listNews = async (offset = null, limit = null, searchKeyword = '', sortOption = 'default') => {
@@ -84,7 +84,7 @@ const listNews = async (offset = null, limit = null, searchKeyword = '', sortOpt
         const newsList = await News.findAll(queryOptions);
         return newsList;
     } catch (error) {
-        console.error('Lỗi khi tải danh sách tin tức:', error);
+        logger.error('Lỗi khi tải danh sách tin tức', { error: error.message, stack: error.stack, searchKeyword, offset, limit });
         throw error;
     }
 };
@@ -100,12 +100,12 @@ const countNews = async (searchKeyword = '') => {
 
         return await News.count(queryOptions);
     } catch (error) {
-        console.error('Lỗi khi đếm tin tức:', error);
+        logger.error('Lỗi khi đếm tin tức', { error: error.message, stack: error.stack, searchKeyword });
         throw error;
     }
 };
 
-//xóa tin tức
+// Xóa tin tức
 const deleteNews = async (newsId) => {
     try {
         // Tìm bài viết trước khi xóa để lấy tên ảnh (nếu có)
@@ -125,7 +125,7 @@ const deleteNews = async (newsId) => {
 
         return result ? news.image : null; // Trả về tên ảnh nếu xóa thành công
     } catch (error) {
-        console.error('Lỗi khi xóa bài viết:', error);
+        logger.error('Lỗi khi xóa bài viết', { error: error.message, stack: error.stack, newsId });
         throw error;
     }
 };
@@ -139,7 +139,7 @@ const getNewsById = async (newsId) => {
         const result = await News.findOne({ where: { news_id: newsId } });
         return result;
     } catch (error) {
-        console.error('Lỗi khi tìm bài viết:', error);
+        logger.error('Lỗi khi tìm bài viết', { error: error.message, stack: error.stack, newsId });
         throw error;
     }
 };
@@ -161,13 +161,10 @@ const updateNews = async (idNews, title, summary, content, image) => {
         );
         return result;
     } catch (error) {
-        console.error('Lỗi khi cập nhật tin tức:', error);
+        logger.error('Lỗi khi cập nhật tin tức', { error: error.message, stack: error.stack, idNews, title });
         throw error;
     }
 };
-
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -175,7 +172,6 @@ const updateNews = async (idNews, title, summary, content, image) => {
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////// api//////////////////////////////////////////////////
 
-// lấy tin tức mới 
 // Lấy 5 tin tức mới nhất
 const getLatestNewsAPI = async () => {
     try {
@@ -186,13 +182,11 @@ const getLatestNewsAPI = async () => {
         });
         return latestNews;
     } catch (error) {
-        console.error('Lỗi khi lấy tin tức mới nhất:', error);
+        logger.error('Lỗi khi lấy tin tức mới nhất API', { error: error.message, stack: error.stack });
         throw error;
     }
 };
 
-
-// danh sách tin tức
 // API: Lấy danh sách tin tức (chỉ lấy các trường cần thiết)
 const listNewsAPI = async (offset = null, limit = null, searchKeyword = '', sortOption = 'default') => {
     try {
@@ -222,12 +216,12 @@ const listNewsAPI = async (offset = null, limit = null, searchKeyword = '', sort
         const newsList = await News.findAll(queryOptions);
         return newsList;
     } catch (error) {
-        console.error('Lỗi khi tải danh sách tin tức:', error);
+        logger.error('Lỗi khi tải danh sách tin tức API', { error: error.message, stack: error.stack, searchKeyword, offset, limit });
         throw error;
     }
 };
 
-// API: Đếm số lượng tin tức (không cần sửa)
+// API: Đếm số lượng tin tức
 const countNewsAPI = async (searchKeyword = '') => {
     try {
         const queryOptions = { where: {} };
@@ -238,11 +232,10 @@ const countNewsAPI = async (searchKeyword = '') => {
 
         return await News.count(queryOptions);
     } catch (error) {
-        console.error('Lỗi khi đếm tin tức:', error);
+        logger.error('Lỗi khi đếm tin tức API', { error: error.message, stack: error.stack, searchKeyword });
         throw error;
     }
 };
-
 
 const getNewsByIdAPI = async (newsId) => {
     if (!newsId) {
@@ -255,12 +248,10 @@ const getNewsByIdAPI = async (newsId) => {
         });
         return result;
     } catch (error) {
-        console.error('Lỗi khi tìm bài viết:', error);
+        logger.error('Lỗi khi tìm bài viết API', { error: error.message, stack: error.stack, newsId });
         throw error;
     }
 };
-
-
 
 export default {
     addNews,
@@ -274,4 +265,4 @@ export default {
     listNewsAPI,
     countNewsAPI,
     getNewsByIdAPI
-}
+};

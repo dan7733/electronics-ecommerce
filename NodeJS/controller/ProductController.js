@@ -6,15 +6,20 @@ import brandModel from '../models/brandModel.js';
 import productModel from '../models/productModel.js';
 import stockModel from "../models/stockModel.js";
 import productdetailsModel from "../models/productdetailsModel.js";
-import stock from "../models/stockModel.js"
+import stock from "../models/stockModel.js";
+import logger from '../configs/logger.js'; // Import custom logger
+
 // Hàm xóa ảnh nếu cần
 const deleteProductImage = (filename) => {
   if (!filename) return;
   try {
     const filePath = path.resolve(`images/products/${filename}`);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      logger.info('Đã xóa ảnh sản phẩm', { filename });
+    }
   } catch (error) {
-    console.error(`Lỗi khi xóa ảnh: ${error.message}`);
+    logger.error('Lỗi khi xóa ảnh sản phẩm', { error: error.message, filename });
   }
 };
 
@@ -33,7 +38,7 @@ const createProduct = async (req, res) => {
       }
     });
   } catch (err) {
-    console.log(err)
+    logger.error('Lỗi khi tải trang thêm sản phẩm', { error: err.message, stack: err.stack });
   }
 }
 
@@ -45,6 +50,7 @@ const addProduct = async (req, res) => {
 
     // Kiểm tra dữ liệu trước khi lưu
     if (!productName || !productPrice || !category_id) { 
+      logger.warn('Thêm sản phẩm thất bại: Thiếu thông tin bắt buộc', { body: req.body });
       deleteProductImage(product_image); // Xóa ảnh nếu dữ liệu không hợp lệ
       return res.render("addProduct", { 
         data: { message: "Tên các trường không được để trống!" } 
@@ -66,14 +72,15 @@ const addProduct = async (req, res) => {
     );
 
     if(!result) {
+      logger.warn('Thêm sản phẩm thất bại tại Model', { productName });
       deleteProductImage(product_image); // Xóa ảnh nếu lưu không thành công
-    }else {
+    } else {
       // Lấy id của sản phẩm vừa thêm
-
       const productId = result.product_id;
       // Thêm vào kho nếu sản phẩm được thêm thành công
       await stockModel.addStock(productId);
       await productdetailsModel.addProductDetail(productId);
+      logger.info('Thêm sản phẩm thành công', { productId, productName });
     }
 
     res.render("home", {
@@ -86,7 +93,7 @@ const addProduct = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Lỗi khi thêm sản phẩm:', error);
+    logger.error('Lỗi khi thêm sản phẩm', { error: error.message, stack: error.stack, body: req.body });
     deleteProductImage(req.file?.filename); // Xóa ảnh nếu có lỗi
     res.status(500).send('Có lỗi xảy ra khi thêm sản phẩm.');
   }
@@ -131,7 +138,7 @@ const listProduct = async (req, res) => {
           }
       });
   } catch (error) {
-      console.error(error);
+      logger.error('Lỗi khi tải danh sách sản phẩm', { error: error.message, stack: error.stack, query: req.query });
       res.status(500).send("Lỗi khi tải dữ liệu.");
   }
 };
@@ -145,31 +152,38 @@ const deleteProduct = async (req, res) => {
       deleteProductImage(product_img); // Xóa ảnh nếu có
     }
 
+    logger.info('Xóa sản phẩm thành công', { product_id });
     res.redirect('/listproduct?message=Xóa thành công');
   } catch (error) {
-    console.error(error);
+    logger.error('Lỗi khi xóa sản phẩm', { error: error.message, stack: error.stack, body: req.body });
     res.redirect('/listproduct?message=Xóa thất bại');
   }
 };
 
 
-// lấy chi tiết nhãn hàng
+// lấy chi tiết sản phẩm
 const editProduct = async (req, res) => {
   const { productid } = req.params;
-  const product = await productModel.getProductById(productid);
-  const categories = await categoryModel.getAllCategory();
-  const brands = await brandModel.getAllBrand();
-  const message = req.query.message || '';
-  return res.render('home', {
-    data: {
-      title: 'Update Product',
-      page: 'updateProduct',
-      product: product,
-      categories: categories,
-      brands: brands,
-      message: message
-    }
-  });
+  try {
+    const product = await productModel.getProductById(productid);
+    const categories = await categoryModel.getAllCategory();
+    const brands = await brandModel.getAllBrand();
+    const message = req.query.message || '';
+    
+    return res.render('home', {
+      data: {
+        title: 'Update Product',
+        page: 'updateProduct',
+        product: product,
+        categories: categories,
+        brands: brands,
+        message: message
+      }
+    });
+  } catch (error) {
+    logger.error('Lỗi khi lấy chi tiết sản phẩm', { error: error.message, stack: error.stack, productid });
+    return res.redirect('/listproduct');
+  }
 };
 
 
@@ -180,6 +194,7 @@ const updateProduct = async (req, res) => {
 
     // Kiểm tra product_id có tồn tại không
     if (!product_id) {
+      logger.warn('Cập nhật sản phẩm thất bại: Thiếu product_id');
       throw new Error("Thiếu product_id");
     }
 
@@ -197,12 +212,14 @@ const updateProduct = async (req, res) => {
     // Cập nhật sản phẩm
     const updatedProduct = await productModel.updateProduct(product_id, name, price, discount_price, description, newImage, brand_id, category_id);
     if (!updatedProduct) {
+      logger.warn('Cập nhật sản phẩm thất bại tại Model', { product_id });
       throw new Error("Cập nhật thất bại");
     }
 
+    logger.info('Cập nhật sản phẩm thành công', { product_id, name });
     return res.redirect(`/editproduct/${product_id}?message=Cập nhật thành công`);
   } catch (error) {
-    console.error("Lỗi cập nhật sản phẩm:", error);
+    logger.error("Lỗi cập nhật sản phẩm", { error: error.message, stack: error.stack, body: req.body });
 
     // Nếu có ảnh mới nhưng lỗi xảy ra -> Xóa ảnh mới để tránh rác
     if (req.file) {
@@ -233,19 +250,21 @@ const getLatestProductsAPI = async (req, res) => {
           products: data
       });
   } catch (error) {
-      console.error('Error in getLatestProductsAPI:', error);
+      logger.error('Error in getLatestProductsAPI', { error: error.message, stack: error.stack, category_id: req.params.id });
       return res.status(500).json({
           errCode: 1,
           message: "Internal server error"
       });
   }
 };
+
 // lấy chi tiết sản phẩm theo id
 const getProductDetailAPI = async (req, res) => {
   try {
       const productid = req.params.id;
 
       if (!productid) {
+          logger.warn('API: Thiếu product ID', { params: req.params });
           return res.status(400).json({
               errCode: 1,
               message: "Missing product ID"
@@ -257,6 +276,7 @@ const getProductDetailAPI = async (req, res) => {
       const productInfo = await productModel.getProductDetailAPI(productid);
       // Lấy thông tin kỹ thuật chi tiết
       const detailInfo = await productdetailsModel.getInforProductDetailAPI(productid);
+      
       return res.status(200).json({
           errCode: 0,
           message: "Success",
@@ -267,14 +287,13 @@ const getProductDetailAPI = async (req, res) => {
           }
       });
   } catch (error) {
-      console.error('Error in getProductDetailAPI:', error);
+      logger.error('Error in getProductDetailAPI', { error: error.message, stack: error.stack, productid: req.params.id });
       return res.status(500).json({
           errCode: 1,
           message: "Internal server error"
       });
   }
 };
-
 
 
 // danh sách sản phẩm call api
@@ -326,7 +345,7 @@ const listProductAPI = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
+    logger.error('Error in listProductAPI', { error: error.message, stack: error.stack, query: req.query });
     return res.status(500).json({
       errCode: 1,
       message: "Internal server error"
@@ -352,15 +371,13 @@ const listLatestProductAPI = async (req, res) => {
       hasMore
     });
   } catch (error) {
-    console.error('Error in listLatestProductsAPI:', error);
+    logger.error('Error in listLatestProductAPI', { error: error.message, stack: error.stack, query: req.query });
     return res.status(500).json({
       errCode: 1,
       message: 'Internal server error'
     });
   }
 };
-
-
 
 
 export default {

@@ -3,6 +3,7 @@ import { sequelize, DataTypes } from '../configs/connectDatabase.js';
 import { Product } from './productModel.js';
 import { Stock } from './stockModel.js';
 import { Op } from 'sequelize';
+import logger from '../configs/logger.js'; // Import custom logger
 
 const StockHistory = sequelize.define('StockHistory', {
     history_id: {
@@ -100,7 +101,7 @@ const listStockHistory = async (offset = null, limit = null, searchKeyword = '',
         const history = await StockHistory.findAll(queryOptions);
         return history;
     } catch (error) {
-        console.error('Lỗi khi tải lịch sử kho:', error);
+        logger.error('Lỗi khi tải lịch sử kho', { error: error.message, stack: error.stack });
         throw error;
     }
 };
@@ -147,7 +148,7 @@ const countStockHistory = async (searchKeyword = '', productId = null, transacti
         const total = await StockHistory.count(queryOptions);
         return total;
     } catch (error) {
-        console.error('Lỗi khi đếm lịch sử kho:', error);
+        logger.error('Lỗi khi đếm lịch sử kho', { error: error.message, stack: error.stack });
         throw error;
     }
 };

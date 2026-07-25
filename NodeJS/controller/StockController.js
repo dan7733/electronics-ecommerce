@@ -6,6 +6,7 @@ import { Product } from "../models/productModel.js";
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
+import logger from "../configs/logger.js"; // Import custom logger
 
 const listStock = async (req, res) => {
     try {
@@ -33,7 +34,7 @@ const listStock = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
+        logger.error('Lỗi khi tải danh sách kho', { error: error.message, stack: error.stack, query: req.query });
         res.status(500).send("Lỗi khi tải dữ liệu.");
     }
 };
@@ -52,32 +53,36 @@ const editStock = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
+        logger.error('Lỗi khi tải thông tin kho sản phẩm', { error: error.message, stack: error.stack, productid: req.params.productid });
         res.status(500).send("Lỗi khi tải dữ liệu.");
     }
 };
 
 const updateStock = async (req, res) => {
+    const { product_id, stock_in = 0, stock_out = 0 } = req.body;
     try {
-        const { product_id, stock_in = 0, stock_out = 0 } = req.body;
         const stockInNum = Number(stock_in) || 0;
         const stockOutNum = Number(stock_out) || 0;
 
         const stock = await stockModel.getStockByProductId(product_id);
         if (!stock) {
-            console.warn(`❌ Không tìm thấy kho cho sản phẩm ID: ${product_id}`);
+            logger.warn('Cập nhật kho thất bại: Không tìm thấy kho cho sản phẩm', { product_id });
             return res.status(404).send(`Không tìm thấy kho cho sản phẩm ID: ${product_id}`);
         }
 
         const newQuantity = stock.quantity + stockInNum - stockOutNum;
         if (newQuantity < 0) {
-            console.warn(`⚠️ Xuất kho vượt quá tồn kho hiện tại (Hiện có: ${stock.quantity}, Cần xuất: ${stockOutNum})`);
+            logger.warn('Cập nhật kho thất bại: Xuất kho vượt quá tồn kho hiện tại', { 
+                product_id, 
+                currentQuantity: stock.quantity, 
+                requestedOut: stockOutNum 
+            });
             return res.redirect(`/editstock/${product_id}?message=Số lượng xuất vượt quá tồn kho hiện tại!`);
         }
 
         const result = await stockModel.updateStock(product_id, stockInNum, stockOutNum);
         if (!result) {
-            console.warn(`❌ Cập nhật tồn kho thất bại cho sản phẩm ID: ${product_id}`);
+            logger.warn('Cập nhật tồn kho thất bại tại Model', { product_id });
             return res.redirect(`/editstock/${product_id}?message=Cập nhật thất bại!`);
         }
 
@@ -100,11 +105,11 @@ const updateStock = async (req, res) => {
             });
         }
 
-        console.log(`✅ Cập nhật tồn kho thành công cho sản phẩm ID: ${product_id}`);
+        logger.info('Cập nhật tồn kho thành công', { product_id, stockInNum, stockOutNum, newQuantity });
         return res.redirect(`/editstock/${product_id}?message=Cập nhật tồn kho thành công!`);
     } catch (error) {
-        console.error('🔥 Lỗi khi cập nhật tồn kho:', error);
-        return res.redirect(`/editstock/${product_id}?message=Lỗi khi cập nhật tồn kho!`);
+        logger.error('Lỗi khi cập nhật tồn kho', { error: error.message, stack: error.stack, body: req.body });
+        return res.redirect(`/editstock/${product_id || ''}?message=Lỗi khi cập nhật tồn kho!`);
     }
 };
 
@@ -146,7 +151,7 @@ const listStockHistory = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Lỗi khi tải lịch sử giao dịch:', error);
+        logger.error('Lỗi khi tải lịch sử giao dịch', { error: error.message, stack: error.stack, query: req.query });
         res.status(500).send("Lỗi khi tải lịch sử giao dịch.");
     }
 };
@@ -170,7 +175,7 @@ const exportStockHistoryPDF = async (req, res) => {
         // Đăng ký font
         const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Arial.ttf');
         if (!fs.existsSync(fontPath)) {
-            console.error('Font file not found:', fontPath);
+            logger.error('Xuất PDF thất bại: Không tìm thấy font Arial', { fontPath });
             return res.status(500).send('Lỗi: Không tìm thấy font Arial.');
         }
         doc.registerFont('Arial', fontPath);
@@ -307,8 +312,9 @@ const exportStockHistoryPDF = async (req, res) => {
 
         // Kết thúc PDF
         doc.end();
+        logger.info('Xuất PDF lịch sử kho thành công');
     } catch (error) {
-        console.error('Lỗi khi xuất PDF:', error);
+        logger.error('Lỗi khi xuất PDF lịch sử kho', { error: error.message, stack: error.stack, query: req.query });
         res.status(500).send('Lỗi khi xuất PDF.');
     }
 };

@@ -4,13 +4,15 @@ import { OrderDetail } from '../models/orderdetailModel.js';
 import { User } from '../models/userModel.js';
 import { Product } from '../models/productModel.js';
 import { Op, fn, col } from 'sequelize';
+import logger from '../configs/logger.js'; // Import custom logger
 
 const addReviewAPI = async (req, res) => {
   const { order_id, product_id, username, rating, comment } = req.body;
-  console.log('Request body:', req.body);
+  logger.info('Yêu cầu thêm đánh giá', { body: req.body });
 
   // Validate inputs
   if (!username) {
+    logger.warn('Thêm đánh giá thất bại: Tên người dùng trống');
     return res.status(400).json({
       errCode: 1,
       message: 'Tên người dùng không được cung cấp.',
@@ -18,6 +20,7 @@ const addReviewAPI = async (req, res) => {
   }
 
   if (!product_id) {
+    logger.warn('Thêm đánh giá thất bại: ID sản phẩm trống');
     return res.status(400).json({
       errCode: 1,
       message: 'ID sản phẩm không được cung cấp.',
@@ -25,6 +28,7 @@ const addReviewAPI = async (req, res) => {
   }
 
   if (!order_id) {
+    logger.warn('Thêm đánh giá thất bại: ID đơn hàng trống');
     return res.status(400).json({
       errCode: 1,
       message: 'ID đơn hàng không được cung cấp.',
@@ -38,6 +42,7 @@ const addReviewAPI = async (req, res) => {
     });
 
     if (!user) {
+      logger.warn('Thêm đánh giá thất bại: Người dùng không tồn tại', { username });
       return res.status(400).json({
         errCode: 1,
         message: 'Người dùng không tồn tại.',
@@ -52,6 +57,7 @@ const addReviewAPI = async (req, res) => {
     });
 
     if (!order) {
+      logger.warn('Thêm đánh giá thất bại: Đơn hàng không hợp lệ', { order_id, user_id });
       return res.status(400).json({
         errCode: 1,
         message: 'Không thể đánh giá: Đơn hàng không hợp lệ hoặc chưa hoàn tất.',
@@ -64,6 +70,7 @@ const addReviewAPI = async (req, res) => {
     });
 
     if (!orderDetail) {
+      logger.warn('Thêm đánh giá thất bại: Sản phẩm không thuộc đơn hàng', { order_id, product_id });
       return res.status(400).json({
         errCode: 1,
         message: 'Sản phẩm không thuộc đơn hàng này.',
@@ -76,6 +83,7 @@ const addReviewAPI = async (req, res) => {
     });
 
     if (existingReview) {
+      logger.warn('Thêm đánh giá thất bại: Đã đánh giá trước đó', { order_id, product_id, user_id });
       return res.status(400).json({
         errCode: 1,
         message: 'Bạn đã đánh giá sản phẩm này cho đơn hàng này.',
@@ -97,13 +105,14 @@ const addReviewAPI = async (req, res) => {
       { where: { order_id, product_id } }
     );
 
+    logger.info('Thêm đánh giá thành công', { review_id: review.review_id, user_id, product_id });
     return res.status(200).json({
       errCode: 0,
       message: 'Đánh giá đã được gửi thành công!',
       data: review,
     });
   } catch (error) {
-    console.error('Error in addReviewAPI:', error);
+    logger.error('Lỗi trong addReviewAPI', { error: error.message, stack: error.stack, body: req.body });
     return res.status(500).json({
       errCode: 1,
       message: 'Có lỗi xảy ra khi gửi đánh giá.',
@@ -116,6 +125,7 @@ const updateReviewAPI = async (req, res) => {
 
   // Validate inputs
   if (!username) {
+    logger.warn('Cập nhật đánh giá thất bại: Tên người dùng trống');
     return res.status(400).json({
       errCode: 1,
       message: 'Tên người dùng không được cung cấp.',
@@ -123,6 +133,7 @@ const updateReviewAPI = async (req, res) => {
   }
 
   if (!product_id) {
+    logger.warn('Cập nhật đánh giá thất bại: ID sản phẩm trống');
     return res.status(400).json({
       errCode: 1,
       message: 'ID sản phẩm không được cung cấp.',
@@ -130,6 +141,7 @@ const updateReviewAPI = async (req, res) => {
   }
 
   if (!order_id) {
+    logger.warn('Cập nhật đánh giá thất bại: ID đơn hàng trống');
     return res.status(400).json({
       errCode: 1,
       message: 'ID đơn hàng không được cung cấp.',
@@ -143,6 +155,7 @@ const updateReviewAPI = async (req, res) => {
     });
 
     if (!user) {
+      logger.warn('Cập nhật đánh giá thất bại: Người dùng không tồn tại', { username });
       return res.status(400).json({
         errCode: 1,
         message: 'Người dùng không tồn tại.',
@@ -157,6 +170,7 @@ const updateReviewAPI = async (req, res) => {
     });
 
     if (!existingReview) {
+      logger.warn('Cập nhật đánh giá thất bại: Không tìm thấy đánh giá', { order_id, product_id, user_id });
       return res.status(400).json({
         errCode: 1,
         message: 'Không tìm thấy đánh giá để cập nhật.',
@@ -173,13 +187,14 @@ const updateReviewAPI = async (req, res) => {
       where: { order_id, product_id, user_id },
     });
 
+    logger.info('Cập nhật đánh giá thành công', { review_id: updatedReview.review_id, user_id, product_id });
     return res.status(200).json({
       errCode: 0,
       message: 'Đánh giá đã được cập nhật thành công!',
       data: updatedReview,
     });
   } catch (error) {
-    console.error('Error in updateReviewAPI:', error);
+    logger.error('Lỗi trong updateReviewAPI', { error: error.message, stack: error.stack, body: req.body });
     return res.status(500).json({
       errCode: 1,
       message: 'Có lỗi xảy ra khi cập nhật đánh giá.',
@@ -207,7 +222,7 @@ const getReviewsByProductAPI = async (req, res) => {
       data: reviews,
     });
   } catch (error) {
-    console.error('Error in getReviewsByProductAPI:', error);
+    logger.error('Lỗi trong getReviewsByProductAPI', { error: error.message, stack: error.stack, product_id });
     return res.status(500).json({
       errCode: 1,
       message: 'Có lỗi xảy ra khi lấy đánh giá.',
@@ -224,6 +239,7 @@ const getUserReviewAPI = async (req, res) => {
     });
 
     if (!user) {
+      logger.warn('getUserReviewAPI thất bại: Người dùng không tồn tại', { username });
       return res.status(400).json({
         errCode: 1,
         message: 'Người dùng không tồn tại.',
@@ -247,7 +263,7 @@ const getUserReviewAPI = async (req, res) => {
       data: review || null,
     });
   } catch (error) {
-    console.error('Error in getUserReviewAPI:', error);
+    logger.error('Lỗi trong getUserReviewAPI', { error: error.message, stack: error.stack, query: req.query });
     return res.status(500).json({
       errCode: 1,
       message: 'Có lỗi xảy ra khi lấy đánh giá.',
@@ -278,7 +294,7 @@ const getLatestReviewsAPI = async (req, res) => {
       data: reviews,
     });
   } catch (error) {
-    console.error('Error in getLatestReviewsAPI:', error);
+    logger.error('Lỗi trong getLatestReviewsAPI', { error: error.message, stack: error.stack });
     return res.status(500).json({
       errCode: 1,
       message: 'Có lỗi xảy ra khi lấy đánh giá mới nhất.',
@@ -371,7 +387,7 @@ const listReviews = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error in listReviews:', error);
+    logger.error('Lỗi trong listReviews', { error: error.message, stack: error.stack, query: req.query });
     res.status(500).send('Lỗi khi tải danh sách đánh giá.');
   }
 };
@@ -382,12 +398,14 @@ const deleteReview = async (req, res) => {
     const result = await Review.destroy({ where: { review_id } });
 
     if (result) {
+      logger.info('Xóa đánh giá thành công', { review_id });
       res.redirect('/listreviews?message=Xóa đánh giá thành công');
     } else {
+      logger.warn('Xóa đánh giá thất bại: Không tìm thấy đánh giá', { review_id });
       res.redirect('/listreviews?message=Không tìm thấy đánh giá để xóa');
     }
   } catch (error) {
-    console.error('Error in deleteReview:', error);
+    logger.error('Lỗi trong deleteReview', { error: error.message, stack: error.stack, body: req.body });
     res.redirect('/listreviews?message=Xóa đánh giá thất bại');
   }
 };
@@ -433,7 +451,7 @@ const statsTopRatedProducts = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error in statsTopRatedProducts:', error);
+    logger.error('Lỗi trong statsTopRatedProducts', { error: error.message, stack: error.stack, query: req.query });
     res.status(500).send('Lỗi khi thống kê sản phẩm theo đánh giá.');
   }
 };
@@ -456,7 +474,7 @@ const searchReviewProducts = async (req, res) => {
       data: products,
     });
   } catch (error) {
-    console.error('Error in searchReviewProducts:', error);
+    logger.error('Lỗi trong searchReviewProducts', { error: error.message, stack: error.stack, query: req.query });
     return res.status(500).json({
       errCode: 1,
       message: 'Có lỗi xảy ra khi tìm kiếm sản phẩm.',

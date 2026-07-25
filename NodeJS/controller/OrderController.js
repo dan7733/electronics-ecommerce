@@ -12,6 +12,7 @@ import moment from 'moment';
 import PDFDocument from 'pdfkit';
 import path from 'path';
 import fs from 'fs';
+import logger from '../configs/logger.js'; // Import custom logger
 
 // ZaloPay configuration
 const zalopayConfig = {
@@ -28,6 +29,7 @@ const addOrderAPI = async (req, res) => {
     const { userId, totalPrice, address, phone, email, note, status = 'pending', paymentMethod, orderDetails } = req.body;
 
     if (!userId || !totalPrice || !address || !phone) {
+      logger.warn('Thêm đơn hàng thất bại: Thiếu thông tin bắt buộc', { body: req.body });
       return res.status(400).json({
         errCode: 2,
         message: "Thông tin đơn hàng không được để trống!"
@@ -36,6 +38,7 @@ const addOrderAPI = async (req, res) => {
 
     const user = await userModel.getUserById(userId);
     if (!user) {
+      logger.warn('Thêm đơn hàng thất bại: User không tồn tại', { userId });
       return res.status(404).json({
         errCode: 3,
         message: "Người dùng không tồn tại!"
@@ -46,6 +49,7 @@ const addOrderAPI = async (req, res) => {
       for (const detail of orderDetails) {
         const stock = await stockModel.getStockByProductIdAPI(detail.productId);
         if (!stock || stock.quantity < detail.quantity) {
+          logger.warn('Thêm đơn hàng thất bại: Không đủ tồn kho', { productId: detail.productId, requested: detail.quantity, available: stock?.quantity });
           return res.status(400).json({
             errCode: 4,
             message: `Sản phẩm với ID ${detail.productId} không đủ tồn kho!`
@@ -56,6 +60,7 @@ const addOrderAPI = async (req, res) => {
 
     const result = await orderModel.addOrderAPI(userId, totalPrice, status, paymentMethod === 'zalopay' ? 'waiting_payment' : 'pending', address, phone, email, note);
     if (!result) {
+      logger.error('Thêm đơn hàng thất bại tại Model', { userId, totalPrice });
       return res.status(500).json({
         errCode: 1,
         message: "Thêm đơn hàng thất bại, vui lòng thử lại."
@@ -79,6 +84,7 @@ const addOrderAPI = async (req, res) => {
         }
       }
     }
+    
     if (paymentMethod === 'zalopay') {
       const transID = `${moment().format('YYMMDD')}_${orderId}_${Math.floor(Math.random() * 1000000)}`;
       const orderData = {
@@ -105,7 +111,7 @@ const addOrderAPI = async (req, res) => {
       try {
         const response = await axios.post(zalopayConfig.endpoint, null, { params: orderData });
         const { return_code, order_url, zp_trans_token } = response.data;
-        console.log('ZaloPay API response:', response.data);
+        logger.info('ZaloPay API response', { responseData: response.data, orderId });
 
         if (return_code === 1) {
           return res.status(200).json({
@@ -117,13 +123,14 @@ const addOrderAPI = async (req, res) => {
           });
         } else {
           await orderModel.destroy({ where: { order_id: orderId } });
+          logger.warn('Tạo đơn hàng ZaloPay thất bại từ phía ZaloPay', { responseData: response.data, orderId });
           return res.status(500).json({
             errCode: 5,
             message: "Tạo đơn hàng ZaloPay thất bại."
           });
         }
       } catch (error) {
-        console.error('Lỗi khi gọi API ZaloPay:', error);
+        logger.error('Lỗi khi gọi API ZaloPay', { error: error.message, stack: error.stack, orderId });
         await orderModel.destroy({ where: { order_id: orderId } });
         return res.status(500).json({
           errCode: 5,
@@ -136,17 +143,18 @@ const addOrderAPI = async (req, res) => {
       try {
         await sendOrderConfirmationEmail(email, orderId, user.fullname, totalPrice, address, phone);
       } catch (emailError) {
-        console.error('Failed to send order confirmation email:', emailError);
+        logger.error('Lỗi khi gửi email xác nhận đơn hàng', { emailError: emailError.message, email, orderId });
       }
     }
 
+    logger.info('Tạo đơn hàng thành công', { orderId, userId, totalPrice });
     return res.status(201).json({
       errCode: 0,
       message: "Thêm đơn hàng thành công!",
       orderId
     });
   } catch (error) {
-    console.error('Lỗi khi thêm đơn hàng:', error);
+    logger.error('Lỗi hệ thống khi thêm đơn hàng', { error: error.message, stack: error.stack, body: req.body });
     return res.status(500).json({
       errCode: 1,
       message: "Internal server error"
@@ -154,7 +162,7 @@ const addOrderAPI = async (req, res) => {
   }
 };
 
-// Các hàm khác giữ nguyên
+// Các hàm khác
 const listOrder = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -181,7 +189,7 @@ const listOrder = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Lỗi khi tải danh sách đơn hàng:', error);
+    logger.error('Lỗi khi tải danh sách đơn hàng', { error: error.message, stack: error.stack });
     res.status(500).send("Lỗi khi tải dữ liệu.");
   }
 };
@@ -191,6 +199,7 @@ const editOrder = async (req, res) => {
     const { orderid } = req.params;
     const order = await orderModel.getOrderById(orderid);
     if (!order) {
+      logger.warn('Edit Order: Đơn hàng không tồn tại', { orderid });
       return res.status(404).send("Đơn hàng không tồn tại.");
     }
     const orderDetails = await orderdetailModel.getOrderDetailsByOrderId(orderid);
@@ -206,7 +215,7 @@ const editOrder = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Lỗi khi tải thông tin đơn hàng:', error);
+    logger.error('Lỗi khi tải thông tin đơn hàng', { error: error.message, stack: error.stack, orderid: req.params.orderid });
     res.status(500).send("Lỗi khi tải dữ liệu.");
   }
 };
@@ -219,25 +228,31 @@ const updateOrder = async (req, res) => {
     if (status) updates.status = status;
     if (status_payment) updates.status_payment = status_payment;
 
+    if (!order_id) {
+      logger.warn('Cập nhật đơn hàng thất bại: Thiếu order_id');
+      throw new Error("Thiếu order_id");
+    }
+
     await orderModel.updateOrder(order_id, updates);
+    logger.info('Cập nhật đơn hàng thành công', { order_id, updates });
     res.redirect(`/editOrder/${order_id}?message=Cập nhật đơn hàng thành công`);
   } catch (error) {
-    console.error('Lỗi khi cập nhật đơn hàng:', error);
-    res.redirect(`/editOrder/${order_id}?message=Cập nhật đơn hàng thất bại`);
+    logger.error('Lỗi khi cập nhật đơn hàng', { error: error.message, stack: error.stack, order_id });
+    res.redirect(`/editOrder/${order_id || ''}?message=Cập nhật đơn hàng thất bại`);
   }
 };
-
 
 const downloadOrderPDF = async (req, res) => {
   try {
     const { orderid } = req.params;
     const order = await orderModel.getOrderById(orderid);
     if (!order) {
+      logger.warn('Tạo PDF thất bại: Đơn hàng không tồn tại', { orderid });
       return res.status(404).send("Đơn hàng không tồn tại.");
     }
     const orderDetails = await orderdetailModel.getOrderDetailsByOrderId(orderid);
     if (!orderDetails || !Array.isArray(orderDetails)) {
-      console.error('Order details invalid:', orderDetails);
+      logger.error('Tạo PDF thất bại: Chi tiết đơn hàng không hợp lệ', { orderDetails });
       return res.status(500).send('Lỗi: Chi tiết đơn hàng không hợp lệ.');
     }
 
@@ -250,7 +265,7 @@ const downloadOrderPDF = async (req, res) => {
     // Đăng ký font
     const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Arial.ttf');
     if (!fs.existsSync(fontPath)) {
-      console.error('Font file not found:', fontPath);
+      logger.error('Tạo PDF thất bại: Không tìm thấy font Arial', { fontPath });
       return res.status(500).send('Lỗi: Không tìm thấy font Arial.');
     }
     doc.registerFont('Arial', fontPath);
@@ -401,42 +416,42 @@ const downloadOrderPDF = async (req, res) => {
 
     // Kết thúc PDF
     doc.end();
+    logger.info('Tạo và tải PDF thành công', { orderid });
   } catch (error) {
-    console.error('Lỗi khi tạo PDF:', error);
+    logger.error('Lỗi khi tạo PDF', { error: error.message, stack: error.stack, orderid: req.params.orderid });
     res.status(500).send('Lỗi khi tạo PDF.');
   }
 };
 
 const zalopayCallback = async (req, res) => {
   try {
-    console.log('Received ZaloPay callback:', req.body);
+    logger.info('Received ZaloPay callback payload', { body: req.body });
     const { data, mac } = req.body;
     const calculatedMac = CryptoJS.HmacSHA256(data, zalopayConfig.key2).toString();
-    console.log('Calculated MAC:', calculatedMac, 'Received MAC:', mac);
-
+    
     if (calculatedMac !== mac) {
-      console.error('Invalid MAC');
+      logger.warn('ZaloPay Callback: Invalid MAC', { calculatedMac, receivedMac: mac });
       return res.json({ return_code: -1, return_message: "Invalid MAC" });
     }
 
     if (!data || typeof data !== 'string') {
-      console.error('Invalid data format');
+      logger.warn('ZaloPay Callback: Invalid data format', { data });
       return res.json({ return_code: 0, return_message: 'Invalid data format' });
     }
     const dataJson = JSON.parse(data);
-    console.log('Parsed data:', dataJson);
+    logger.info('ZaloPay Callback: Parsed data', { dataJson });
 
     if (!dataJson.embed_data || typeof dataJson.embed_data !== 'string') {
-      console.error('Invalid embed_data format');
+      logger.warn('ZaloPay Callback: Invalid embed_data format');
       return res.json({ return_code: 0, return_message: 'Invalid embed_data format' });
     }
     const embedData = JSON.parse(dataJson.embed_data);
     const orderId = embedData.order_id;
-    console.log('Order ID:', orderId);
+    logger.info('ZaloPay Callback: Order ID extracted', { orderId });
 
     const order = await orderModel.getOrderById(orderId);
     if (!order) {
-      console.error(`Order ${orderId} not found`);
+      logger.warn(`ZaloPay Callback: Order not found`, { orderId });
       return res.json({ return_code: 0, return_message: `Order ${orderId} not found` });
     }
 
@@ -449,7 +464,8 @@ const zalopayCallback = async (req, res) => {
     };
     const queryString = `${queryData.app_id}|${queryData.app_trans_id}|${zalopayConfig.key1}`;
     queryData.mac = CryptoJS.HmacSHA256(queryString, zalopayConfig.key1).toString();
-    console.log('Query data sent to ZaloPay:', queryData);
+    
+    logger.info('ZaloPay Callback: Query data sent to ZaloPay', { queryData });
 
     let retryCount = 0;
     const maxRetries = 3;
@@ -457,10 +473,10 @@ const zalopayCallback = async (req, res) => {
       try {
         const queryResponse = await axios.post(zalopayConfig.query_endpoint, null, { params: queryData });
         const { return_code, is_processing } = queryResponse.data;
-        console.log('ZaloPay query response:', queryResponse.data);
+        logger.info('ZaloPay query response in Callback', { responseData: queryResponse.data, orderId });
 
         if (return_code === 1 && !is_processing) {
-          console.log(`Updating order ${orderId} to paid`);
+          logger.info(`ZaloPay Callback: Updating order to paid`, { orderId });
           await orderModel.updateOrder(orderId, { 
             status_payment: 'paid',
             status: 'confirmed'
@@ -478,19 +494,21 @@ const zalopayCallback = async (req, res) => {
                 Date.now()
               );
             } catch (emailError) {
-              console.error('Failed to send ZaloPay confirmation email:', emailError);
+              logger.error('Failed to send ZaloPay confirmation email', { error: emailError.message, email: order.email, orderId });
             }
           }
         } else {
-          console.log(`Updating order ${orderId} to failed`);
+          logger.warn(`ZaloPay Callback: Updating order to failed`, { orderId, return_code });
           await orderModel.updateOrder(orderId, { status_payment: 'failed' });
         }
         break;
       } catch (queryError) {
-        console.error(`Retry ${retryCount + 1}/${maxRetries} - Error querying ZaloPay status:`, queryError.response ? queryError.response.data : queryError.message);
+        logger.error(`ZaloPay Callback: Retry ${retryCount + 1}/${maxRetries} - Error querying status`, { 
+          error: queryError.response ? queryError.response.data : queryError.message 
+        });
         retryCount++;
         if (retryCount === maxRetries) {
-          console.log(`Keeping order ${orderId} as waiting_payment after ${maxRetries} retries`);
+          logger.warn(`ZaloPay Callback: Keeping order as waiting_payment after ${maxRetries} retries`, { orderId });
           return res.json({ return_code: 0, return_message: 'Failed to query transaction status, order remains pending' });
         }
         await new Promise(resolve => setTimeout(resolve, 2000));
@@ -499,7 +517,7 @@ const zalopayCallback = async (req, res) => {
 
     return res.json({ return_code: 1, return_message: "Success" });
   } catch (error) {
-    console.error('Error in ZaloPay callback:', error);
+    logger.error('Error in ZaloPay callback', { error: error.message, stack: error.stack });
     return res.json({ return_code: 0, return_message: error.message });
   }
 };
@@ -515,11 +533,12 @@ const queryOrderStatus = async (req, res) => {
     };
     const queryString = `${queryData.app_id}|${queryData.app_trans_id}|${zalopayConfig.key1}`;
     queryData.mac = CryptoJS.HmacSHA256(queryString, zalopayConfig.key1).toString();
-    console.log('Query data sent to ZaloPay:', queryData);
+    
+    logger.info('Query data sent to ZaloPay manually', { queryData });
 
     const response = await axios.post(zalopayConfig.query_endpoint, null, { params: queryData });
     const { return_code, is_processing } = response.data;
-    console.log('ZaloPay query response:', response.data);
+    logger.info('ZaloPay query manual response', { responseData: response.data });
 
     if (return_code === 1 && !is_processing) {
       const embedData = JSON.parse(response.data.embed_data || '{}');
@@ -540,7 +559,7 @@ const queryOrderStatus = async (req, res) => {
               Date.now()
             );
           } catch (emailError) {
-            console.error('Failed to send ZaloPay confirmation email:', emailError);
+            logger.error('Failed to send ZaloPay confirmation email from manual query', { error: emailError.message, email: order.email, orderId });
           }
         }
       }
@@ -554,7 +573,7 @@ const queryOrderStatus = async (req, res) => {
 
     res.json(response.data);
   } catch (error) {
-    console.error('Error querying ZaloPay:', error.response ? error.response.data : error.message);
+    logger.error('Error querying ZaloPay manually', { error: error.response ? error.response.data : error.message });
     res.status(500).json({ errCode: 1, message: 'Error querying ZaloPay' });
   }
 };
@@ -569,6 +588,7 @@ const listOrderAPI = async (req, res) => {
       const status = req.query.status || null;
 
       if (!username) {
+          logger.warn('listOrderAPI: Thiếu tham số username', { query: req.query });
           return res.status(400).json({
               errCode: 1,
               message: "Thiếu tham số username."
@@ -590,7 +610,7 @@ const listOrderAPI = async (req, res) => {
           }
       });
   } catch (error) {
-      console.error('Lỗi khi tải danh sách đơn hàng:', error);
+      logger.error('Lỗi khi tải danh sách đơn hàng API', { error: error.message, stack: error.stack, query: req.query });
       return res.status(500).json({
           errCode: 1,
           message: "Lỗi khi tải danh sách đơn hàng."
@@ -604,6 +624,7 @@ const getDetailOrderbyIdAPI = async (req, res) => {
 
       const order = await orderModel.getOrderByIdAPI(orderid);
       if (!order) {
+          logger.warn('API: Đơn hàng không tồn tại', { orderid });
           return res.status(404).json({
               errCode: 1,
               message: "Đơn hàng không tồn tại."
@@ -621,7 +642,7 @@ const getDetailOrderbyIdAPI = async (req, res) => {
           }
       });
   } catch (error) {
-      console.error('Lỗi khi tải thông tin đơn hàng:', error);
+      logger.error('Lỗi khi tải thông tin đơn hàng API', { error: error.message, stack: error.stack, orderid: req.params.orderid });
       return res.status(500).json({
           errCode: 1,
           message: "Lỗi khi tải dữ liệu."

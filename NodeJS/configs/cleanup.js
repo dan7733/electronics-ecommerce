@@ -1,6 +1,7 @@
 import { PendingUsers } from '../models/PendingUserModel.js';
 import cron from 'node-cron';
 import { Op } from 'sequelize';
+import logger from './logger.js'; // Import logger cùng cấp
 
 // Chạy mỗi giờ
 cron.schedule('0 * * * *', async () => {
@@ -10,8 +11,8 @@ cron.schedule('0 * * * *', async () => {
         expiresAt: { [Op.lt]: new Date() },
       },
     });
-    console.log(`Deleted ${deleted} expired pending users`);
+    logger.info(`Deleted ${deleted} expired pending users`);
   } catch (error) {
-    console.error('Error cleaning up expired pending users:', error);
+    logger.error('Error cleaning up expired pending users', { error: error.message, stack: error.stack });
   }
 });

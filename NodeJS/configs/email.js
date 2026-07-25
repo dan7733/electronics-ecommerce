@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv/config';
+import logger from './logger.js'; // Import logger cùng cấp
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -26,10 +27,10 @@ const sendVerificationEmail = async (email, verificationToken) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent to ${email}: ${info.messageId}`);
+    logger.info('Verification email sent', { email, messageId: info.messageId });
     return info;
   } catch (error) {
-    console.error('Error sending verification email:', error);
+    logger.error('Error sending verification email', { email, error: error.message });
     throw error;
   }
 };
@@ -56,10 +57,10 @@ const sendOrderConfirmationEmail = async (email, orderId, userName, totalPrice, 
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Order confirmation email sent to ${email}: ${info.messageId}`);
+    logger.info('Order confirmation email sent', { email, orderId, messageId: info.messageId });
     return info;
   } catch (error) {
-    console.error('Error sending order confirmation email:', error);
+    logger.error('Error sending order confirmation email', { email, orderId, error: error.message });
     throw error;
   }
 };
@@ -91,16 +92,15 @@ const sendZaloPayConfirmationEmail = async (email, orderId, userName, totalPrice
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`ZaloPay confirmation email sent to ${email}: ${info.messageId}`);
+    logger.info('ZaloPay confirmation email sent', { email, orderId, messageId: info.messageId });
     return info;
   } catch (error) {
-    console.error('Error sending ZaloPay confirmation email:', error);
+    logger.error('Error sending ZaloPay confirmation email', { email, orderId, error: error.message });
     throw error;
   }
 };
 
 // đổi mât khẩu
-// email.js (already correct, just for reference)
 const sendPasswordResetEmail = async (email, resetToken) => {
   try {
     const resetUrl = `http://localhost:3000/api/v1/reset-password?token=${resetToken}`;
@@ -117,14 +117,12 @@ const sendPasswordResetEmail = async (email, resetToken) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Password reset email sent to ${email}: ${info.messageId}`);
+    logger.info('Password reset email sent', { email, messageId: info.messageId });
     return info;
   } catch (error) {
-    console.error('Error sending password reset email:', error);
+    logger.error('Error sending password reset email', { email, error: error.message });
     throw error;
   }
 };
-
-
 
 export { sendVerificationEmail, sendOrderConfirmationEmail, sendZaloPayConfirmationEmail, sendPasswordResetEmail };

@@ -1,5 +1,6 @@
 import { sequelize, DataTypes } from '../configs/connectDatabase.js';
 import { Op } from 'sequelize';
+import logger from '../configs/logger.js'; // Import custom logger
 import { Product } from './productModel.js';
 
 const ProductDetails = sequelize.define('ProductDetails', {
@@ -62,7 +63,6 @@ const addProductDetail = async (productId, details = {}) => {
         });
 
         if (productDetail) {
-            // Nếu đã có, cập nhật thông tin chi tiết
             await productDetail.update({
                 operating_system: details.operating_system || productDetail.operating_system,
                 storage: details.storage || productDetail.storage,
@@ -72,7 +72,6 @@ const addProductDetail = async (productId, details = {}) => {
                 updated_at: new Date()
             });
         } else {
-            // Nếu chưa có, tạo mới chi tiết sản phẩm
             productDetail = await ProductDetails.create({
                 product_id: productId,
                 operating_system: details.operating_system || 'Unknown',
@@ -85,7 +84,7 @@ const addProductDetail = async (productId, details = {}) => {
 
         return productDetail;
     } catch (error) {
-        console.error('Lỗi khi thêm hoặc cập nhật chi tiết sản phẩm:', error.message);
+        logger.error('Lỗi khi thêm hoặc cập nhật chi tiết sản phẩm', { error: error.message, stack: error.stack, productId });
         throw error;
     }
 };
@@ -97,23 +96,20 @@ const listProductDetails = async (offset = null, limit = null, searchKeyword = '
             attributes: ['detail_id', 'product_id', 'release_year', 'updated_at'],
             include: [
                 {
-                    model: Product, // Liên kết với bảng Product
+                    model: Product,
                     attributes: ['name'],
                     required: true
                 }
             ]
         };
 
-        // Tìm kiếm theo tên sản phẩm
         if (searchKeyword) {
             queryOptions.where['$Product.name$'] = { [Op.like]: `%${searchKeyword}%` };
         }
 
-        // Giới hạn và phân trang
         if (offset !== null) queryOptions.offset = offset;
         if (limit !== null) queryOptions.limit = limit;
 
-        // Sắp xếp theo thời gian cập nhật
         if (sortOption === 'updated_at_asc') {
             queryOptions.order = [['updated_at', 'ASC']];
         } else if (sortOption === 'updated_at_desc') {
@@ -125,26 +121,24 @@ const listProductDetails = async (offset = null, limit = null, searchKeyword = '
         const productDetails = await ProductDetails.findAll(queryOptions);
         return productDetails;
     } catch (error) {
-        console.error('Lỗi khi tải danh sách chi tiết sản phẩm:', error);
+        logger.error('Lỗi khi tải danh sách chi tiết sản phẩm', { error: error.message, stack: error.stack });
         throw error;
     }
 };
 
-// Đếm số lượng product details
 const countProductDetails = async (searchKeyword = '') => {
     try {
         const queryOptions = {
             where: {},
             include: [
                 {
-                    model: Product, // Liên kết với bảng Product
+                    model: Product,
                     attributes: [],
                     required: true
                 }
             ]
         };
 
-        // Tìm kiếm theo tên sản phẩm
         if (searchKeyword) {
             queryOptions.where['$Product.name$'] = { [Op.like]: `%${searchKeyword}%` };
         }
@@ -152,12 +146,11 @@ const countProductDetails = async (searchKeyword = '') => {
         const total = await ProductDetails.count(queryOptions);
         return total;
     } catch (error) {
-        console.error('Lỗi khi đếm chi tiết sản phẩm:', error);
+        logger.error('Lỗi khi đếm chi tiết sản phẩm', { error: error.message, stack: error.stack });
         throw error;
     }
 };
 
-//lấy thông tin chi tiết sản phẩm theo id
 const getProductDetailById = async (productid) => {
     try {
         const productDetail = await ProductDetails.findOne({
@@ -172,13 +165,11 @@ const getProductDetailById = async (productid) => {
         });
         return productDetail;
     } catch (error) {
-        console.error('Lỗi khi lấy thông tin chi tiết sản phẩm:', error);
+        logger.error('Lỗi khi lấy thông tin chi tiết sản phẩm', { error: error.message, stack: error.stack, productid });
         throw error;
     }
 };
 
-
-//cập nhật thông tin chi tiết sản phẩm
 const updateProductDetail = async (product_id, operating_system, storage, ram, processor, release_year) => {
     try {
         const result = await ProductDetails.update(
@@ -196,11 +187,10 @@ const updateProductDetail = async (product_id, operating_system, storage, ram, p
         );
         return result;
     } catch (error) {
-        console.error('Lỗi khi cập nhật chi tiết sản phẩm:', error);
+        logger.error('Lỗi khi cập nhật chi tiết sản phẩm', { error: error.message, stack: error.stack, product_id });
         throw error;
     }
 };
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -209,7 +199,6 @@ const updateProductDetail = async (product_id, operating_system, storage, ram, p
 //////////////////////////////////////// api//////////////////////////////////////////////////
 
 
-// Hàm tìm chi tiết sản phẩm theo product_id
 const getInforProductDetailAPI = async function (productId) {
     try {
         const details = await ProductDetails.findOne({
@@ -217,14 +206,10 @@ const getInforProductDetailAPI = async function (productId) {
         });
         return details;
     } catch (error) {
-        console.error('Lỗi khi lấy thông tin chi tiết sản phẩm:', error);
+        logger.error('Lỗi khi lấy thông tin chi tiết sản phẩm', { error: error.message, stack: error.stack, productId });
         throw error;
     }
 }
-
-
-
-
 
 export { ProductDetails };
 export default 

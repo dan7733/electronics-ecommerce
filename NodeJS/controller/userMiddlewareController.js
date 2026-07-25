@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 import jwt  from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
-
+import logger from '../configs/logger.js'; // Import custom logger
 
 /////////////////Đăng nhập, Đăng xuất, xác thực người dùng, Đăng ký///////////////////////
 
@@ -16,21 +16,25 @@ const userLoginAPI = async (req, res) => {
     const { username, password } = req.body;
   
     if (!username || !password) {
+      logger.warn('Đăng nhập thất bại: Thiếu username hoặc password');
       return res.status(400).json({ message: 'Missing username or password' });
     }
   
     try {
       const user = await userModel.getUserByUsernameAPI(username);
       if (!user) {
+        logger.warn('Đăng nhập thất bại: Tài khoản không tồn tại', { username });
         return res.status(409).json({ errCode: 1, message: 'Tài khoản và mật khẩu không đúng.' });
       }
   
       if (user.status !== 'active') {
+        logger.warn('Đăng nhập thất bại: Tài khoản bị khóa', { username, status: user.status });
         return res.status(403).json({ errCode: 2, message: 'Tài khoản đã bị khóa hoặc không hoạt động.' });
       }
   
       const match = await bcrypt.compare(password, user.password);
       if (!match) {
+        logger.warn('Đăng nhập thất bại: Sai mật khẩu', { username });
         return res.status(409).json({ errCode: 1, message: 'Tài khoản và mật khẩu không đúng.' });
       }
   
@@ -45,26 +49,28 @@ const userLoginAPI = async (req, res) => {
       const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });  // Token sống 15 phút
       const refreshToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' }); // Refresh token sống 7 ngày
   
+      logger.info('Đăng nhập API thành công', { username, userId: user.user_id });
       // Gửi cả access token và refresh token về client
       res.cookie('jwt', refreshToken, { httpOnly: true, path: '/', maxAge: 7 * 24 * 60 * 60 * 1000 }); // lưu refresh token trong cookie
       return res.status(200).json({ accessToken });
     } catch (error) {
-      console.error(error);
+      logger.error('Lỗi trong userLoginAPI', { error: error.message, stack: error.stack, username });
       return res.status(500).json({ message: 'Internal server error' });
     }
   };
   
 
-
   // Cải tiến route để làm mới access token
 const refreshTokenAPI = (req, res) => {
     const token = req.cookies.jwt; // Lấy refresh token từ cookie
     if (!token) {
+      logger.warn('Làm mới token thất bại: Không có refresh token trong cookie');
       return res.status(401).json({ message: 'Vui lòng đăng nhập lại.' });
     }
   
     const decoded = verifyToken(token); // Giải mã refresh token
     if (!decoded) {
+      logger.warn('Làm mới token thất bại: Refresh token không hợp lệ hoặc hết hạn');
       return res.status(403).json({ message: 'Refresh token không hợp lệ, vui lòng đăng nhập lại.' });
     }
   
@@ -77,6 +83,7 @@ const refreshTokenAPI = (req, res) => {
     };
   
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });  // Tạo access token mới
+    logger.info('Làm mới Access Token thành công', { username: decoded.username });
     return res.json({ accessToken });
   };
   
@@ -84,14 +91,14 @@ const refreshTokenAPI = (req, res) => {
 //giải mã token
 const verifyToken = (token) => {
     if (!token || token.split('.').length !== 3) {
-        console.error('Invalid JWT format');
+        logger.warn('Định dạng JWT không hợp lệ', { token: token ? `${token.substring(0, 10)}...` : 'null' });
         return null;
     }
     const key = process.env.JWT_SECRET;
     try {
         return jwt.verify(token, key);
     } catch (err) {
-        console.error('Error verifying JWT:', err);
+        logger.error('Lỗi khi verify JWT', { error: err.message, stack: err.stack });
         return null;
     }
 };
@@ -102,6 +109,7 @@ const userMiddlewareAPI = (req, res, next) => {
 
     // Kiểm tra Header
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        logger.warn('Middleware: Không tìm thấy Access Token hoặc sai định dạng', { path: req.originalUrl });
         return res.status(401).json({
             errCode: 1,
             message: 'Vui lòng đăng nhập để tiếp tục.'
@@ -113,6 +121,7 @@ const userMiddlewareAPI = (req, res, next) => {
     const decoded = verifyToken(token); // Giải mã token
 
     if (!decoded) {
+        logger.warn('Middleware: Access Token không hợp lệ hoặc đã hết hạn', { path: req.originalUrl });
         return res.status(401).json({
             errCode: 1,
             message: 'Token không hợp lệ hoặc đã hết hạn.'
@@ -126,6 +135,7 @@ const userMiddlewareAPI = (req, res, next) => {
     const usernameInUrl = req.params.username;
     if (usernameInUrl) {
         if (decoded.role !== 'admin' && usernameInUrl !== decoded.username) {
+            logger.warn('Middleware: Truy cập trái phép vào tài khoản người khác', { tokenUser: decoded.username, targetUser: usernameInUrl });
             return res.status(403).json({
                 errCode: 1,
                 message: 'Bạn chỉ có thể thao tác trên tài khoản của mình.'
@@ -151,12 +161,13 @@ const getAccountAPI = (req, res) => {
         },
       });
     }
+    logger.warn('getAccountAPI: Không có req.user');
     return res.status(401).json({
       errCode: 1,
       message: 'Không lấy được thông tin người dùng',
     });
   } catch (error) {
-    console.error('Lỗi khi lấy thông tin tài khoản:', error);
+    logger.error('Lỗi khi lấy thông tin tài khoản', { error: error.message, stack: error.stack, username: req.user?.username });
     return res.status(500).json({
       errCode: 1,
       message: 'Có lỗi xảy ra khi lấy thông tin tài khoản',
@@ -167,6 +178,7 @@ const getAccountAPI = (req, res) => {
 
 //đăng xuất
 const userLogoutAPI = (req, res) => {
+    logger.info('Người dùng đăng xuất', { username: req.user?.username });
     res.clearCookie('jwt', {path: "/", httpOnly: true}); // Xóa cookie chứa token
     return res.status(200).json({
         errCode: 1,
@@ -198,6 +210,7 @@ const addUserAPI = async (req, res) => {
     const avatar = req.file?.filename || null;
 
     if (!username || !password || !fullname || !email || !phone) {
+      logger.warn('Đăng ký thất bại: Thiếu thông tin', { body: req.body });
       if (avatar) await deleteUserImage(avatar);
       return res.status(400).json({
         errCode: 1,
@@ -207,6 +220,7 @@ const addUserAPI = async (req, res) => {
     }
 
     await userModel.addPendingUserAPI(username, password, fullname, email, phone);
+    logger.info('Đăng ký thành công (Chờ xác nhận email)', { username, email });
 
     if (avatar) await deleteUserImage(avatar);
 
@@ -216,7 +230,7 @@ const addUserAPI = async (req, res) => {
       detailuser: { username, fullname, email, phone },
     });
   } catch (error) {
-    console.error('Lỗi khi đăng ký người dùng:', error.message); // Chỉ in error.message
+    logger.error('Lỗi khi đăng ký người dùng', { error: error.message, stack: error.stack, username: req.body.username });
     if (req.file?.filename) await deleteUserImage(req.file.filename);
 
     return res.status(400).json({
@@ -232,18 +246,20 @@ const getEmailVerifyUserAPI = async (req, res) => {
     const { token } = req.query;
 
     if (!token) {
+      logger.warn('Xác nhận email thất bại: Thiếu token');
       return res.render('verifyEmail', {
         message: 'Token xác nhận không hợp lệ!',
       });
     }
 
     const user = await userModel.confirmUserAPI(token);
+    logger.info('Xác nhận email người dùng thành công', { token: `${token.substring(0, 10)}...` });
 
     return res.render('verifyEmail', {
       message: 'Xác nhận email thành công! Bạn có thể đăng nhập.',
     });
   } catch (error) {
-    console.error('Lỗi khi xác nhận email:', error.message);
+    logger.error('Lỗi khi xác nhận email', { error: error.message, stack: error.stack });
     return res.render('verifyEmail', {
       message: error.message || 'Có lỗi xảy ra khi xác nhận email. Vui lòng thử lại.',
     });
@@ -254,9 +270,10 @@ const getEmailVerifyUserAPI = async (req, res) => {
 const addGoogleUserAPI = async (req, res) => {
   try {
     const { googleId, email, fullname } = req.body;
-    console.log('Request body:', req.body);
+    logger.info('Yêu cầu đăng nhập/đăng ký Google', { email, googleId });
 
     if (!googleId || !email) {
+      logger.warn('Đăng nhập Google thất bại: Thiếu thông tin bắt buộc', { email });
       return res.status(400).json({
         errCode: 1,
         message: 'Google ID và email là bắt buộc!',
@@ -266,6 +283,7 @@ const addGoogleUserAPI = async (req, res) => {
 
     const result = await userModel.addGoogleUserAPI(googleId, email, fullname);
     if (!result) {
+      logger.error('Thêm/Cập nhật người dùng Google thất bại tại Model', { email });
       return res.status(400).json({
         errCode: 1,
         message: 'Thêm/cập nhật người dùng thất bại, vui lòng thử lại.',
@@ -297,6 +315,7 @@ const addGoogleUserAPI = async (req, res) => {
     // Tạo access token
     const accessToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
 
+    logger.info('Đăng nhập Google thành công', { username: result.username, email });
     return res.status(200).json({
       errCode: 0,
       message: 'Thêm/cập nhật người dùng thành công!',
@@ -304,7 +323,7 @@ const addGoogleUserAPI = async (req, res) => {
       accessToken,
     });
   } catch (error) {
-    console.error('Lỗi khi thêm/cập nhật người dùng:', error);
+    logger.error('Lỗi khi thêm/cập nhật người dùng Google', { error: error.message, stack: error.stack, email: req.body.email });
     return res.status(400).json({
       errCode: 1,
       message: error.message || 'Có lỗi xảy ra khi xử lý người dùng. Vui lòng thử lại sau.',
@@ -314,16 +333,17 @@ const addGoogleUserAPI = async (req, res) => {
 };
 
 
-
-
 // xóa ảnh
 const deleteUserImage = (filename) => {
   if (!filename) return;
   try {
     const filePath = path.resolve(`images/useravatar/${filename}`);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        logger.info('Đã xóa ảnh avatar người dùng', { filename });
+    }
   } catch (error) {
-    console.error(`Lỗi khi xóa ảnh: ${error.message}`);
+    logger.error('Lỗi khi xóa ảnh avatar', { error: error.message, filename });
   }
 };
 
@@ -346,12 +366,14 @@ const updateUserAPI = async (req, res) => {
 
       // Validate required fields
       if (!username) {
+          logger.warn('API Cập nhật người dùng thất bại: Thiếu username');
           throw new Error("Thiếu thông tin bắt buộc: username.");
       }
 
       // Retrieve the old user data
       const oldUser = await userModel.getUserByUsername(username);
       if (!oldUser) {
+          logger.warn('API Cập nhật người dùng thất bại: Người dùng không tồn tại', { username });
           throw new Error("Người dùng không tồn tại.");
       }
 
@@ -381,6 +403,7 @@ const updateUserAPI = async (req, res) => {
 
       // Update user
       const updatedUser = await userModel.updateUserAPI(username, updateFields);
+      logger.info('API Cập nhật người dùng thành công', { username });
 
       return res.status(200).json({
           errCode: 0,
@@ -388,7 +411,7 @@ const updateUserAPI = async (req, res) => {
           detailuser: updatedUser,
       });
   } catch (error) {
-      console.error("Lỗi cập nhật người dùng:", error);
+      logger.error("Lỗi cập nhật người dùng API", { error: error.message, stack: error.stack, body: req.body });
       if (req.file) {
           await deleteUserImage(req.file.filename);
       }
@@ -408,6 +431,7 @@ const changePasswordAPI = async (req, res) => {
 
       // Validate input
       if (!newPassword || !confirmPassword) {
+          logger.warn('Đổi mật khẩu thất bại: Thiếu mật khẩu mới/xác nhận', { username });
           return res.status(400).json({
               errCode: 1,
               message: 'Vui lòng cung cấp mật khẩu mới và xác nhận mật khẩu!',
@@ -415,6 +439,7 @@ const changePasswordAPI = async (req, res) => {
       }
 
       if (newPassword !== confirmPassword) {
+          logger.warn('Đổi mật khẩu thất bại: Mật khẩu xác nhận không khớp', { username });
           return res.status(400).json({
               errCode: 1,
               message: 'Mật khẩu mới và xác nhận mật khẩu không khớp!',
@@ -423,6 +448,7 @@ const changePasswordAPI = async (req, res) => {
 
       // Kiểm tra độ dài mật khẩu mới
       if (newPassword.length < 6) {
+          logger.warn('Đổi mật khẩu thất bại: Mật khẩu quá ngắn', { username });
           return res.status(400).json({
               errCode: 1,
               message: 'Mật khẩu mới phải có ít nhất 6 ký tự!',
@@ -432,6 +458,7 @@ const changePasswordAPI = async (req, res) => {
       // Lấy thông tin người dùng
       const user = await userModel.getUserByUsernameAPI(username);
       if (!user) {
+          logger.warn('Đổi mật khẩu thất bại: Người dùng không tồn tại', { username });
           return res.status(404).json({
               errCode: 1,
               message: 'Người dùng không tồn tại!',
@@ -440,6 +467,7 @@ const changePasswordAPI = async (req, res) => {
 
       // Nếu không phải người dùng Google, yêu cầu mật khẩu cũ
       if (user.password !== 'google-auth' && !oldPassword) {
+          logger.warn('Đổi mật khẩu thất bại: Thiếu mật khẩu cũ', { username });
           return res.status(400).json({
               errCode: 1,
               message: 'Vui lòng cung cấp mật khẩu cũ!',
@@ -448,13 +476,14 @@ const changePasswordAPI = async (req, res) => {
 
       // Gọi model để đổi mật khẩu
       const result = await userModel.changePasswordAPI(username, oldPassword, newPassword);
+      logger.info('Đổi mật khẩu thành công', { username });
 
       return res.status(200).json({
           errCode: 0,
           message: result.message,
       });
   } catch (error) {
-      console.error('Lỗi khi đổi mật khẩu:', error.message);
+      logger.error('Lỗi khi đổi mật khẩu', { error: error.message, stack: error.stack, username: req.user?.username });
       return res.status(400).json({
           errCode: 1,
           message: error.message || 'Có lỗi xảy ra khi đổi mật khẩu. Vui lòng thử lại sau.',
@@ -468,6 +497,7 @@ const requestPasswordResetAPI = async (req, res) => {
       const { usernameOrEmail } = req.body;
 
       if (!usernameOrEmail) {
+          logger.warn('Yêu cầu đặt lại MK thất bại: Không có username/email');
           return res.status(400).json({
               errCode: 1,
               message: 'Vui lòng cung cấp username hoặc email!',
@@ -475,13 +505,14 @@ const requestPasswordResetAPI = async (req, res) => {
       }
 
       const result = await userModel.requestPasswordResetAPI(usernameOrEmail);
+      logger.info('Yêu cầu đặt lại mật khẩu thành công', { usernameOrEmail });
 
       return res.status(200).json({
           errCode: 0,
           message: result.message,
       });
   } catch (error) {
-      console.error('Lỗi khi yêu cầu đặt lại mật khẩu:', error.message);
+      logger.error('Lỗi khi yêu cầu đặt lại mật khẩu', { error: error.message, stack: error.stack, usernameOrEmail: req.body.usernameOrEmail });
       return res.status(400).json({
           errCode: 1,
           message: error.message || 'Có lỗi xảy ra khi yêu cầu đặt lại mật khẩu. Vui lòng thử lại sau.',
@@ -495,6 +526,7 @@ const getResetPasswordAPI = async (req, res) => {
       const { token } = req.query;
 
       if (!token) {
+          logger.warn('Render form đặt lại MK thất bại: Thiếu token');
           return res.render('resetPassword', {
               errorMessage: 'Liên kết không hợp lệ. Vui lòng thử lại!',
               successMessage: null,
@@ -511,7 +543,7 @@ const getResetPasswordAPI = async (req, res) => {
           token,
       });
   } catch (error) {
-      console.error('Lỗi khi hiển thị form đặt lại mật khẩu:', error.message);
+      logger.error('Lỗi khi hiển thị form đặt lại mật khẩu', { error: error.message, stack: error.stack, token: req.query.token });
       return res.render('resetPassword', {
           errorMessage: error.message || 'Có lỗi xảy ra. Vui lòng thử lại sau!',
           successMessage: null,
@@ -526,6 +558,7 @@ const resetPasswordAPI = async (req, res) => {
       const { token, newPassword, confirmPassword } = req.body;
 
       if (!token || !newPassword || !confirmPassword) {
+          logger.warn('Xác nhận đặt lại MK thất bại: Thiếu dữ liệu');
           return res.render('resetPassword', {
               errorMessage: 'Vui lòng cung cấp token, mật khẩu mới và xác nhận mật khẩu!',
               successMessage: null,
@@ -534,6 +567,7 @@ const resetPasswordAPI = async (req, res) => {
       }
 
       if (newPassword !== confirmPassword) {
+          logger.warn('Xác nhận đặt lại MK thất bại: Mật khẩu không khớp');
           return res.render('resetPassword', {
               errorMessage: 'Mật khẩu mới và xác nhận mật khẩu không khớp!',
               successMessage: null,
@@ -542,6 +576,7 @@ const resetPasswordAPI = async (req, res) => {
       }
 
       if (newPassword.length < 6) {
+          logger.warn('Xác nhận đặt lại MK thất bại: Mật khẩu quá ngắn');
           return res.render('resetPassword', {
               errorMessage: 'Mật khẩu mới phải có ít nhất 6 ký tự!',
               successMessage: null,
@@ -550,6 +585,7 @@ const resetPasswordAPI = async (req, res) => {
       }
 
       const result = await userModel.resetPasswordAPI(token, newPassword);
+      logger.info('Đặt lại mật khẩu thành công qua Token');
 
       return res.render('resetPassword', {
           errorMessage: null,
@@ -557,7 +593,7 @@ const resetPasswordAPI = async (req, res) => {
           token: null,
       });
   } catch (error) {
-      console.error('Lỗi khi đặt lại mật khẩu:', error.message);
+      logger.error('Lỗi khi xử lý form đặt lại mật khẩu', { error: error.message, stack: error.stack });
       return res.render('resetPassword', {
           errorMessage: error.message || 'Có lỗi xảy ra khi đặt lại mật khẩu. Vui lòng thử lại sau!',
           successMessage: null,

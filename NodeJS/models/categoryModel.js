@@ -1,6 +1,7 @@
 import express from 'express'
 import { sequelize, DataTypes } from '../configs/connectDatabase.js';
 import { Op } from 'sequelize';
+import logger from '../configs/logger.js'; // Import custom logger
 
 // Định nghĩa mô hình `Nhom`
 const Category = sequelize.define('Category', {
@@ -37,12 +38,10 @@ const addCategory = async (categoryName, icon, highlight) => {
         });
         return result;  // result là bản ghi mới được tạo
     } catch (error) {
-        console.error('Lỗi khi thêm loại sản phẩm:', error);
+        logger.error('Lỗi khi thêm loại sản phẩm', { error: error.message, stack: error.stack, categoryName });
         throw error;
     }
 };
-
-
 
 // Lấy tất cả các nhóm
 // Lấy tất cả các categories
@@ -75,7 +74,7 @@ const listCategory = async (offset = null, limit = null, searchKeyword = '', sor
         const categories = await Category.findAll(queryOptions);
         return categories;
     } catch (error) {
-        console.error('lỗi khi tải dữ liệu:', error);
+        logger.error('Lỗi khi tải dữ liệu loại sản phẩm', { error: error.message, stack: error.stack, searchKeyword, offset, limit });
         throw error; // Có thể throw để controller xử lý tiếp nếu cần
     }
 };
@@ -91,7 +90,7 @@ const countCategory = async (searchKeyword = '') => {
     
         return await Category.count(queryOptions);
     } catch (error) {
-        console.error('lỗi khi đếm nhóm:', error);
+        logger.error('Lỗi khi đếm nhóm', { error: error.message, stack: error.stack, searchKeyword });
         throw error;
     }
 };
@@ -106,7 +105,7 @@ const deleteCategory = async (idCategory) => {
         });
         return result;  // result sẽ là số lượng bản ghi bị xóa (nếu thành công)
     } catch (error) {
-        console.error('Lỗi khi xóa nhóm:', error);
+        logger.error('Lỗi khi xóa nhóm', { error: error.message, stack: error.stack, idCategory });
         throw error;
     }
 };
@@ -120,10 +119,11 @@ const getCategoryByid = async (idCategory) => {
         const result = await Category.findOne({ where: { category_id: idCategory } });
         return result;
     } catch (error) {
-        console.error('Lỗi khi tìm nhóm:', error);
+        logger.error('Lỗi khi tìm nhóm', { error: error.message, stack: error.stack, idCategory });
         throw error;
     }
 };
+
 // Cập nhật thông tin nhóm
 const updateCategory = async (idCategory, name, icon, highlight) => {
     try {
@@ -139,7 +139,7 @@ const updateCategory = async (idCategory, name, icon, highlight) => {
         );
         return result;
     } catch (error) {
-        console.error('Lỗi khi update nhóm:', error);
+        logger.error('Lỗi khi update nhóm', { error: error.message, stack: error.stack, idCategory, name });
         throw error;
     }
 }
@@ -149,7 +149,7 @@ const getAllCategory = async () => {
     try {
         return await Category.findAll();
     } catch (error) {
-        console.error('Lỗi khi lấy tất cả loại sản phẩm:', error);
+        logger.error('Lỗi khi lấy tất cả loại sản phẩm', { error: error.message, stack: error.stack });
         throw error;
     }
 };
@@ -166,14 +166,10 @@ const getAllCategoryAPI = async () => {
             limit: 5                        // giới hạn 5 hãng
         });
     } catch (error) {
-        console.error('Lỗi khi lấy loại sản phẩm nổi bật:', error);
+        logger.error('Lỗi khi lấy loại sản phẩm nổi bật API', { error: error.message, stack: error.stack });
         throw error;
     }
 };
-
-
-
-
 
 export { Category };
 export default {

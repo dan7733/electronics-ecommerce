@@ -4,11 +4,13 @@ import { User } from "../models/userModel.js";
 import { Order } from "../models/orderModel.js";
 import { OrderDetail } from "../models/orderdetailModel.js";
 import { Op, fn, col } from "sequelize";
+import logger from "../configs/logger.js"; // Import custom logger
 
 const getHomePage = async (req, res) => {
     try {
         // Kiểm tra session người dùng
         if (!req.session || !req.session.user) {
+            logger.warn('Truy cập Dashboard thất bại: Không có session', { ip: req.ip });
             return res.redirect('/');
         }
 
@@ -20,6 +22,7 @@ const getHomePage = async (req, res) => {
         });
 
         if (!user) {
+            logger.warn('Truy cập Dashboard thất bại: Không tìm thấy user trong CSDL', { userId });
             req.session.destroy();
             return res.redirect('/login');
         }
@@ -63,11 +66,11 @@ const getHomePage = async (req, res) => {
         // 2. Đếm tổng số sản phẩm
         const totalProducts = await Product.count();
 
-        // 3. Đếm số sản phẩm đã bán (SỬA LỖI GROUP BY Ở ĐÂY)
+        // 3. Đếm số sản phẩm đã bán
         const productsSold = await OrderDetail.sum('quantity', {
             include: [{
                 model: Order,
-                attributes: [], // <--- QUAN TRỌNG: Thêm dòng này
+                attributes: [], 
                 where: {
                     status_payment: 'paid',
                     status: { [Op.not]: 'cancelled' },
@@ -117,22 +120,21 @@ const getHomePage = async (req, res) => {
                 raw: true
             });
 
-            // SỬA LỖI CASE SENSITIVE VÀ GROUP BY
             const monthlySales = await OrderDetail.findAll({
                 attributes: [
-                    [fn('MONTH', col('Order.created_at')), 'month'], // <--- Sửa 'order' thành 'Order'
+                    [fn('MONTH', col('Order.created_at')), 'month'], 
                     [fn('SUM', col('quantity')), 'quantity']
                 ],
                 include: [{
                     model: Order,
-                    attributes: [], // <--- Thêm attributes rỗng
+                    attributes: [], 
                     where: {
                         status_payment: 'paid',
                         status: { [Op.not]: 'cancelled' },
                         ...timeCondition
                     }
                 }],
-                group: [fn('MONTH', col('Order.created_at'))], // <--- Sửa 'order' thành 'Order'
+                group: [fn('MONTH', col('Order.created_at'))], 
                 order: [[fn('MONTH', col('Order.created_at')), 'ASC']],
                 raw: true
             });
@@ -162,22 +164,21 @@ const getHomePage = async (req, res) => {
                 raw: true
             });
 
-            // SỬA LỖI CASE SENSITIVE VÀ GROUP BY
             const monthlySales = await OrderDetail.findAll({
                 attributes: [
-                    [fn('MONTH', col('Order.created_at')), 'month'], // <--- Sửa 'order' thành 'Order'
+                    [fn('MONTH', col('Order.created_at')), 'month'], 
                     [fn('SUM', col('quantity')), 'quantity']
                 ],
                 include: [{
                     model: Order,
-                    attributes: [], // <--- Thêm attributes rỗng
+                    attributes: [], 
                     where: {
                         status_payment: 'paid',
                         status: { [Op.not]: 'cancelled' },
                         ...timeCondition
                     }
                 }],
-                group: [fn('MONTH', col('Order.created_at'))], // <--- Sửa 'order' thành 'Order'
+                group: [fn('MONTH', col('Order.created_at'))], 
                 order: [[fn('MONTH', col('Order.created_at')), 'ASC']],
                 raw: true
             });
@@ -214,22 +215,21 @@ const getHomePage = async (req, res) => {
                 raw: true
             });
 
-            // SỬA LỖI CASE SENSITIVE VÀ GROUP BY
             const dailySales = await OrderDetail.findAll({
                 attributes: [
-                    [fn('DATE', col('Order.created_at')), 'date'], // <--- Sửa 'order' thành 'Order'
+                    [fn('DATE', col('Order.created_at')), 'date'], 
                     [fn('SUM', col('quantity')), 'quantity']
                 ],
                 include: [{
                     model: Order,
-                    attributes: [], // <--- Thêm attributes rỗng
+                    attributes: [], 
                     where: {
                         status_payment: 'paid',
                         status: { [Op.not]: 'cancelled' },
                         ...timeCondition
                     }
                 }],
-                group: [fn('DATE', col('Order.created_at'))], // <--- Sửa 'order' thành 'Order'
+                group: [fn('DATE', col('Order.created_at'))], 
                 order: [[fn('DATE', col('Order.created_at')), 'ASC']],
                 raw: true
             });
@@ -291,7 +291,7 @@ const getHomePage = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error('Error in getHomePage:', error);
+        logger.error('Lỗi trong getHomePage', { error: error.message, stack: error.stack, query: req.query });
         res.status(500).send('Lỗi máy chủ');
     }
 };

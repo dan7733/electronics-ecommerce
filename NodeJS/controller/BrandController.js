@@ -3,19 +3,21 @@ import fs from 'fs';
 import path from 'path';
 import brandModel from '../models/brandModel.js';  // Import model xử lý với CSDL
 import { UnknownConstraintError } from "sequelize";
-
+import logger from '../configs/logger.js'; // Import custom logger
 
 // Hàm xóa ảnh nếu cần
 const deleteImage = (filename) => {
   if (!filename) return;
   try {
     const filePath = path.resolve(`images/brands/${filename}`);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      logger.info('Đã xóa ảnh thành công', { filename });
+    }
   } catch (error) {
-    console.error(`Lỗi khi xóa ảnh: ${error.message}`);
+    logger.error('Lỗi khi xóa ảnh', { error: error.message, filename });
   }
 };
-
 
 // Tải trang thêm hãng
 const createBrand = async (req, res) => {
@@ -28,7 +30,6 @@ const createBrand = async (req, res) => {
 };
 
 // thêm hãng
-
 const addBrand = async (req, res) => {
   try {
     const { addbrand_name, addbrand_highlight, addbrand_country } = req.body;
@@ -36,6 +37,7 @@ const addBrand = async (req, res) => {
 
     //  Kiểm tra dữ liệu trước khi lưu
     if (!addbrand_name) {
+      logger.warn('Thêm hãng thất bại: Tên hãng trống');
       deleteImage(logo); // Xóa ảnh ngay nếu dữ liệu không hợp lệ
       return res.render("home", { 
         data: { page: 'addBrand', message: "Tên hãng không được để trống!" } 
@@ -50,6 +52,12 @@ const addBrand = async (req, res) => {
       addbrand_country || 'Unknown'
     );
 
+    if (result) {
+      logger.info('Thêm hãng thành công', { brandName: addbrand_name, country: addbrand_country });
+    } else {
+      logger.warn('Thêm hãng thất bại tại Model', { brandName: addbrand_name });
+    }
+
     res.render("home", {
       data: {
         page: 'addBrand',
@@ -58,7 +66,7 @@ const addBrand = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Lỗi khi thêm hãng:', error);
+    logger.error('Lỗi khi thêm hãng', { error: error.message, stack: error.stack, body: req.body });
     deleteImage(req.file?.filename); // Xóa ảnh nếu có lỗi
     res.status(500).send('Có lỗi xảy ra khi thêm hãng.');
   }
@@ -103,40 +111,47 @@ const listBrand = async (req, res) => {
           }
       });
   } catch (error) {
-      console.error(error);
+      logger.error('Lỗi khi tải danh sách hãng', { error: error.message, stack: error.stack, query: req.query });
       res.status(500).send("Lỗi khi tải dữ liệu.");
   }
 };
 
 // Xóa 
 const deleteBrand = async (req, res) => {
+  const { brand_id } = req.body;
   try {
-    const { brand_id } = req.body;
     const logo = await brandModel.deleteBrand(brand_id);
     if(logo){
       deleteImage(logo);
     }
+    logger.info('Xóa hãng thành công', { brand_id });
     res.redirect('/listbrand?message=Xóa thành công');
   } catch (error) {
-    console.error(error);
+    logger.error('Lỗi khi xóa hãng', { error: error.message, stack: error.stack, brand_id });
     res.redirect('/listbrand?message=Xóa thất bại');
   }
 };
+
 // lấy chi tiết nhãn hàng
 const editBrand = async (req, res) => {
   const { brandid } = req.params;
-  const brand = await brandModel.getBrandById(brandid);
-  const message = req.query.message || '';
-  return res.render('home', {
-    data: {
-      title: 'Update Brand',
-      page: 'updateBrand',
-      brand: brand,
-      message: message
-    }
-  });
+  try {
+    const brand = await brandModel.getBrandById(brandid);
+    const message = req.query.message || '';
+    return res.render('home', {
+      data: {
+        title: 'Update Brand',
+        page: 'updateBrand',
+        brand: brand,
+        message: message
+      }
+    });
+  } catch (error) {
+    logger.error('Lỗi khi lấy chi tiết nhãn hàng', { error: error.message, stack: error.stack, brandid });
+    return res.redirect('/listbrand');
+  }
 };
-// cập nhật nhãn hàng
+
 // Cập nhật nhãn hàng
 const updateBrand = async (req, res) => {
   try {
@@ -144,6 +159,7 @@ const updateBrand = async (req, res) => {
 
     // Kiểm tra brand_id có tồn tại không
     if (!brand_id) {
+      logger.warn('Cập nhật hãng thất bại: Thiếu brand_id');
       throw new Error("Thiếu brand_id");
     }
 
@@ -156,17 +172,19 @@ const updateBrand = async (req, res) => {
     // Xóa logo cũ nếu có logo mới khác
     if (oldLogo && newLogo !== oldLogo) {
       deleteImage(oldLogo);
-    }cd
+    }
 
     // Cập nhật thương hiệu
     const updatedBrand = await brandModel.updateBrand(brand_id, brandName, newLogo, brandCountry, highlight);
     if (!updatedBrand) {
+      logger.warn('Cập nhật hãng thất bại tại Model', { brand_id });
       throw new Error("Cập nhật thất bại");
     }
 
+    logger.info('Cập nhật hãng thành công', { brand_id, brandName });
     return res.redirect(`/editbrand/${brand_id}?message=Cập nhật thành công`);
   } catch (error) {
-    console.error("Lỗi cập nhật thương hiệu:", error);
+    logger.error("Lỗi cập nhật thương hiệu", { error: error.message, stack: error.stack, body: req.body });
 
     // Nếu có ảnh mới, nhưng lỗi xảy ra -> Xóa ảnh mới để tránh rác
     if (req.file) {
@@ -184,7 +202,6 @@ const updateBrand = async (req, res) => {
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////// api//////////////////////////////////////////////////
 
-
 const getAllBrandAPI = async (req, res) => {
   try {
     const data = await brandModel.getAllBrandAPI();
@@ -194,18 +211,13 @@ const getAllBrandAPI = async (req, res) => {
       brands: data
     });
   } catch (error) {
-    console.error('Error in getAllBrandAPI:', error);
+    logger.error('Lỗi trong getAllBrandAPI', { error: error.message, stack: error.stack });
     return res.status(500).json({
       errCode: 1,
       message: "Internal server error"
     });
   }
 };
-
-
-
-
-
 
 export default {
   createBrand,

@@ -1,26 +1,33 @@
 import express from "express";
 import storeModel from '../models/storeModel.js'  // Import model để xử lý với CSDL hoặc logic nghiệp vụ
+import logger from '../configs/logger.js'; // Import custom logger
 // import { body, validationResult } from 'express-validator';
 
 
 // tải trang thêm vị trí
 const createStore = async (req, res) => {
-    return res.render('home', {
-        data: {
-            title: 'Add store',
-            page: 'addStore',
-        }
-    })
+    try {
+        return res.render('home', {
+            data: {
+                title: 'Add store',
+                page: 'addStore',
+            }
+        });
+    } catch (error) {
+        logger.error('Lỗi khi tải trang thêm cửa hàng', { error: error.message, stack: error.stack });
+        res.status(500).send("Lỗi máy chủ.");
+    }
 }
 
-// thêm loại sản phẩm
+// thêm loại sản phẩm (cửa hàng)
 const addStore = async (req, res) => {
     try {
         const { name, address, latitude, longitude, open_hours, close_hour } = req.body;
-        console.log(req.body);
+        logger.info('Yêu cầu thêm cửa hàng', { body: req.body });
 
         // Kiểm tra dữ liệu đầu vào
         if (!name || !address || !latitude || !longitude || !open_hours || !close_hour) {
+            logger.warn('Thêm cửa hàng thất bại: Thiếu thông tin bắt buộc', { body: req.body });
             return res.render("home", {
                 data: {
                     page: 'addStore',
@@ -32,6 +39,12 @@ const addStore = async (req, res) => {
         // Gọi model để thêm cửa hàng
         const newStore = await storeModel.addStore(name, address, latitude, longitude, open_hours, close_hour);
 
+        if (newStore) {
+            logger.info('Thêm cửa hàng thành công', { storeName: name });
+        } else {
+            logger.warn('Thêm cửa hàng thất bại tại Model', { storeName: name });
+        }
+
         // Hiển thị kết quả
         res.render("home", {
             data: {
@@ -41,7 +54,7 @@ const addStore = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Lỗi khi thêm cửa hàng:", error);
+        logger.error("Lỗi khi thêm cửa hàng", { error: error.message, stack: error.stack, body: req.body });
         res.status(500).render("home", {
             data: {
                 page: 'addStore',
@@ -64,47 +77,59 @@ const listStore = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
+        logger.error('Lỗi khi tải danh sách cửa hàng', { error: error.message, stack: error.stack });
         res.status(500).send("Lỗi khi tải dữ liệu.");
     }
 };
 
-// Xóa cửa hang
+// Xóa cửa hàng
 const deleteStore = async (req, res) => {
   try {
     const { storeid } = req.params;
     await storeModel.deleteStore(storeid);
+    logger.info('Xóa cửa hàng thành công', { storeid });
     res.redirect('/liststore?message=Xóa thành công');
   } catch (error) {
-    console.error(error);
+    logger.error('Lỗi khi xóa cửa hàng', { error: error.message, stack: error.stack, storeid: req.params.storeid });
     res.redirect('/liststore?message=Xóa thất bại');
   }
 };
 
-//tải trang sửa sản phẩ
+// tải trang sửa cửa hàng
 const editStore = async (req, res) => {
   const { storeid } = req.params;
-  const store = await storeModel.getStoreById(storeid)
-  const message = req.query.message || '';
-  return res.render('home', {
-    data: {
-      title: 'Update Store',
-      page: 'updateStore',
-      store: store,
-      message: message
-    }
-  })
+  try {
+    const store = await storeModel.getStoreById(storeid);
+    const message = req.query.message || '';
+    return res.render('home', {
+      data: {
+        title: 'Update Store',
+        page: 'updateStore',
+        store: store,
+        message: message
+      }
+    });
+  } catch (error) {
+    logger.error('Lỗi khi tải trang cập nhật cửa hàng', { error: error.message, stack: error.stack, storeid });
+    return res.redirect('/liststore');
+  }
 }
 
-//Cập nhật cửa hàng
+// Cập nhật cửa hàng
 const updateStore = async (req, res) => {
+    const { store_id, name, address, latitude, longitude, open_hours, close_hour } = req.body;
     try {
-      const { store_id, name, address, latitude, longitude, open_hours, close_hour } = req.body;
+      if (!store_id) {
+        logger.warn('Cập nhật cửa hàng thất bại: Thiếu store_id');
+        return res.redirect(`/liststore?message=Thiếu thông tin ID cửa hàng`);
+      }
+
       await storeModel.updateStore(store_id, name, address, latitude, longitude, open_hours, close_hour);
+      logger.info('Cập nhật cửa hàng thành công', { store_id, name });
       res.redirect(`/editStore/${store_id}?message=Cập nhật thành công`);
     } catch (error) {
-      console.error("Lỗi khi cập nhật cửa hàng:", error);
-      res.redirect(`/editStore/${store_id}?message=Cập nhật thất bại`);
+      logger.error("Lỗi khi cập nhật cửa hàng", { error: error.message, stack: error.stack, body: req.body });
+      res.redirect(`/editStore/${store_id || ''}?message=Cập nhật thất bại`);
     }
   };
 
@@ -114,7 +139,6 @@ const updateStore = async (req, res) => {
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////// api//////////////////////////////////////////////////
-
 
 const getAllStoresAPI = async (req, res) => {
     try {
@@ -126,7 +150,7 @@ const getAllStoresAPI = async (req, res) => {
             data: listStore || []
         });
     } catch (error) {
-        console.error("Error fetching store list:", error);
+        logger.error("Lỗi trong getAllStoresAPI", { error: error.message, stack: error.stack });
         return res.status(500).json({
             errCode: 1,
             message: "Internal Server Error",
@@ -134,11 +158,6 @@ const getAllStoresAPI = async (req, res) => {
         });
     }
 };
-
-
-  
-
-
 
 export default {
     createStore,

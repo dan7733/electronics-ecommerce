@@ -1,6 +1,7 @@
 import express from 'express';
 import { sequelize, DataTypes } from '../configs/connectDatabase.js';
 import { Op } from 'sequelize';
+import logger from '../configs/logger.js'; // Import custom logger
 
 const Store = sequelize.define("Store", {
     store_id: {
@@ -47,9 +48,9 @@ const addStore = async (name, address, latitude, longitude, open_hours, close_ho
             open_hours,
             close_hour
         });
-        return newStore; // Trả về bản ghi mới được tạo
+        return newStore;
     } catch (error) {
-        console.error("Lỗi khi thêm cửa hàng:", error);
+        logger.error("Lỗi khi thêm cửa hàng", { error: error.message, stack: error.stack });
         throw error;
     }
 };
@@ -59,27 +60,23 @@ const getAllStores = async () => {
         const stores = await Store.findAll();
         return stores;
     } catch (error) {
-        console.error("Lỗi khi lấy danh sách cửa hàng:", error);
+        logger.error("Lỗi khi lấy danh sách cửa hàng", { error: error.message, stack: error.stack });
         throw error;
     }
 };
 
-//xóa cửa hàng
 const deleteStore = async (idStore) => {
     try {
-        // Xóa cửa hàng
         const result = await Store.destroy({
             where: { store_id: idStore }
         });
-        return result ? true : false; // Trả về true nếu xóa thành công
+        return result ? true : false;
     } catch (error) {
-        console.error('Lỗi khi xóa cửa hàng:', error);
+        logger.error('Lỗi khi xóa cửa hàng', { error: error.message, stack: error.stack, idStore });
         throw error;
     }
 };
 
-
-// lấy store theo id
 const getStoreById = async (storeId) => {
     if (!storeId) {
         throw new Error('Yêu cầu id cửa hàng');
@@ -88,15 +85,13 @@ const getStoreById = async (storeId) => {
         const result = await Store.findOne({ where: { store_id: storeId } });
         return result;
     } catch (error) {
-        console.error('Lỗi khi tìm cửa hàng:', error);
+        logger.error('Lỗi khi tìm cửa hàng', { error: error.message, stack: error.stack, storeId });
         throw error;
     }
 };
 
-// Cập nhật thông tin cửa hàng
 const updateStore = async (storeId, name, address, latitude, longitude, open_hours, close_hour) => {
     try {
-
         const result = await Store.update(
             {
                 name: name,
@@ -112,12 +107,10 @@ const updateStore = async (storeId, name, address, latitude, longitude, open_hou
         );
         return result;
     } catch (error) {
-        console.error("Lỗi khi cập nhật cửa hàng:", error);
+        logger.error("Lỗi khi cập nhật cửa hàng", { error: error.message, stack: error.stack, storeId });
         throw error;
     }
 };
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -130,13 +123,10 @@ const getAllStoresAPI = async () => {
         const stores = await Store.findAll();
         return stores;
     } catch (error) {
-        console.error("Lỗi khi lấy danh sách cửa hàng:", error);
+        logger.error("Lỗi khi lấy danh sách cửa hàng", { error: error.message, stack: error.stack });
         throw error;
     }
 };
-
-
-
 
 export default {
     addStore,

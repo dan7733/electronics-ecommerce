@@ -1,5 +1,6 @@
 import multer from 'multer';
 import path from 'path';
+import logger from './logger.js'; // Import logger cùng cấp
 
 // Cấu hình lưu file linh hoạt
 const storage = (folder) => multer.diskStorage({
@@ -20,6 +21,7 @@ const fileFilter = (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
         cb(null, true);
     } else {
+        logger.warn('Upload file thất bại: Không đúng định dạng hình ảnh', { filename: file.originalname, mimetype: file.mimetype });
         cb(new Error('Chỉ cho phép tải lên file hình ảnh.'));
     }
 };

@@ -1,5 +1,6 @@
 import express from "express";
 import productdetailsModel from "../models/productdetailsModel.js";
+import logger from "../configs/logger.js"; // Import custom logger
 
 const listProductDetails = async (req, res) => {
     try {
@@ -40,15 +41,15 @@ const listProductDetails = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
+        logger.error('Lỗi khi tải danh sách chi tiết sản phẩm', { error: error.message, stack: error.stack, query: req.query });
         res.status(500).send("Lỗi khi tải dữ liệu.");
     }
 };
 
 // tải trang thêm chi tiết sản phẩm
 const editProductDetails = async (req, res) => {
+    const { productid } = req.params;
     try {
-        const { productid } = req.params;
         const result = await productdetailsModel.getProductDetailById(productid);
         const message = req.query.message || '';
         res.render('home', {
@@ -60,22 +61,27 @@ const editProductDetails = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
+        logger.error('Lỗi khi tải trang cập nhật chi tiết sản phẩm', { error: error.message, stack: error.stack, productid });
         res.status(500).send("Lỗi khi tải dữ liệu.");
     }
 };
 
 // cập nhật chi tiết sản phẩm
 const updateProductDetails = async (req, res) => {
+    const {
+        product_id,
+        operating_system,
+        storage,
+        ram,
+        processor,
+        release_year
+    } = req.body;
+
     try {
-        const {
-            product_id,
-            operating_system,
-            storage,
-            ram,
-            processor,
-            release_year
-        } = req.body;
+        if (!product_id) {
+            logger.warn('Cập nhật chi tiết sản phẩm thất bại: Thiếu product_id');
+            return res.redirect(`/listproductdetail?message=Thiếu thông tin ID sản phẩm`);
+        }
 
         await productdetailsModel.updateProductDetail(
             product_id,
@@ -85,20 +91,17 @@ const updateProductDetails = async (req, res) => {
             processor,
             release_year
         );
-        console.log("Cập nhật chi tiết sản phẩm thành công! ".product_id);
+        
+        logger.info("Cập nhật chi tiết sản phẩm thành công", { product_id });
         res.redirect(`/editproductdetail/${product_id}?message=Cập nhật chi tiết sản phẩm thành công!`);
     } catch (error) {
-        console.error('Lỗi khi cập nhật chi tiết sản phẩm:', error);
+        logger.error('Lỗi khi cập nhật chi tiết sản phẩm', { error: error.message, stack: error.stack, body: req.body });
         res.status(500).send("Lỗi khi cập nhật dữ liệu.");
     }
 };
-
-
-
 
 export default {
     listProductDetails, // Xuất phương thức với tên mới
     editProductDetails,
     updateProductDetails
 };
-

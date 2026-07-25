@@ -1,0 +1,48 @@
+.log-container {
+    background: white;
+    border-radius: 10px;
+}
+
+.log-filter-btn.active {
+    background-color: #218282 !important;
+    color: white !important;
+    border-color: #218282;
+}
+
+/* STYLE CHO MÀN HÌNH HIỂN THỊ LOG CHUYÊN NGHIỆP */
+.log-content {
+    background: #1e1e1e !important; /* Màu nền tối dạng terminal */
+    border-radius: 8px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.9rem;
+    padding: 15px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+.log-line {
+    padding: 6px 10px;
+    border-bottom: 1px solid #333; /* Đường gạch chia dòng tinh tế */
+    white-space: pre-wrap;
+    word-break: break-word;
+    transition: background 0.2s;
+    line-height: 1.5;
+}
+
+/* Hiệu ứng khi rê chuột vào dòng log */
+.log-line:hover {
+    background: #2d2d2d !important;
+    border-left: 3px solid #218282;
+}
+
+/* Màu sắc của text */
+.log-error { color: #ff6b6b; }    
+.log-info { color: #51cf66; }    
+.log-warn { color: #fcc419; }        
+.log-default { color: #e9ecef; }     
+
+/* Tách màu riêng cho Timestamp để dễ dò giờ */
+.log-timestamp {
+    color: #339af0;
+    font-weight: bold;
+    margin-right: 8px;
+}

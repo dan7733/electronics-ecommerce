@@ -1,6 +1,7 @@
 import express from 'express';
 import { sequelize, DataTypes } from '../configs/connectDatabase.js';
 import { Op } from 'sequelize';
+import logger from '../configs/logger.js'; // Import custom logger
 
 const Brand = sequelize.define('Brand', {
     brand_id: {
@@ -41,11 +42,10 @@ const addBrand = async (brandName, logo, highlight, country) => {
         });
         return result;  // result là bản ghi mới được tạo
     } catch (error) {
-        console.error('Lỗi khi thêm hãng:', error);
+        logger.error('Lỗi khi thêm hãng', { error: error.message, stack: error.stack, brandName, country });
         throw error;
     }
 };
-
 
 // Lấy tất cả các brands
 const listBrand = async (offset = null, limit = null, searchKeyword = '', sortOption = 'default') => {
@@ -77,7 +77,7 @@ const listBrand = async (offset = null, limit = null, searchKeyword = '', sortOp
         const brands = await Brand.findAll(queryOptions);
         return brands;
     } catch (error) {
-        console.error('Lỗi khi tải dữ liệu:', error);
+        logger.error('Lỗi khi tải dữ liệu hãng', { error: error.message, stack: error.stack, searchKeyword, offset, limit });
         throw error; // Có thể throw để controller xử lý tiếp nếu cần
     }
 };
@@ -93,7 +93,7 @@ const countBrand = async (searchKeyword = '') => {
 
         return await Brand.count(queryOptions);
     } catch (error) {
-        console.error('Lỗi khi đếm thương hiệu:', error);
+        logger.error('Lỗi khi đếm thương hiệu', { error: error.message, stack: error.stack, searchKeyword });
         throw error;
     }
 };
@@ -118,7 +118,7 @@ const deleteBrand = async (idBrand) => {
 
         return result ? brand.logo : null; // Trả về tên ảnh nếu xóa thành công
     } catch (error) {
-        console.error('Lỗi khi xóa thương hiệu:', error);
+        logger.error('Lỗi khi xóa thương hiệu', { error: error.message, stack: error.stack, idBrand });
         throw error;
     }
 };
@@ -132,7 +132,7 @@ const getBrandById = async (idBrand) => {
         const result = await Brand.findOne({ where: { brand_id: idBrand } });
         return result;
     } catch (error) {
-        console.error('Lỗi khi tìm thương hiệu:', error);
+        logger.error('Lỗi khi tìm thương hiệu', { error: error.message, stack: error.stack, idBrand });
         throw error;
     }
 };
@@ -154,7 +154,7 @@ const updateBrand = async (idBrand, name, logo, country, highlight) => {
         );
         return result;
     } catch (error) {
-        console.error('Lỗi khi update thương hiệu:', error);
+        logger.error('Lỗi khi update thương hiệu', { error: error.message, stack: error.stack, idBrand, name });
         throw error;
     }
 };
@@ -166,7 +166,7 @@ const getAllBrand = async () => {
     try {
         return await Brand.findAll();
     } catch (error) {
-        console.error('Lỗi khi lấy tất cả hãng:', error);
+        logger.error('Lỗi khi lấy tất cả hãng', { error: error.message, stack: error.stack });
         throw error;
     }
 }
@@ -184,12 +184,10 @@ const getAllBrandAPI = async () => {
             limit: 5
         });
     } catch (error) {
-        console.error('Lỗi khi lấy các thương hiệu nổi bật:', error);
+        logger.error('Lỗi khi lấy các thương hiệu nổi bật API', { error: error.message, stack: error.stack });
         throw error;
     }
 };
-
-
 
 export { Brand };
 export default {

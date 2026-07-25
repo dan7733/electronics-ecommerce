@@ -2,6 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import { sequelize, DataTypes } from '../configs/connectDatabase.js';
 import { Op } from 'sequelize';
+import logger from '../configs/logger.js'; // Import custom logger
 import { PendingUsers } from './PendingUserModel.js';
 import { v4 as uuidv4 } from 'uuid';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../configs/email.js';
@@ -88,7 +89,6 @@ const User = sequelize.define('User', {
     tableName: 'users'
 });
 
-
 // Lấy username đăng nhập
 const getUserByUsername = async (username) => {
     try {
@@ -98,7 +98,7 @@ const getUserByUsername = async (username) => {
         });
         return user;
     } catch (error) {
-        console.error(`Lỗi khi lấy user với username: ${username}`, error);
+        logger.error(`Lỗi khi lấy user với username: ${username}`, { error: error.message, stack: error.stack });
         return null;
     }
 };
@@ -111,7 +111,7 @@ const updateLastLogin = async (userId) => {
             { where: { user_id: userId } }
         );
     } catch (error) {
-        console.error('Error updating last login:', error);
+        logger.error('Error updating last login', { error: error.message, stack: error.stack, userId });
     }
 };
 
@@ -157,10 +157,10 @@ const addUser = async (
             role,
         });
 
-        console.log('User created with ID:', newUser.user_id);
+        logger.info('User created with ID:', { userId: newUser.user_id });
         return newUser;
     } catch (error) {
-        console.error("Lỗi khi thêm người dùng:", error);
+        logger.error("Lỗi khi thêm người dùng", { error: error.message, stack: error.stack, username });
         throw error;
     }
 };
@@ -191,7 +191,7 @@ const listUser = async (offset = null, limit = null, searchKeyword = '', sortOpt
         const users = await User.findAll(queryOptions);
         return users;
     } catch (error) {
-        console.error('Lỗi khi tải danh sách người dùng:', error);
+        logger.error('Lỗi khi tải danh sách người dùng', { error: error.message, stack: error.stack });
         throw error;
     }
 };
@@ -210,7 +210,7 @@ const countUser = async (searchKeyword = '') => {
         const total = await User.count(queryOptions);
         return total;
     } catch (error) {
-        console.error('Lỗi khi đếm người dùng:', error);
+        logger.error('Lỗi khi đếm người dùng', { error: error.message, stack: error.stack });
         throw error;
     }
 };
@@ -220,7 +220,6 @@ const deleteUser = async (idUser) => {
     try {
         const user = await User.findOne({
             where: { user_id: idUser },
-            // Bổ sung lấy thêm 'username' để kiểm tra
             attributes: ['username', 'avatar'] 
         });
 
@@ -228,7 +227,6 @@ const deleteUser = async (idUser) => {
             return null;
         }
 
-        // CHẶN XÓA TÀI KHOẢN TEST
         if (user.username === 'test') {
             throw new Error('Không thể xóa tài khoản hệ thống!');
         }
@@ -239,7 +237,7 @@ const deleteUser = async (idUser) => {
 
         return result ? user.avatar : null;
     } catch (error) {
-        console.error('Lỗi khi xóa người dùng:', error);
+        logger.error('Lỗi khi xóa người dùng', { error: error.message, stack: error.stack, idUser });
         throw error;
     }
 };
@@ -253,7 +251,7 @@ const getUserById = async (userid) => {
         const result = await User.findOne({ where: { user_id: userid } });
         return result;
     } catch (error) {
-        console.error('Lỗi khi tìm sản phẩm:', error);
+        logger.error('Lỗi khi tìm sản phẩm', { error: error.message, stack: error.stack, userid });
         throw error;
     }
 };
@@ -261,7 +259,6 @@ const getUserById = async (userid) => {
 // Cập nhật người dùng
 const updateUser = async (idUser, username, password, fullname, address, sex, email, phone, avatar, status, dateOfBirth, role, provider) => {
     try {
-        // chặn xóa tài khoản hệ thống
         const targetUser = await User.findOne({ where: { user_id: idUser } });
         if (targetUser && targetUser.username === 'test') {
             throw new Error('Hệ thống từ chối: Không thể cập nhật tài khoản hệ thống!');
@@ -307,7 +304,7 @@ const updateUser = async (idUser, username, password, fullname, address, sex, em
 
         return result;
     } catch (error) {
-        console.error('Lỗi khi cập nhật thông tin người dùng:', error);
+        logger.error('Lỗi khi cập nhật thông tin người dùng', { error: error.message, stack: error.stack, idUser });
         throw error;
     }
 };
@@ -321,18 +318,14 @@ const getUserByUsernameAPI = async (username) => {
         });
         return user;
     } catch (error) {
-        console.error(`Lỗi khi lấy user với username: ${username}`, error);
+        logger.error(`Lỗi khi lấy user với username: ${username}`, { error: error.message, stack: error.stack });
         return null;
     }
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////// api//////////////////////////////////////////////////
 
-// LẤY THÔNG TIN THEO USERNAME
 const getDetailUserByUsernameAPI = async (username) => {
     try {
         const user = await User.findOne({
@@ -340,25 +333,21 @@ const getDetailUserByUsernameAPI = async (username) => {
         });
         return user;
     } catch (error) {
-        console.error(`Lỗi khi lấy user với username: ${username}`, error);
+        logger.error(`Lỗi khi lấy user với username: ${username}`, { error: error.message, stack: error.stack });
         return null;
     }
 };
 
-// Thêm người dùng vào PendingUsers
 const addPendingUserAPI = async (username, password, fullname, email, phone) => {
     try {
-        // Kiểm tra PendingUsers có được định nghĩa không
         if (!PendingUsers) {
             throw new Error('Model PendingUsers không được định nghĩa!');
         }
 
-        // Validate các trường bắt buộc
         if (!username || !password || !fullname || !email || !phone) {
             throw new Error('Username, password, fullname, email và phone là bắt buộc!');
         }
 
-        // Kiểm tra username/email/phone trong User
         const existingUser = await User.findOne({
             where: { [Op.or]: [{ username }, { email }, { phone }] },
         });
@@ -371,21 +360,17 @@ const addPendingUserAPI = async (username, password, fullname, email, phone) => 
             throw new Error(`${errors.join(', ')} đã được sử dụng!`);
         }
 
-        // Kiểm tra trong PendingUsers và giới hạn đăng ký từ cùng email
         const pendingCount = await PendingUsers.count({ where: { email } });
         if (pendingCount >= 5) {
             throw new Error('Đã vượt quá giới hạn đăng ký cho email này. Vui lòng thử lại sau!');
         }
 
-        // Hash password
         const salt = bcrypt.genSaltSync(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Tạo verification token và thời gian hết hạn (24 giờ)
         const verificationToken = uuidv4();
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-        // Lưu vào PendingUsers
         const pendingUser = await PendingUsers.create({
             username,
             password: hashedPassword,
@@ -396,24 +381,22 @@ const addPendingUserAPI = async (username, password, fullname, email, phone) => 
             expiresAt,
         });
 
-        // Gửi email xác nhận
         try {
             await sendVerificationEmail(email, verificationToken);
         } catch (emailError) {
-            console.error('Failed to send verification email:', emailError.message);
+            logger.error('Failed to send verification email', { error: emailError.message, email });
             await pendingUser.destroy();
             throw new Error('Không thể gửi email xác nhận. Vui lòng thử lại sau.');
         }
 
-        console.log('Pending user created:', pendingUser.id);
+        logger.info('Pending user created', { id: pendingUser.id });
         return pendingUser;
     } catch (error) {
-        console.error('Lỗi khi lưu thông tin tạm:', error.message);
+        logger.error('Lỗi khi lưu thông tin tạm', { error: error.message, stack: error.stack });
         throw error;
     }
 };
 
-// Xác nhận người dùng
 const confirmUserAPI = async (verificationToken) => {
     try {
         if (!PendingUsers) {
@@ -444,61 +427,55 @@ const confirmUserAPI = async (verificationToken) => {
 
         await pendingUser.destroy();
 
-        console.log('User confirmed with ID:', newUser.user_id);
+        logger.info('User confirmed with ID:', { userId: newUser.user_id });
         return newUser;
     } catch (error) {
-        console.error('Lỗi khi xác nhận người dùng:', error.message);
+        logger.error('Lỗi khi xác nhận người dùng', { error: error.message, stack: error.stack });
         throw error;
     }
 };
-//thêm người dùng google
+
 const addGoogleUserAPI = async (googleId, email, fullname = null) => {
     try {
         if (!googleId || !email) {
             throw new Error(`Google ID và email là bắt buộc!`);
         }
 
-        // Kiểm tra người dùng đã tồn tại dựa trên email
         const existingUser = await User.findOne({
             where: { email }
         });
 
         if (existingUser) {
-            // Nếu tài khoản đã tồn tại, cập nhật googleId và provider thành 'mixed'
             if (!existingUser.googleId) {
                 await existingUser.update({
                     googleId,
                     provider: 'mixed'
                 });
-                console.log('Google ID updated for user:', existingUser.user_id);
+                logger.info('Google ID updated for user', { userId: existingUser.user_id });
             }
             return existingUser;
         }
 
-        // Dùng email làm username
         const username = email;
-        // Sử dụng ảnh mặc định
 
         const newUser = await User.create({
             username,
-            password: 'google-auth', // Không cần mật khẩu
-            fullname: fullname || email.split('@')[0], // Sử dụng fullname từ Google hoặc email
+            password: 'google-auth',
+            fullname: fullname || email.split('@')[0],
             email,
             avatar: null,
             googleId,
             provider: 'google',
             role: 0,
         });
-        console.log('Google User created with ID:', newUser.user_id);
+        logger.info('Google User created with ID:', { userId: newUser.user_id });
         return newUser;
     } catch (error) {
-        console.error("Lỗi khi thêm người dùng Google:", error);
+        logger.error("Lỗi khi thêm người dùng Google", { error: error.message, stack: error.stack, email });
         throw error;
     }
 };
 
-
-  
 const updateUserAPI = async (username, updateFields) => {
     try {
         const user = await User.findOne({ where: { username } });
@@ -506,7 +483,6 @@ const updateUserAPI = async (username, updateFields) => {
             throw new Error('Không tìm thấy người dùng!');
         }
 
-        // Validate email/phone uniqueness if provided
         if (updateFields.email || updateFields.phone) {
             const existingUser = await User.findOne({
                 where: {
@@ -529,21 +505,17 @@ const updateUserAPI = async (username, updateFields) => {
             }
         }
 
-        // Update only provided fields
         const [affectedRows] = await User.update(updateFields, {
             where: { username },
         });
 
-        // Return updated user even if no changes were made
         return await User.findOne({ where: { username } });
     } catch (error) {
-        console.error('Lỗi khi cập nhật thông tin người dùng:', error);
+        logger.error('Lỗi khi cập nhật thông tin người dùng', { error: error.message, stack: error.stack, username });
         throw error;
     }
 };
 
-
-// Đổi mật khẩu người dùng
 const changePasswordAPI = async (username, oldPassword, newPassword) => {
     try {
         const user = await User.findOne({ where: { username } });
@@ -551,31 +523,26 @@ const changePasswordAPI = async (username, oldPassword, newPassword) => {
             throw new Error('Người dùng không tồn tại!');
         }
 
-        // Kiểm tra nếu người dùng sử dụng Google auth
         if (user.password === 'google-auth') {
-            // Không yêu cầu mật khẩu cũ, chỉ cần mật khẩu mới
             const salt = bcrypt.genSaltSync(10);
             const hashedPassword = await bcrypt.hash(newPassword, salt);
 
             await User.update(
-                { password: hashedPassword, provider: 'mixed' }, // Cập nhật provider thành 'mixed' vì giờ có mật khẩu cục bộ
+                { password: hashedPassword, provider: 'mixed' },
                 { where: { username } }
             );
 
             return { success: true, message: 'Đổi mật khẩu thành công!' };
         }
 
-        // Đối với người dùng cục bộ, kiểm tra mật khẩu cũ
         const isMatch = await bcrypt.compare(oldPassword, user.password);
         if (!isMatch) {
             throw new Error('Mật khẩu cũ không đúng!');
         }
 
-        // Hash mật khẩu mới
         const salt = bcrypt.genSaltSync(10);
         const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-        // Cập nhật mật khẩu
         await User.update(
             { password: hashedPassword },
             { where: { username } }
@@ -583,12 +550,11 @@ const changePasswordAPI = async (username, oldPassword, newPassword) => {
 
         return { success: true, message: 'Đổi mật khẩu thành công!' };
     } catch (error) {
-        console.error('Lỗi khi đổi mật khẩu:', error);
+        logger.error('Lỗi khi đổi mật khẩu', { error: error.message, stack: error.stack, username });
         throw error;
     }
 };
 
-// đổi mật khẩu
 const verifyResetTokenAPI = async (resetToken) => {
     try {
         const user = await User.findOne({
@@ -605,12 +571,11 @@ const verifyResetTokenAPI = async (resetToken) => {
 
         return user;
     } catch (error) {
-        console.error('Lỗi khi xác minh token đặt lại mật khẩu:', error);
+        logger.error('Lỗi khi xác minh token đặt lại mật khẩu', { error: error.message, stack: error.stack });
         throw error;
     }
 };
 
-// Tạo token đặt lại mật khẩu và gửi email
 const requestPasswordResetAPI = async (usernameOrEmail) => {
     try {
         const user = await User.findOne({
@@ -627,27 +592,23 @@ const requestPasswordResetAPI = async (usernameOrEmail) => {
             throw new Error('Tài khoản này sử dụng đăng nhập Google. Vui lòng sử dụng đăng nhập Google!');
         }
 
-        // Tạo token đặt lại mật khẩu
         const resetToken = uuidv4();
-        const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // Hết hạn sau 1 giờ
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
-        // Lưu token vào cơ sở dữ liệu
         await User.update(
             { resetToken, resetTokenExpiresAt: expiresAt },
             { where: { user_id: user.user_id } }
         );
 
-        // Gửi email đặt lại mật khẩu
         await sendPasswordResetEmail(user.email, resetToken);
 
         return { success: true, message: 'Email đặt lại mật khẩu đã được gửi!' };
     } catch (error) {
-        console.error('Lỗi khi yêu cầu đặt lại mật khẩu:', error);
+        logger.error('Lỗi khi yêu cầu đặt lại mật khẩu', { error: error.message, stack: error.stack });
         throw error;
     }
 };
 
-// Xác nhận và đặt lại mật khẩu
 const resetPasswordAPI = async (resetToken, newPassword) => {
     try {
         const user = await User.findOne({
@@ -657,16 +618,14 @@ const resetPasswordAPI = async (resetToken, newPassword) => {
         if (!user) {
             throw new Error('Token đặt lại mật khẩu không hợp lệ!');
         }
-        // Nếu thời gian hiện tại (new Date()) lớn hơn resetTokenExpiresAt, nghĩa là token đã hết hạn (quá 1 giờ kể từ khi được tạo)
+
         if (new Date() > user.resetTokenExpiresAt) {
             throw new Error('Token đặt lại mật khẩu đã hết hạn!');
         }
 
-        // Hash mật khẩu mới
         const salt = bcrypt.genSaltSync(10);
         const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-        // Cập nhật mật khẩu và xóa token
         await User.update(
             {
                 password: hashedPassword,
@@ -679,15 +638,10 @@ const resetPasswordAPI = async (resetToken, newPassword) => {
 
         return { success: true, message: 'Đặt lại mật khẩu thành công!' };
     } catch (error) {
-        console.error('Lỗi khi đặt lại mật khẩu:', error);
+        logger.error('Lỗi khi đặt lại mật khẩu', { error: error.message, stack: error.stack });
         throw error;
     }
 };
-
-
-
-
-
 
 export { User };
 export default {

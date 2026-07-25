@@ -13,6 +13,7 @@ import UserController from '../controller/UserController.js';
 import NewsController from '../controller/NewsController.js';
 import orderController from '../controller/OrderController.js';
 import ReviewController from '../controller/ReviewController.js';
+import LogController from '../controller/LogController.js';
 const router = express.Router()
 const initWebRouter = (app) => {
 
@@ -150,7 +151,10 @@ const initWebRouter = (app) => {
     router.get('/statstopratedproducts', ADMiddleware.adminMiddleware, ReviewController.statsTopRatedProducts);
     router.get('/searchreviewproducts', ADMiddleware.adminMiddleware, ReviewController.searchReviewProducts);
 
-
+    // Xem log hệ thống
+    router.get('/log', ADMiddleware.adminMiddleware, LogController.getLogPage);
+    router.get('/api/v1/logs/files', ADMiddleware.adminMiddleware, LogController.getLogFilesAPI);
+    router.get('/api/v1/logs/:filename', ADMiddleware.adminMiddleware, LogController.getLogContentAPI);
 
     app.use(ADMiddleware.adminSessionMiddleware);
     return app.use('/', router)

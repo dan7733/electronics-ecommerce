@@ -1,6 +1,7 @@
 import express from 'express'
 import { sequelize, DataTypes } from '../configs/connectDatabase.js';
 import { Op } from 'sequelize';
+import logger from '../configs/logger.js'; // Import custom logger
 import { Order } from './orderModel.js'; 
 import { Product } from './productModel.js'; // Import model Product để thiết lập quan hệ
 
@@ -18,7 +19,7 @@ const OrderDetail = sequelize.define('OrderDetail', {
             model: Order,
             key: 'order_id'
         },
-        onDelete: 'CASCADE'  // Khi một order bị xóa, tất cả các order_details liên quan sẽ bị xóa
+        onDelete: 'CASCADE'
     },
     product_id: {
         type: DataTypes.INTEGER,
@@ -27,7 +28,7 @@ const OrderDetail = sequelize.define('OrderDetail', {
             model: Product,
             key: 'product_id'
         },
-        onDelete: 'CASCADE'  // Khi một sản phẩm bị xóa, tất cả các order_details liên quan sẽ bị xóa
+        onDelete: 'CASCADE'
     },
     quantity: {
         type: DataTypes.INTEGER,
@@ -47,12 +48,12 @@ const OrderDetail = sequelize.define('OrderDetail', {
 });
 
 // Thiết lập quan hệ giữa Order và OrderDetail
-Order.hasMany(OrderDetail, { foreignKey: 'order_id' });  // Một Order có nhiều OrderDetail
-OrderDetail.belongsTo(Order, { foreignKey: 'order_id' });  // Một OrderDetail chỉ thuộc về một Order
+Order.hasMany(OrderDetail, { foreignKey: 'order_id' });
+OrderDetail.belongsTo(Order, { foreignKey: 'order_id' });
 
 // Thiết lập quan hệ giữa Product và OrderDetail
-Product.hasMany(OrderDetail, { foreignKey: 'product_id' });  // Một Product có nhiều OrderDetail
-OrderDetail.belongsTo(Product, { foreignKey: 'product_id' });  // Một OrderDetail chỉ thuộc về một Product
+Product.hasMany(OrderDetail, { foreignKey: 'product_id' });
+OrderDetail.belongsTo(Product, { foreignKey: 'product_id' });
 
 
 const getOrderDetailsByOrderId = async (orderId) => {
@@ -78,7 +79,7 @@ const getOrderDetailsByOrderId = async (orderId) => {
 
         return details;
     } catch (error) {
-        console.error('Lỗi khi lấy chi tiết đơn hàng:', error.message);
+        logger.error('Lỗi khi lấy chi tiết đơn hàng', { error: error.message, stack: error.stack, orderId });
         throw error;
     }
 };
@@ -119,7 +120,7 @@ const addOrderDetailAPI = async (orderId, productId, quantity, price, discount_p
 
         return orderDetail;
     } catch (error) {
-        console.error('Lỗi khi thêm hoặc cập nhật chi tiết đơn hàng:', error.message);
+        logger.error('Lỗi khi thêm hoặc cập nhật chi tiết đơn hàng', { error: error.message, stack: error.stack, orderId, productId });
         throw error;
     }
 };
@@ -148,14 +149,10 @@ const getOrderDetailsByOrderIdAPI = async (orderId) => {
 
         return details;
     } catch (error) {
-        console.error('Lỗi khi lấy chi tiết đơn hàng:', error.message);
+        logger.error('Lỗi khi lấy chi tiết đơn hàng', { error: error.message, stack: error.stack, orderId });
         throw error;
     }
 };
-
-
-
-
 
 export { OrderDetail };
 export default {

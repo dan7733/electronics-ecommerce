@@ -10,6 +10,7 @@ import { createClient } from 'redis';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import './configs/cleanup.js';
+import logger from './configs/logger.js'; // Import từ thư mục configs
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -32,11 +33,11 @@ const redisClient = createClient({
 });
 
 redisClient.on('error', (err) => {
-  console.error('❌ Redis Error:', err);
+  logger.error('❌ Redis Error', { error: err.message, stack: err.stack });
 });
 
 await redisClient.connect();
-console.log('Redis connected');
+logger.info('Redis connected');
 
 /* ===================== SESSION ===================== */
 const redisStore = new RedisStore({
@@ -83,5 +84,5 @@ initWebRouter(app);
 
 /* ===================== START ===================== */
 app.listen(port, () => {
-  console.log(`🚀 Example app listening on port ${port}`);
+  logger.info(`🚀 Example app listening on port ${port}`);
 });

@@ -1,5 +1,7 @@
 import { sequelize, DataTypes } from '../configs/connectDatabase.js';
 import { Op } from 'sequelize';
+import logger from '../configs/logger.js'; // Import custom logger
+
 // Định nghĩa mô hình Voucher
 const Voucher = sequelize.define('Voucher', {
     id: {
@@ -34,7 +36,7 @@ const addVoucher = async (voucher, value, end_at) => {
     try {
         return await Voucher.create({ voucher: voucher, value, end_at: end_at });
     } catch (error) {
-        console.error('Lỗi khi thêm voucher:', error);
+        logger.error('Lỗi khi thêm voucher', { error: error.message, stack: error.stack });
         throw error;
     }
 };
@@ -42,31 +44,26 @@ const addVoucher = async (voucher, value, end_at) => {
 // Lấy danh sách vouchers
 const listVoucher = async (offset = null, limit = null, searchKeyword = '', sortOption = 'default') => {
     try {
-        // Tạo một object chứa các tùy chọn truy vấn
         const queryOptions = { where: {} };
 
-        // Nếu có từ khóa tìm kiếm thì thêm vào query
         if (searchKeyword) {
             queryOptions.where.voucher = { [Op.like]: `%${searchKeyword}%` };
         }
 
-        // Nếu có offset và limit thì thêm vào query
         if (offset !== null) queryOptions.offset = offset;
         if (limit !== null) queryOptions.limit = limit;
 
-        // Sắp xếp theo tùy chọn
         if (sortOption === 'value_asc') {
             queryOptions.order = [['value', 'ASC']];
         } else if (sortOption === 'value_desc') {
             queryOptions.order = [['value', 'DESC']];
         } else {
-            queryOptions.order = [['id', 'DESC']]; // Mặc định sắp xếp theo id giảm dần
+            queryOptions.order = [['id', 'DESC']];
         }
 
-        // Truy vấn và trả về kết quả
         return await Voucher.findAll(queryOptions);
     } catch (error) {
-        console.error('Lỗi khi tải danh sách vouchers:', error);
+        logger.error('Lỗi khi tải danh sách vouchers', { error: error.message, stack: error.stack });
         throw error;
     }
 };
@@ -80,20 +77,19 @@ const countVoucher = async (searchKeyword = '') => {
             queryOptions.where.voucher = { [Op.like]: `%${searchKeyword}%` };
         }
 
-        return await Voucher.count(queryOptions); // Đổi từ Category sang Voucher
+        return await Voucher.count(queryOptions);
     } catch (error) {
-        console.error('Lỗi khi đếm vouchers:', error);
+        logger.error('Lỗi khi đếm vouchers', { error: error.message, stack: error.stack });
         throw error;
     }
 };
-
 
 // Xóa voucher theo ID
 const deleteVoucher = async (idVoucher) => {
     try {
         return await Voucher.destroy({ where: { id: idVoucher } });
     } catch (error) {
-        console.error('Lỗi khi xóa voucher:', error);
+        logger.error('Lỗi khi xóa voucher', { error: error.message, stack: error.stack, idVoucher });
         throw error;
     }
 };
@@ -103,7 +99,7 @@ const getVoucherById = async (id) => {
     try {
         return await Voucher.findOne({ where: { id: id } });
     } catch (error) {
-        console.error('Lỗi khi lấy voucher:', error);
+        logger.error('Lỗi khi lấy voucher', { error: error.message, stack: error.stack, id });
         throw error;
     }
 };
@@ -113,7 +109,7 @@ const updateVoucher = async (idVoucher, voucherCode, value, endAt) => {
     try {
         return await Voucher.update({ voucher: voucherCode, value, end_at: endAt }, { where: { id: idVoucher } });
     } catch (error) {
-        console.error('Lỗi khi cập nhật voucher:', error);
+        logger.error('Lỗi khi cập nhật voucher', { error: error.message, stack: error.stack, idVoucher });
         throw error;
     }
 };
@@ -123,7 +119,7 @@ const updateVoucher = async (idVoucher, voucherCode, value, endAt) => {
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////// api//////////////////////////////////////////////////
-// Kiểm tra và trả về giá trị giảm giá của mã voucher
+
 const applyVoucherAPI = async (voucherCode) => {
     try {
         const now = new Date();
@@ -131,22 +127,18 @@ const applyVoucherAPI = async (voucherCode) => {
             where: {
                 voucher: voucherCode,
                 [Op.or]: [
-                    { end_at: { [Op.gte]: now } },  // chưa hết hạn
-                    { end_at: null }                // hoặc không có ngày hết hạn
+                    { end_at: { [Op.gte]: now } },
+                    { end_at: null }
                 ]
             }
         });
 
-        // Không ném lỗi, chỉ return null để controller xử lý
         return voucher || null;
     } catch (error) {
-        console.error('Lỗi khi truy vấn voucher:', error.message);
+        logger.error('Lỗi khi truy vấn voucher', { error: error.message, stack: error.stack, voucherCode });
         throw error;
     }
 };
-
-
-
 
 export default {
     Voucher,

@@ -5,6 +5,7 @@ import { Category } from '../models/categoryModel.js';
 import { Brand } from '../models/brandModel.js';
 import { User } from '../models/userModel.js';
 import { Op } from 'sequelize';
+import logger from '../configs/logger.js'; // Import custom logger
 
 // Hàm tính tích vô hướng (dot product) thủ công
 const dotProduct = (vecA, vecB) => {
@@ -288,6 +289,7 @@ const getCollaborativeRecommendationsController = async (req, res) => {
     if (username) {
       const user = await User.findOne({ where: { username } });
       if (!user) {
+        logger.warn('Collaborative Recommendations: Không tìm thấy User', { username });
         return res.status(404).json({
           errCode: 1,
           message: 'User not found',
@@ -306,7 +308,7 @@ const getCollaborativeRecommendationsController = async (req, res) => {
       product: recommendations,
     });
   } catch (error) {
-    console.error('Error in getCollaborativeRecommendationsController:', error.message);
+    logger.error('Lỗi trong getCollaborativeRecommendationsController', { error: error.message, stack: error.stack, username: req.params.username });
     return res.status(500).json({
       errCode: 1,
       message: error.message || 'Internal server error',
@@ -321,6 +323,7 @@ const getProductBasedRecommendationsController = async (req, res) => {
     const { productId } = req.params;
     const productExists = await Product.findByPk(productId);
     if (!productExists) {
+      logger.warn('Product Based Recommendations: Không tìm thấy Sản phẩm', { productId });
       return res.status(404).json({
         errCode: 1,
         message: 'Product not found',
@@ -335,7 +338,7 @@ const getProductBasedRecommendationsController = async (req, res) => {
       product: recommendations,
     });
   } catch (error) {
-    console.error('Error in getProductBasedRecommendationsController:', error.message);
+    logger.error('Lỗi trong getProductBasedRecommendationsController', { error: error.message, stack: error.stack, productId: req.params.productId });
     return res.status(500).json({
       errCode: 1,
       message: error.message || 'Internal server error',
@@ -359,7 +362,7 @@ const getPopularityBasedRecommendationsController = async (req, res) => {
       product: recommendations,
     });
   } catch (error) {
-    console.error('Error in getPopularityBasedRecommendationsController:', error.message);
+    logger.error('Lỗi trong getPopularityBasedRecommendationsController', { error: error.message, stack: error.stack, query: req.query });
     return res.status(500).json({
       errCode: 1,
       message: error.message || 'Internal server error',

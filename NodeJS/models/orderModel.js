@@ -1,5 +1,6 @@
 import { sequelize, DataTypes } from '../configs/connectDatabase.js';
 import { Op } from 'sequelize';
+import logger from '../configs/logger.js'; // Import custom logger
 import { User } from './userModel.js';
 
 const Order = sequelize.define('Order', {
@@ -26,7 +27,7 @@ const Order = sequelize.define('Order', {
         allowNull: false,
         defaultValue: 'pending',
         validate: {
-            isIn: [['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']] // thêm 'confirmed' vào
+            isIn: [['pending', 'confirmed', 'shipped', 'delivered', 'cancelled']]
         }
     },    
     status_payment: {
@@ -34,7 +35,7 @@ const Order = sequelize.define('Order', {
         allowNull: false,
         defaultValue: 'pending',
         validate: {
-            isIn: [['pending', 'waiting_payment', 'paid', 'failed']] // Trạng thái thanh toán
+            isIn: [['pending', 'waiting_payment', 'paid', 'failed']]
         }
     },
     address: {
@@ -75,7 +76,7 @@ const listOrder = async (offset = null, limit = null, searchKeyword = '', sortOp
     try {
         const queryOptions = {
             where: {},
-            attributes: ['order_id', 'user_id', 'created_at', 'status', 'status_payment'], // Thêm status_payment
+            attributes: ['order_id', 'user_id', 'created_at', 'status', 'status_payment'],
             include: [
                 {
                     model: User,
@@ -103,7 +104,7 @@ const listOrder = async (offset = null, limit = null, searchKeyword = '', sortOp
         const orders = await Order.findAll(queryOptions);
         return orders;
     } catch (error) {
-        console.error('Lỗi khi lấy danh sách đơn hàng:', error);
+        logger.error('Lỗi khi lấy danh sách đơn hàng', { error: error.message, stack: error.stack });
         throw error;
     }
 };
@@ -128,7 +129,7 @@ const countOrder = async (searchKeyword = '') => {
         const total = await Order.count(queryOptions);
         return total;
     } catch (error) {
-        console.error('Lỗi khi đếm đơn hàng:', error);
+        logger.error('Lỗi khi đếm đơn hàng', { error: error.message, stack: error.stack });
         throw error;
     }
 };
@@ -146,7 +147,7 @@ const getOrderById = async (orderId) => {
                 'user_id',
                 'total_price',
                 'status',
-                'status_payment', // Thêm status_payment
+                'status_payment',
                 'address',
                 'phone',
                 'email',
@@ -169,7 +170,7 @@ const getOrderById = async (orderId) => {
 
         return order;
     } catch (error) {
-        console.error('Lỗi khi lấy thông tin đơn hàng:', error.message);
+        logger.error('Lỗi khi lấy thông tin đơn hàng', { error: error.message, stack: error.stack, orderId });
         throw error;
     }
 };
@@ -191,7 +192,7 @@ const updateOrder = async (orderId, updates) => {
   
       return { success: true, message: 'Cập nhật trạng thái đơn hàng thành công.' };
     } catch (error) {
-      console.error('Lỗi khi cập nhật trạng thái đơn hàng:', error.message);
+      logger.error('Lỗi khi cập nhật trạng thái đơn hàng', { error: error.message, stack: error.stack, orderId });
       throw error;
     }
   };
@@ -206,7 +207,7 @@ const addOrderAPI = async (userId, totalPrice, status = 'pending', status_paymen
             user_id: userId,
             total_price: totalPrice,
             status,
-            status_payment, // Thêm status_payment
+            status_payment,
             address,
             phone,
             email,
@@ -217,7 +218,7 @@ const addOrderAPI = async (userId, totalPrice, status = 'pending', status_paymen
 
         return order;
     } catch (error) {
-        console.error('Lỗi khi tạo đơn hàng:', error.message);
+        logger.error('Lỗi khi tạo đơn hàng', { error: error.message, stack: error.stack, userId });
         throw error;
     }
 };
@@ -233,13 +234,13 @@ const listOrderAPI = async (username, status = null, offset = null, limit = null
                     model: User,
                     attributes: ['fullname'],
                     required: true,
-                    where: { username } // Lọc theo username
+                    where: { username }
                 }
             ]
         };
 
         if (status) {
-            queryOptions.where.status = status; // Lọc theo status
+            queryOptions.where.status = status;
         }
 
         if (offset !== null) queryOptions.offset = offset;
@@ -256,7 +257,7 @@ const listOrderAPI = async (username, status = null, offset = null, limit = null
         const orders = await Order.findAll(queryOptions);
         return orders;
     } catch (error) {
-        console.error('Lỗi khi lấy danh sách đơn hàng:', error);
+        logger.error('Lỗi khi lấy danh sách đơn hàng', { error: error.message, stack: error.stack });
         throw error;
     }
 };
@@ -270,19 +271,19 @@ const countOrderAPI = async (username, status = null) => {
                     model: User,
                     attributes: [],
                     required: true,
-                    where: { username } // Lọc theo username
+                    where: { username }
                 }
             ]
         };
 
         if (status) {
-            queryOptions.where.status = status; // Lọc theo status
+            queryOptions.where.status = status;
         }
 
         const total = await Order.count(queryOptions);
         return total;
     } catch (error) {
-        console.error('Lỗi khi đếm đơn hàng:', error);
+        logger.error('Lỗi khi đếm đơn hàng', { error: error.message, stack: error.stack });
         throw error;
     }
 };
@@ -300,7 +301,7 @@ const getOrderByIdAPI = async (orderId) => {
                 'user_id',
                 'total_price',
                 'status',
-                'status_payment', // Thêm status_payment
+                'status_payment',
                 'address',
                 'phone',
                 'email',
@@ -322,13 +323,10 @@ const getOrderByIdAPI = async (orderId) => {
 
         return order;
     } catch (error) {
-        console.error('Lỗi khi lấy thông tin đơn hàng:', error.message);
+        logger.error('Lỗi khi lấy thông tin đơn hàng', { error: error.message, stack: error.stack, orderId });
         throw error;
     }
 };
-
-
-
 
 export { Order };
 export default {
