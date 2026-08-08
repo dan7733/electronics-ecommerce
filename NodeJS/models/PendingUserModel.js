@@ -36,7 +36,7 @@ const PendingUsers = sequelize.define('PendingUsers', {
     },
 }, {
     timestamps: false,
-    tableName: 'PendingUsers',
+    tableName: 'pendingusers',
 });
 
 export { PendingUsers };
