@@ -1,0 +1,65 @@
+<div class="container my-4">
+    <div class="updateproductdetail-inforinput card p-4 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="m-0 text-primary">
+                <i class="fas fa-edit"></i> Cập nhật chi tiết: <%= (data.product) ? data.product.name : '' %>
+            </h4>
+        </div>
+
+        <% if (data && data.message) { %>
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <%= data.message %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <% } %>
+
+        <form action="/updateproductdetail" method="POST">
+            <input type="hidden" name="product_id" value="<%= (data.product && data.product.product_id) ? data.product.product_id : ((data.productdetail && data.productdetail.product_id) ? data.productdetail.product_id : '') %>">
+
+            <h5 class="text-secondary border-bottom pb-2 mb-3">
+                <i class="fas fa-list-alt me-1"></i> Thông số chi tiết sản phẩm
+            </h5>
+
+            <% if (data.attributes && data.attributes.length > 0) { %>
+                <div class="row">
+                    <% data.attributes.forEach(attr => { %>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">
+                                <%= attr.name %>
+                            </label>
+
+                            <!-- Đổi tên field thành attributes[attr_ID] để Express parse thành Object -->
+                            <input type="text" class="form-control" name="attributes[attr_<%= attr.attribute_id %>]"
+                                placeholder="Nhập <%= attr.name %>..." value="<%= attr.value %>">
+                        </div>
+                    <% }); %>
+                </div>
+            <% } else { %>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> Danh mục này chưa có thuộc tính chi tiết nào. Hãy định nghĩa thuộc tính đầu tiên bên dưới!
+                </div>
+            <% } %>
+
+            <div class="card bg-light p-3 mt-3 mb-3 border-dashed">
+                <h6 class="text-dark mb-2">
+                    <i class="fas fa-plus-circle text-success me-1"></i> Thêm thuộc tính mới cho danh mục này
+                </h6>
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-8">
+                        <input type="text" class="form-control" name="new_attribute_name"
+                            placeholder="Ví dụ: Dung tích, Công suất, Size, Chất liệu...">
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted">Nhập tên và lưu form để tự động bổ sung trường mới.</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> Cập nhật chi tiết
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -8,10 +8,10 @@ services:
       - "3307:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: doan4
+      MYSQL_DATABASE: electronics_ecommerce
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./doan4.sql:/docker-entrypoint-initdb.d/doan4.sql
+      - ./electronics_ecommerce.sql:/docker-entrypoint-initdb.d/electronics_ecommerce.sql
     networks:
       - mynetwork
 
@@ -25,16 +25,16 @@ services:
 
   backend:
     build:
-      context: ./NodeJS
+      context: ./backend
       dockerfile: Dockerfile
     container_name: backend
     ports:
       - "3000:3000"
     volumes:
-      - ./NodeJS:/app
+      - ./backend:/app
       - /app/node_modules
     env_file:
-      - ./NodeJS/.env
+      - ./backend/.env
     depends_on:
       - mysql
       - redis
@@ -43,19 +43,19 @@ services:
 
   frontend:
     build:
-      context: ./reactjs
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - "8080:8080"              # Ngoài 8080, Trong 8080
+      - "8080:8080"
     volumes:
-      - ./reactjs:/app           # Quan trọng: Đồng bộ code để Hot Reload
-      - /app/node_modules        # Giữ lại node_modules trong container
+      - ./frontend:/app
+      - /app/node_modules
     environment:
-      - PORT=8080                # Chạy port 8080
-      - CHOKIDAR_USEPOLLING=true  # Ép Docker quét thay đổi file (rất quan trọng trên Windows)
+      - PORT=8080
+      - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
-      - WDS_SOCKET_PORT=8080      # Giúp trình duyệt kết nối lại khi code thay đổi
+      - WDS_SOCKET_PORT=8080
     depends_on:
       - backend
     networks:

@@ -1,0 +1,492 @@
+/* Container chính */
+.container {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  border: 1px solid #edf2f7;
+  margin-top: 16px;
+  margin-bottom: 30px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+}
+
+/* Breadcrumb Navigation */
+.breadcrumbNav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+}
+
+.breadcrumbLink {
+  color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.breadcrumbLink:hover {
+  color: #218282;
+}
+
+.breadcrumbSeparator {
+  color: #cbd5e1;
+}
+
+.breadcrumbActive {
+  color: #218282;
+  font-weight: 600;
+}
+
+/* Header */
+.headerWrapper {
+  margin-bottom: 24px;
+}
+
+.pageTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #218282;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  transition: color 0.3s ease;
+}
+
+/* Hàng sản phẩm so sánh */
+.productGrid {
+  display: grid;
+  grid-template-columns: 280px repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.labelCard {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.labelTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #218282;
+  margin-bottom: 6px;
+  transition: color 0.3s ease;
+}
+
+.labelSub {
+  font-size: 0.88rem;
+  color: #64748b;
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.productCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.productCard:hover {
+  border-color: #218282;
+  box-shadow: 0 4px 12px rgba(33, 130, 130, 0.08);
+}
+
+.imgWrapper {
+  width: 100%;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.productImg {
+  max-height: 130px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.productName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 2.7em;
+  transition: color 0.3s ease;
+}
+
+.priceContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.oldPrice {
+  text-decoration: line-through;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  transition: color 0.3s ease;
+}
+
+.newPrice {
+  color: #218282;
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+}
+
+.removeButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #fef2f2;
+  color: #ef4444;
+  border: 1px solid #fee2e2;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.removeButton:hover {
+  background-color: #ef4444;
+  color: #ffffff;
+  transform: scale(1.08);
+}
+
+.noProductSlot {
+  height: 100%;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.noProductSlot i {
+  font-size: 2rem;
+  color: #cbd5e1;
+  transition: color 0.3s ease;
+}
+
+/* Phần bảng thông số kỹ thuật */
+.specsSection {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.specsHeaderTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #218282;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  transition: color 0.3s ease;
+}
+
+.tableResponsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.specTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.thLabel {
+  width: 280px;
+  background-color: #f8fafc;
+  color: #218282;
+  font-weight: 700;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.thProduct {
+  background-color: #f8fafc;
+  color: #1e293b;
+  font-weight: 700;
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 0.3s ease;
+}
+
+.rowEven {
+  background-color: #ffffff;
+  transition: background-color 0.3s ease;
+}
+
+.rowOdd {
+  background-color: #f8fafc;
+  transition: background-color 0.3s ease;
+}
+
+.specKeyCell {
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #334155;
+  font-size: 0.88rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  transition: all 0.3s ease;
+}
+
+.specValueCell {
+  padding: 12px 16px;
+  color: #1e293b;
+  font-size: 0.88rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  word-break: break-word;
+  transition: all 0.3s ease;
+}
+
+.missingValue {
+  color: #a0aec0;
+  font-style: italic;
+  font-size: 0.85rem;
+  font-weight: 400;
+  transition: color 0.3s ease;
+}
+
+.noSpecsText {
+  text-align: center;
+  padding: 24px;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
+/* Empty State khi không có sản phẩm nào */
+.emptyState {
+  text-align: center;
+  padding: 48px 20px;
+  color: #94a3b8;
+}
+
+.emptyState i {
+  font-size: 3rem;
+  color: #cbd5e1;
+  margin-bottom: 14px;
+  transition: color 0.3s ease;
+}
+
+.emptyState p {
+  font-size: 1rem;
+  margin-bottom: 20px;
+  color: #64748b;
+  transition: color 0.3s ease;
+}
+
+.shopNowBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 24px;
+  background-color: #218282;
+  color: #ffffff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.shopNowBtn:hover {
+  background-color: #1a6565;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(33, 130, 130, 0.25);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .productGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .labelCard {
+    display: none;
+  }
+
+  .specTable {
+    table-layout: auto;
+    min-width: 550px;
+  }
+
+  .thLabel {
+    width: 150px;
+  }
+}
+
+/* ================= DARK MODE STYLES ================= */
+:global(body.dark-mode) .container,
+:global(body.dark-mode) .specsSection {
+  background-color: #1c252a;
+  border-color: #28343b;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+:global(body.dark-mode) .breadcrumbLink {
+  color: #94a3b8;
+}
+
+:global(body.dark-mode) .breadcrumbLink:hover {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .breadcrumbSeparator {
+  color: #475569;
+}
+
+:global(body.dark-mode) .breadcrumbActive,
+:global(body.dark-mode) .pageTitle,
+:global(body.dark-mode) .labelTitle,
+:global(body.dark-mode) .newPrice,
+:global(body.dark-mode) .specsHeaderTitle {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .labelCard {
+  background-color: #243036;
+  border-color: #32434b;
+}
+
+:global(body.dark-mode) .labelSub,
+:global(body.dark-mode) .oldPrice,
+:global(body.dark-mode) .emptyState p,
+:global(body.dark-mode) .noSpecsText {
+  color: #94a3b8;
+}
+
+:global(body.dark-mode) .productCard {
+  background-color: #243036;
+  border-color: #32434b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+:global(body.dark-mode) .productCard:hover {
+  border-color: #36b5b5;
+  box-shadow: 0 4px 14px rgba(54, 181, 181, 0.15);
+}
+
+:global(body.dark-mode) .productName,
+:global(body.dark-mode) .specValueCell {
+  color: #f1f5f9;
+}
+
+:global(body.dark-mode) .removeButton {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+:global(body.dark-mode) .removeButton:hover {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .noProductSlot {
+  color: #64748b;
+}
+
+:global(body.dark-mode) .noProductSlot i,
+:global(body.dark-mode) .emptyState i {
+  color: #32434b;
+}
+
+:global(body.dark-mode) .thLabel {
+  background-color: #243036;
+  color: #36b5b5;
+  border-bottom-color: #32434b;
+}
+
+:global(body.dark-mode) .thProduct {
+  background-color: #243036;
+  color: #f1f5f9;
+  border-bottom-color: #32434b;
+}
+
+:global(body.dark-mode) .rowEven {
+  background-color: #1c252a;
+}
+
+:global(body.dark-mode) .rowOdd {
+  background-color: #243036;
+}
+
+:global(body.dark-mode) .specKeyCell {
+  color: #cbd5e1;
+  border-bottom-color: #28343b;
+}
+
+:global(body.dark-mode) .specValueCell {
+  border-bottom-color: #28343b;
+}
+
+:global(body.dark-mode) .missingValue {
+  color: #64748b;
+}
+
+:global(body.dark-mode) .shopNowBtn {
+  background-color: #218282;
+}
+
+:global(body.dark-mode) .shopNowBtn:hover {
+  background-color: #1a6b6b;
+  box-shadow: 0 4px 14px rgba(33, 130, 130, 0.4);
+}

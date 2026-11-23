@@ -1,0 +1,113 @@
+<div class="container my-4 catattr-container">
+    <div class="catattr-card card p-4 shadow-sm">
+        <h4 class="mb-3 catattr-title">
+            <i class="fas fa-sliders-h"></i> Quản lý thuộc tính theo Danh mục
+        </h4>
+        <p class="text-muted">Định nghĩa các trường thông số kỹ thuật riêng (VD: CPU, GPU cho Điện thoại / Công suất, HP cho Máy lạnh / Size, Chất liệu cho Thời trang).</p>
+
+        <% if (data && data.message) { %>
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <%= data.message %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <% } %>
+
+        <!-- Chọn Danh mục -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label fw-bold catattr-label"><i class="fas fa-list-alt"></i> Chọn danh mục sản phẩm:</label>
+                <select class="form-select form-select-lg catattr-select" id="selectCategory" onchange="onCategoryChange(this.value)">
+                    <% if (data.categories && data.categories.length > 0) { %>
+                        <% data.categories.forEach(cat => { %>
+                            <option value="<%= cat.category_id %>" <%= cat.category_id == data.selectedCategoryId ? 'selected' : '' %>>
+                                <%= cat.name %>
+                            </option>
+                        <% }); %>
+                    <% } else { %>
+                        <option value="">Chưa có danh mục nào</option>
+                    <% } %>
+                </select>
+            </div>
+        </div>
+
+        <% if (data.selectedCategoryId) { %>
+            <div class="row">
+                <!-- FORM THÊM THUỘC TÍNH MỚI -->
+                <div class="col-md-5 mb-4">
+                    <div class="card catattr-box-card">
+                        <div class="card-header catattr-box-header fw-bold">
+                            <i class="fas fa-plus-circle"></i> Thêm thuộc tính mới
+                        </div>
+                        <div class="card-body">
+                            <form action="/add-category-attribute" method="POST">
+                                <input type="hidden" name="category_id" value="<%= data.selectedCategoryId %>">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold catattr-label">Tên thuộc tính / Trường thông số:</label>
+                                    <input type="text" class="form-control catattr-input" name="name" placeholder="VD: CPU, GPU, Công suất, HP, Size..." required>
+                                </div>
+                                <button type="submit" class="btn catattr-btn-submit w-100">
+                                    <i class="fas fa-save"></i> Lưu thuộc tính
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DANH SÁCH THUỘC TÍNH ĐÃ TẠO -->
+                <div class="col-md-7">
+                    <div class="card catattr-box-card">
+                        <div class="card-header catattr-box-header fw-bold">
+                            <i class="fas fa-list"></i> Các thuộc tính hiện có của danh mục
+                        </div>
+                        <div class="card-body p-0">
+                            <% if (data.attributes && data.attributes.length > 0) { %>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered catattr-table m-0 align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 10%;">STT</th>
+                                                <th style="width: 70%;">Tên thuộc tính</th>
+                                                <th style="width: 20%;" class="text-center">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% data.attributes.forEach((attr, index) => { %>
+                                                <tr>
+                                                    <td><%= index + 1 %></td>
+                                                    <td class="fw-bold"><%= attr.name %></td>
+                                                    <td class="text-center">
+                                                        <form action="/delete-category-attribute" method="POST" class="d-inline" onsubmit="return confirm('Bạn có chắc muốn xóa thuộc tính này? Giá trị thuộc tính này của các sản phẩm thuộc danh mục sẽ bị mất!');">
+                                                            <input type="hidden" name="attribute_id" value="<%= attr.attribute_id %>">
+                                                            <input type="hidden" name="category_id" value="<%= data.selectedCategoryId %>">
+                                                            <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                                                                <i class="fas fa-trash-alt"></i> Xóa
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <% } else { %>
+                                <div class="p-4 text-center text-muted">
+                                    <i class="fas fa-info-circle fa-2x mb-2 d-block text-warning"></i>
+                                    Danh mục này chưa được khai báo thuộc tính nào.
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<script>
+    function onCategoryChange(categoryId) {
+        if (categoryId) {
+            window.location.href = `/category-attributes?category_id=${categoryId}`;
+        }
+    }
+</script>

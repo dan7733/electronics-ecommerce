@@ -1,0 +1,310 @@
+.product-card {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  text-align: center;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  height: 100%; 
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.product-card img {
+  width: 100%;
+  height: 160px;
+  object-fit: contain;
+  border-radius: 5px;
+  margin-bottom: 15px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease, filter 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
+}
+
+/* ================== KHỐI THÔNG TIN ================== */
+.product-info {
+  flex: 1 1 auto; 
+  display: flex;
+  flex-direction: column;
+}
+
+.product-title {
+  font-weight: bold;
+  margin: 0 0 10px 0;
+  font-size: 1.05rem;
+  line-height: 1.4;
+  color: #1e293b;
+  transition: color 0.3s ease;
+}
+
+.product-promo {
+  color: #dc3545;
+  font-size: 0.95rem;
+  margin-bottom: 15px;
+  margin-top: auto; 
+  transition: color 0.3s ease;
+}
+
+/* ================== KHỐI GIÁ TIỀN ================== */
+.product-pricing {
+  width: 100%;
+}
+
+.product-old-price {
+  text-decoration: line-through;
+  color: gray;
+  font-size: 0.95rem;
+  margin-bottom: 5px;
+  min-height: 22px; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+}
+
+.product-new-price {
+  background-color: red;
+  color: white;
+  padding: 8px 10px;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 0;
+  width: 100%;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ================== THANH TIÊU ĐỀ ================== */
+.product-category-bar {
+  background-color: #218282;
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 5px 5px 0 0;
+  transition: background-color 0.3s ease;
+}
+
+.newsproduct-category-bar {
+  background-color: red !important; 
+}
+
+.product-category-bar a {
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  margin-left: 20px;
+  font-size: 0.9rem;
+  transition: color 0.2s ease;
+}
+
+.product-category-links {
+  display: flex;
+  align-items: center;
+}
+
+.product-more i {
+  margin-left: 5px;
+}
+
+/* ================== GRID / FLEX LAYOUT ================== */
+.product-wrapper {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  align-items: stretch; 
+}
+
+.no-product {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #666;
+  padding: 20px 0;
+  transition: color 0.3s ease;
+}
+
+/* === LOADING SPINNER === */
+.loading-container {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+  color: #218282;
+  font-weight: 600;
+  font-size: 1.1rem;
+  width: 100%;
+  transition: color 0.3s ease;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e0e0e0;
+  border-top-color: #218282;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+  transition: border-color 0.3s ease;
+}
+
+.spinner-red {
+  border-top-color: red !important;
+}
+
+.text-red {
+  color: red !important;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ================== RESPONSIVE ================== */
+@media (max-width: 992px) and (min-width: 768px) {
+  .product-wrapper {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .product-card {
+    padding: 12px;
+  }
+
+  .product-title {
+    font-size: 1rem;
+  }
+
+  .product-category-links a {
+    display: none !important;
+  }
+
+  .product-category-links a:nth-child(1),
+  .product-category-links a:nth-child(2),
+  .product-category-links a:nth-child(4) {
+    display: inline-block !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-wrapper {
+    display: flex;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    gap: 10px;
+    padding-bottom: 10px;
+    align-items: stretch;
+  }
+
+  .loading-container {
+    width: 100vw;
+  }
+
+  .product-card {
+    flex: 0 0 calc(60% - 10px);
+    min-width: 180px;
+    max-width: 220px;
+    height: auto; 
+  }
+
+  .product-wrapper::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .product-wrapper::-webkit-scrollbar-thumb {
+    background-color: #218282;
+    border-radius: 10px;
+  }
+
+  .newsproduct-wrapper::-webkit-scrollbar-thumb {
+    background-color: red !important;
+  }
+
+  .product-wrapper::-webkit-scrollbar-track {
+    background-color: #fce4ec;
+    border-radius: 10px;
+  }
+
+  .product-category-links a {
+    display: none !important;
+  }
+
+  .product-category-links a:last-child {
+    display: inline-block !important;
+  }
+}
+
+/* ================= DARK MODE STYLES ================= */
+:global(body.dark-mode) .product-card {
+  background-color: #1c252a;
+  border: 1px solid #28343b;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  color: #f1f5f9;
+}
+
+:global(body.dark-mode) .product-card:hover {
+  background-color: #243036;
+  border-color: #36b5b5;
+  box-shadow: 0 4px 14px rgba(54, 181, 181, 0.15);
+}
+
+/* Lớp phủ hạ độ sáng cho ảnh nền trắng */
+:global(body.dark-mode) .product-card img {
+  background-color: #dbe2ea;
+  opacity: 0.88;
+  filter: brightness(0.88);
+  padding: 4px;
+}
+
+:global(body.dark-mode) .product-title {
+  color: #f1f5f9;
+}
+
+:global(body.dark-mode) .product-promo {
+  color: #f87171;
+}
+
+:global(body.dark-mode) .product-old-price {
+  color: #64748b;
+}
+
+:global(body.dark-mode) .product-new-price {
+  background-color: #cc0000;
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .product-category-bar {
+  background-color: #186262;
+}
+
+:global(body.dark-mode) .newsproduct-category-bar {
+  background-color: #990000 !important;
+}
+
+:global(body.dark-mode) .no-product {
+  color: #94a3b8;
+}
+
+:global(body.dark-mode) .loading-container {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .spinner {
+  border-color: #28343b;
+  border-top-color: #36b5b5;
+}
+
+:global(body.dark-mode) .spinner-red {
+  border-top-color: #ff4d4d !important;
+}
+
+:global(body.dark-mode) .text-red {
+  color: #ff4d4d !important;
+}

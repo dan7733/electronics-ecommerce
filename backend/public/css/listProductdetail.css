@@ -1,0 +1,104 @@
+.listdetails-container {
+    padding: none;
+}
+
+.listdetails-table th,
+.listdetails-table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.listdetails-table thead tr th {
+    background-color: #218282;
+    color: white;
+}
+
+.listdetails-table tbody tr td {
+    color: #218282;
+}
+
+.action-btns .btn {
+    margin: 2px;
+}
+
+.listdetails-title {
+    color: #218282;
+}
+
+.listdetails-filter {
+    background-color: #218282;
+    color: white;
+}
+
+.listdetails-option {
+    background-color: #218282;
+    color: white !important;
+}
+
+.listdetails-option a {
+    color: white !important;
+}
+.listdetails-option a:hover { 
+    opacity: 0.1;
+    background: none;
+}
+.listdetails-searchinput {
+    color: #218282;
+}
+
+.listdetails-searchinput::placeholder {
+    color: #218282;
+}
+
+/* Đồng bộ Pagination giống hệt listproduct */
+.listdetails-pagination .page-link {
+    background-color: #218282;
+    color: white;
+    border: none;
+}
+
+.listdetails-pagination .page-link:hover {
+    background-color: white;
+    color: #218282;
+    border: 1px solid #218282;
+}
+
+.listdetails-pagination .active .page-link {
+    background-color: #125e5e;
+    color: white;
+    font-weight: bold;
+    border: none;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive cho màn hình nhỏ */
+@media (max-width: 600px) {
+    .listdetails-filter-search-container {
+        flex-direction: column;
+    }
+
+    .listdetails-searchinput {
+        width: 100% !important;
+        margin-top: 5px;
+    }
+
+    .listdetails-action-btns {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .listdetails-action-btns .btn {
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .listdetails-container {
+        flex-direction: column !important;
+        gap: 10px;
+    }
+
+    .listdetails-filter-container {
+        display: flex;
+        justify-content: flex-end;
+    }
+}

@@ -1,0 +1,92 @@
+.successSection {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: background-color 0.3s ease;
+}
+
+.successIcon {
+    font-size: 100px;
+    color: #218282;
+    margin-bottom: 20px;
+    animation: bounce 1s infinite;
+    transition: color 0.3s ease;
+}
+
+.successTitle {
+    font-size: 40px;
+    font-weight: bold;
+    color: #218282;
+    transition: color 0.3s ease;
+}
+
+.successMessage {
+    font-size: 20px;
+    margin-top: 10px;
+    max-width: 600px;
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.btnCustom {
+    background-color: #218282;
+    color: white;
+    border-radius: 50px;
+    padding: 12px 30px;
+    margin-top: 30px;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btnCustom:hover {
+    background-color: #1a6c6c;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(33, 130, 130, 0.3);
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* ================= DARK MODE STYLES ================= */
+:global(body.dark-mode) .successSection {
+    background-color: transparent;
+}
+
+:global(body.dark-mode) .successIcon,
+:global(body.dark-mode) .successTitle {
+    color: #36b5b5;
+}
+
+:global(body.dark-mode) .successMessage {
+    color: #cbd5e1;
+}
+
+:global(body.dark-mode) .btnCustom {
+    background-color: #218282;
+    color: #ffffff;
+}
+
+:global(body.dark-mode) .btnCustom:hover {
+    background-color: #1a6b6b;
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(54, 181, 181, 0.4);
+}

@@ -1,0 +1,88 @@
+/* Card tổng & Tiêu đề đồng bộ addbrand */
+.catattr-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    border: none;
+}
+
+.catattr-title {
+    color: #218282;
+}
+
+.catattr-title i {
+    color: #218282 !important;
+}
+
+.catattr-label {
+    color: #218282;
+}
+
+.catattr-label i {
+    color: #218282 !important;
+}
+
+/* Select & Input field */
+.catattr-select,
+.catattr-input {
+    color: #218282;
+    border-color: #218282;
+}
+
+.catattr-select:focus,
+.catattr-input:focus {
+    border-color: #176d6d;
+    box-shadow: 0 0 0 0.25rem rgba(33, 130, 130, 0.25);
+    color: #218282;
+}
+
+/* Khối Card phụ bên trong */
+.catattr-box-card {
+    border: 1px solid #218282;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.catattr-box-header {
+    background-color: #218282 !important;
+    color: white !important;
+    border-bottom: 1px solid #218282;
+}
+
+.catattr-box-header i {
+    color: white !important;
+}
+
+/* Nút Submit chính */
+.catattr-btn-submit {
+    background-color: #218282 !important;
+    color: white !important;
+    border: none;
+    font-weight: 500;
+}
+
+.catattr-btn-submit i {
+    color: white !important;
+}
+
+.catattr-btn-submit:hover {
+    background-color: #176d6d !important;
+    color: white !important;
+}
+
+/* Đồng bộ Bảng thuộc tính */
+.catattr-table th,
+.catattr-table td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+.catattr-table thead tr th {
+    background-color: #218282;
+    color: white;
+    border-bottom: none;
+}
+
+.catattr-table tbody tr td {
+    color: #218282;
+}

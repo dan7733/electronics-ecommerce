@@ -1,0 +1,97 @@
+/* Hero Section */
+.about-hero {
+  margin-top: 30px;
+  background-color: #218282;
+  color: white;
+  padding: 50px 20px;
+  text-align: center;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(33, 130, 130, 0.15);
+  transition: all 0.3s ease;
+}
+
+.about-hero h1 {
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.about-hero p {
+  font-size: 1.1rem;
+  opacity: 0.95;
+}
+
+/* Section chung */
+.about-section {
+  padding: 45px 0;
+}
+
+.about-section p {
+  line-height: 1.7;
+  color: #4a5568;
+  font-size: 1.05rem;
+  transition: color 0.3s ease;
+}
+
+.about-section img {
+  max-width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.about-section img:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Về chúng tôi */
+.about-icon-title {
+  color: #218282;
+  font-weight: 700;
+  margin-bottom: 18px;
+  transition: color 0.3s ease;
+}
+
+.about-icon-title i {
+  color: #218282;
+  margin-right: 10px;
+  transition: color 0.3s ease;
+}
+
+/* Sứ mệnh */
+.about-mission-title {
+  color: #218282;
+  font-weight: 700;
+  margin-bottom: 18px;
+  transition: color 0.3s ease;
+}
+
+.about-mission-title i {
+  color: #218282;
+  margin-right: 10px;
+  transition: color 0.3s ease;
+}
+
+/* ================= DARK MODE STYLES ================= */
+:global(body.dark-mode) {
+  background-color: #12181b;
+  color: #e2e8f0;
+}
+
+:global(body.dark-mode) .about-hero {
+  background-color: #1c262b;
+  color: #ffffff;
+  border: 1px solid #28343b;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+:global(body.dark-mode) .about-section p {
+  color: #94a3b8;
+}
+
+:global(body.dark-mode) .about-icon-title,
+:global(body.dark-mode) .about-mission-title,
+:global(body.dark-mode) .about-icon-title i,
+:global(body.dark-mode) .about-mission-title i {
+  color: #36b5b5;
+}

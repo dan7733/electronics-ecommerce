@@ -1,0 +1,152 @@
+/* ================= TOP BAR ================= */
+.topbar {
+  background: #f8f9fa;
+  padding: 8px 20px;
+  font-size: 13px;
+  border-bottom: 1px solid #eaeaea;
+  transition: all 0.3s ease;
+}
+
+.topbar-address {
+  font-weight: 500;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.topbar-action-item {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  color: #333;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.topbar-action-item:hover {
+  color: #218282;
+  cursor: pointer;
+}
+
+.topbar-phone {
+  color: #333;
+  font-weight: bold;
+  text-decoration: none;
+  margin-left: 4px;
+  transition: color 0.2s ease;
+}
+
+.topbar-phone:hover {
+  color: #218282;
+}
+
+.topbar-icon-content {
+  margin-right: 6px;
+  color: #218282;
+  transition: color 0.3s ease;
+}
+
+/* ================= DARK/LIGHT MODE SWITCH ================= */
+.topbar-theme-switch {
+  position: relative;
+  background-color: #dfdfdf;
+  width: 50px;
+  height: 26px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.topbar-sun,
+.topbar-moon {
+  font-size: 14px;
+  z-index: 2;
+}
+
+.topbar-sun { color: #f39c12; }
+.topbar-moon { color: #555; }
+
+.topbar-switch-slider {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.topbar-theme-switch.dark-mode { 
+  background-color: #32434b; 
+}
+
+.topbar-theme-switch.dark-mode .topbar-switch-slider { 
+  left: calc(100% - 23px); 
+  background-color: #141b1f;
+}
+
+.topbar-theme-switch.dark-mode .topbar-sun { color: #64748b; }
+.topbar-theme-switch.dark-mode .topbar-moon { color: #f1f5f9; }
+
+/* ================= DARK MODE OVERRIDES FOR TOPBAR ================= */
+:global(body.dark-mode) .topbar { 
+  background-color: #0f1417 !important; 
+  border-bottom: 1px solid #1c252a; 
+}
+
+:global(body.dark-mode) .topbar-address,
+:global(body.dark-mode) .topbar-action-item,
+:global(body.dark-mode) .topbar-phone { 
+  color: #cbd5e1; 
+}
+
+:global(body.dark-mode) .topbar-action-item:hover,
+:global(body.dark-mode) .topbar-phone:hover {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .topbar-icon-content {
+  color: #36b5b5;
+}
+
+/* ================= RESPONSIVE OPTIMIZATION ================= */
+@media (max-width: 992px) {
+  .topbar-address { display: none; }
+  .topbar { justify-content: center !important; }
+}
+
+@media (max-width: 576px) {
+  .topbar {
+    padding: 8px 10px;
+    display: flex !important; 
+  }
+  .topbar-actions {
+    width: 100%;
+    justify-content: space-between;
+    gap: 5px;
+  }
+  
+  .topbar-action-item, .topbar-phone {
+    font-size: 12px; 
+  }
+  
+  .topbar-text-consult { 
+    display: none; 
+  }
+  
+  .topbar-icon-content { 
+    margin-right: 4px; 
+    font-size: 14px;
+  }
+}

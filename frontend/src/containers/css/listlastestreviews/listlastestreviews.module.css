@@ -1,0 +1,260 @@
+.reviews-section {
+  padding: 3rem 0;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #ffffff;
+  transition: background-color 0.3s ease;
+}
+
+.section-header {
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #218282;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+  display: inline-block;
+  transition: color 0.3s ease;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #218282, transparent);
+  border-radius: 2px;
+}
+
+/* Review Card */
+.review-card {
+  background: #ffffff;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #333333;
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #e0e0e0;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.review-card:hover {
+  border-color: #218282;
+}
+
+.review-card::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120%;
+  height: 120%;
+  border: 2px solid #218282;
+  border-radius: 12px;
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  z-index: -1;
+}
+
+.review-card:hover::before {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 0.4;
+}
+
+.review-content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  position: relative;
+  z-index: 1;
+}
+
+.review-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #218282;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.review-card:hover .avatar {
+  transform: rotate(360deg);
+}
+
+.user-info {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+}
+
+.username {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  transition: color 0.3s ease;
+}
+
+.rating {
+  display: flex;
+  gap: 0.2rem;
+}
+
+.star {
+  font-size: 1.5rem;
+  color: #e0e0e0;
+  transition: color 0.3s ease;
+}
+
+.star.filled {
+  color: #218282;
+}
+
+.comment {
+  font-size: 0.95rem;
+  color: #555555;
+  line-height: 1.6;
+  flex-grow: 1;
+  margin-bottom: 1.5rem;
+  transition: color 0.3s ease;
+}
+
+.product-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #218282;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px dashed #eeeeee;
+  transition: all 0.3s ease;
+}
+
+.error {
+  font-size: 1rem;
+  margin: 2rem 0;
+}
+
+.no-reviews {
+  font-size: 1rem;
+  color: #555555;
+  transition: color 0.3s ease;
+}
+
+@keyframes pulseStar {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* === LOADING SPINNER === */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 0;
+  color: #218282;
+  font-weight: 600;
+  font-size: 1.1rem;
+  transition: color 0.3s ease;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e0e0e0;
+  border-top-color: #218282;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 10px;
+  transition: border-color 0.3s ease;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ================= DARK MODE STYLES ================= */
+:global(body.dark-mode) .reviews-section {
+  background: transparent;
+}
+
+:global(body.dark-mode) .section-title {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .section-title::after {
+  background: linear-gradient(90deg, transparent, #36b5b5, transparent);
+}
+
+:global(body.dark-mode) .review-card {
+  background: #1c252a;
+  border-color: #28343b;
+  color: #f1f5f9;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+:global(body.dark-mode) .review-card:hover {
+  border-color: #36b5b5;
+  background: #243036;
+}
+
+:global(body.dark-mode) .avatar {
+  border-color: #36b5b5;
+}
+
+:global(body.dark-mode) .username {
+  color: #f1f5f9;
+}
+
+:global(body.dark-mode) .star {
+  color: #32434b;
+}
+
+:global(body.dark-mode) .star.filled {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .comment {
+  color: #cbd5e1;
+}
+
+:global(body.dark-mode) .product-name {
+  color: #36b5b5;
+  border-top-color: #28343b;
+}
+
+:global(body.dark-mode) .no-reviews {
+  color: #94a3b8;
+}
+
+:global(body.dark-mode) .loading-container {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .spinner {
+  border-color: #28343b;
+  border-top-color: #36b5b5;
+}

@@ -1,0 +1,375 @@
+/* Main header container */
+.headerContainer {
+  background-color: #218282 !important;
+  color: white;
+  padding: 12px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Search container */
+.searchContainer {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 3px 12px;
+  flex-grow: 1;
+  max-width: 500px;
+  margin: 0 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  border: 1.5px solid transparent;
+  transition: all 0.3s ease;
+}
+
+/* Hiệu ứng focus chuyên nghiệp (Light Mode) */
+.searchContainer:focus-within {
+  border-color: #218282;
+  box-shadow: 0 0 0 3px rgba(33, 130, 130, 0.25);
+}
+
+/* Icon kính lúp */
+.searchIcon {
+  color: #888888;
+  transition: color 0.3s ease;
+}
+
+/* Search box - Khử viền trắng mặc định khi focus */
+.searchBox {
+  background: transparent !important;
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  width: 100%;
+  font-size: 14px;
+  color: #333333;
+}
+
+.searchBox:focus {
+  background: transparent !important;
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Mobile header */
+.mobileHeader {
+  background-color: #1a6b6b;
+  padding: 10px;
+  transition: background-color 0.3s ease;
+}
+
+/* Mobile search */
+.mobileSearch {
+  background: white;
+  border-radius: 20px;
+  padding: 2px 10px;
+  flex-grow: 1;
+  border: 1.5px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.mobileSearch:focus-within {
+  border-color: #218282;
+  box-shadow: 0 0 0 3px rgba(33, 130, 130, 0.25);
+}
+
+/* Action buttons */
+.actionButtons {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.actionButtons .btn {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.actionButtons .btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  opacity: 1;
+}
+
+/* User dropdown */
+.userDropdown {
+  position: relative;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+}
+
+.userInfo:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #ffffff;
+}
+
+.fullname {
+  font-weight: 500;
+  color: white;
+  white-space: nowrap;
+}
+
+.dropdownMenu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  min-width: 220px;
+  padding: 8px 0;
+  z-index: 1050;
+  margin-top: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  color: #333333;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-size: 15px;
+}
+
+.dropdownItem i {
+  width: 20px;
+  text-align: center;
+  color: #218282;
+  transition: color 0.3s ease;
+}
+
+.dropdownItem:hover {
+  background-color: #f0f7f7;
+  color: #1a6b6b;
+  cursor: pointer;
+}
+
+/* ================= NAV MENU ================= */
+.navMenu {
+  background-color: #1a6b6b !important;
+  padding: 0; 
+  transition: background-color 0.3s ease;
+}
+
+.navMenu :global(.navbar-nav) {
+  width: 100%;
+}
+
+.navMenu :global(.nav-item) {
+  padding: 0 10px;
+}
+
+.navMenu :global(.nav-link) {
+  font-weight: 500;
+  color: white;
+  padding: 12px 15px;
+  transition: color 0.2s ease;
+}
+
+.navMenu :global(.nav-link:hover) {
+  color: #e0f2f1 !important;
+}
+
+/* ===== FIX DROPDOWN SUB-MENU ===== */
+.navMenu :global(.dropdown-menu) {
+  background-color: #1a6b6b !important;
+  border: none;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  padding: 5px 0;
+  margin-top: 0 !important;
+}
+
+.navMenu :global(.dropdown-item) {
+  color: white !important;
+  padding: 10px 20px;
+  font-size: 15px;
+  transition: all 0.2s ease;
+}
+
+.navMenu :global(.dropdown-item:hover) {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white !important;
+  padding-left: 23px;
+}
+
+/* ================= RESPONSIVE STYLES ================= */
+@media (max-width: 992px) {
+  .searchContainer { display: none !important; }
+  
+  .navMenu :global(.navbar-nav) {
+    padding: 10px 15px;
+  }
+
+  .navMenu :global(.nav-item) {
+    padding: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .navMenu :global(.nav-item:last-child) {
+    border-bottom: none;
+  }
+
+  .navMenu :global(.nav-link) {
+    padding: 15px 5px !important; 
+    font-size: 16px;
+  }
+
+  .navMenu :global(.dropdown-menu) {
+    background-color: rgba(0, 0, 0, 0.15) !important;
+    margin: 5px 10px 15px 10px !important;
+    border-radius: 8px !important;
+    padding: 10px 15px;
+  }
+  
+  .navMenu :global(.dropdown-item) { 
+    color: white !important; 
+    padding: 12px 5px;
+    font-size: 15px;
+  }
+  
+  .navMenu :global(.dropdown-item:hover) { 
+    background-color: transparent; 
+    color: #e0f2f1 !important;
+    padding-left: 5px;
+  }
+}
+
+@media (max-width: 576px) {
+  .headerContainer {
+    padding: 8px 0; 
+  }
+  
+  .actionButtons {
+    gap: 5px;
+  }
+
+  .actionButtons .btn {
+    padding: 5px 8px;
+  }
+  
+  .avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .userInfo {
+    padding: 5px;
+  }
+
+  .actionButtons .btn span,
+  .userInfo .fullname,
+  .userInfo .fa-chevron-down,
+  .userInfo .fa-chevron-up {
+    display: none !important;
+  }
+
+  .actionButtons .btn i,
+  .userInfo i {
+    margin: 0 !important;
+    font-size: 18px; 
+  }
+
+  .dropdownMenu {
+    right: -10px; 
+  }
+}
+
+/* ================= DARK MODE STYLES ================= */
+:global(body.dark-mode) .headerContainer {
+  background-color: #141b1f !important;
+  border-bottom: 1px solid #232e34;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* XỬ LÝ LÀM NỔI BẬT LOGO TRONG DARK MODE */
+:global(body.dark-mode) :global(.navbar-brand) img {
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.85)) drop-shadow(0 0 12px rgba(54, 181, 181, 0.5));
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+:global(body.dark-mode) :global(.navbar-brand):hover img {
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 16px rgba(54, 181, 181, 0.8));
+  transform: scale(1.05);
+}
+
+:global(body.dark-mode) .mobileHeader,
+:global(body.dark-mode) .navMenu {
+  background-color: #1c252a !important;
+  border-bottom: 1px solid #28343b;
+}
+
+:global(body.dark-mode) .searchContainer,
+:global(body.dark-mode) .mobileSearch {
+  background: #243036;
+  border: 1.5px solid #32434b;
+}
+
+:global(body.dark-mode) .searchContainer:focus-within,
+:global(body.dark-mode) .mobileSearch:focus-within {
+  border-color: #36b5b5;
+  box-shadow: 0 0 0 3px rgba(54, 181, 181, 0.25);
+}
+
+:global(body.dark-mode) .searchIcon {
+  color: #94a3b8;
+}
+
+:global(body.dark-mode) .searchBox {
+  color: #f1f5f9 !important;
+}
+
+:global(body.dark-mode) .searchBox::placeholder {
+  color: #94a3b8;
+}
+
+:global(body.dark-mode) .navMenu :global(.dropdown-menu) {
+  background-color: #243036 !important;
+  border: 1px solid #32434b;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+:global(body.dark-mode) .dropdownMenu {
+  background-color: #243036;
+  border: 1px solid #32434b;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  color: #f1f5f9;
+}
+
+:global(body.dark-mode) .dropdownItem {
+  color: #cbd5e1;
+}
+
+:global(body.dark-mode) .dropdownItem i {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .dropdownItem:hover {
+  background-color: #2c3b42;
+  color: #36b5b5;
+}

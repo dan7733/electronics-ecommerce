@@ -1,0 +1,487 @@
+.reviews-container {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 24px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+  margin-bottom: 24px;
+  transition: all 0.3s ease;
+}
+
+.reviews-title {
+  font-weight: 600;
+  font-size: 26px;
+  color: #218282;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  letter-spacing: 0.5px;
+  transition: color 0.3s ease;
+}
+
+.no-reviews {
+  font-size: 16px;
+  color: #6b7280;
+  text-align: center;
+  padding: 24px;
+  font-style: italic;
+  transition: color 0.3s ease;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #218282 #f5f5f5;
+}
+
+.reviews-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.reviews-list::-webkit-scrollbar-thumb {
+  background-color: #218282;
+  border-radius: 8px;
+}
+
+.reviews-list::-webkit-scrollbar-track {
+  background: #f5f5f5;
+}
+
+.review-item {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e5e7eb;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.review-item:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 16px;
+  right: 16px;
+  height: 1px;
+  background: #e5e7eb;
+  transition: background 0.3s ease;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.review-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.review-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.review-avatar-placeholder {
+  font-size: 22px;
+  color: #6b7280;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.review-username {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1f2937;
+  letter-spacing: 0.2px;
+  transition: color 0.3s ease;
+}
+
+.review-rating {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.star-filled {
+  color: #f59e0b;
+  font-size: 16px;
+}
+
+.star-empty {
+  color: #d1d5db;
+  font-size: 16px;
+  transition: color 0.3s ease;
+}
+
+.review-comment {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+  margin-bottom: 12px;
+  transition: color 0.3s ease;
+}
+
+.review-date {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: right;
+  font-style: italic;
+  transition: color 0.3s ease;
+}
+
+/* Fade-in animation */
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 0.6s ease forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Rating statistics and star filter */
+.rating-stats {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.stats-title {
+  font-size: 18px;
+  font-weight: 500;
+  color: #218282;
+  margin-bottom: 16px;
+  transition: color 0.3s ease;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  width: 60px;
+  font-size: 14px;
+  color: #1f2937;
+  transition: color 0.3s ease;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: background 0.3s ease;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #f59e0b;
+  transition: width 0.3s ease;
+}
+
+.stat-count {
+  font-size: 14px;
+  color: #6b7280;
+  transition: color 0.3s ease;
+}
+
+.star-filter {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.filter-button {
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #1f2937;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-button:hover {
+  background: #e5e7eb;
+}
+
+.filter-button.active {
+  background: #218282;
+  color: #ffffff;
+  border-color: #218282;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .reviews-container {
+    padding: 20px;
+  }
+
+  .reviews-title {
+    font-size: 22px;
+    gap: 10px;
+  }
+
+  .no-reviews {
+    font-size: 15px;
+    padding: 20px;
+  }
+
+  .reviews-list {
+    gap: 14px;
+    max-height: 360px;
+  }
+
+  .review-item {
+    padding: 14px;
+  }
+
+  .review-avatar,
+  .review-avatar-placeholder {
+    width: 36px;
+    height: 36px;
+  }
+
+  .review-username {
+    font-size: 15px;
+  }
+
+  .review-comment {
+    font-size: 13px;
+  }
+
+  .review-date {
+    font-size: 11px;
+  }
+
+  .star-filled,
+  .star-empty {
+    font-size: 14px;
+  }
+
+  .rating-stats {
+    padding: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stats-title {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .stat-row {
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .stat-label,
+  .stat-count {
+    font-size: 13px;
+  }
+
+  .star-filter {
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .filter-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 576px) {
+  .reviews-container {
+    padding: 16px;
+  }
+
+  .reviews-title {
+    font-size: 20px;
+    gap: 8px;
+  }
+
+  .no-reviews {
+    font-size: 14px;
+    padding: 16px;
+  }
+
+  .reviews-list {
+    gap: 12px;
+    max-height: 320px;
+  }
+
+  .review-item {
+    padding: 12px;
+  }
+
+  .review-avatar,
+  .review-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+  }
+
+  .review-username {
+    font-size: 14px;
+  }
+
+  .review-comment {
+    font-size: 12px;
+  }
+
+  .review-date {
+    font-size: 10px;
+  }
+
+  .star-filled,
+  .star-empty {
+    font-size: 13px;
+  }
+
+  .rating-stats {
+    padding: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stats-title {
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
+
+  .stat-row {
+    gap: 6px;
+    margin-bottom: 5px;
+  }
+
+  .stat-label,
+  .stat-count {
+    font-size: 12px;
+  }
+
+  .star-filter {
+    gap: 5px;
+    margin-bottom: 16px;
+  }
+
+  .filter-button {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+}
+
+/* ================= DARK MODE STYLES ================= */
+:global(body.dark-mode) .reviews-container {
+  background: #1c252a;
+  border: 1px solid #28343b;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+:global(body.dark-mode) .reviews-title,
+:global(body.dark-mode) .stats-title {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .rating-stats,
+:global(body.dark-mode) .review-item {
+  background: #243036;
+  border: 1px solid #32434b;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+:global(body.dark-mode) .review-item:not(:last-child)::after {
+  background: #32434b;
+}
+
+:global(body.dark-mode) .review-avatar {
+  border-color: #32434b;
+  filter: brightness(0.88);
+}
+
+:global(body.dark-mode) .review-avatar-placeholder {
+  background: #1c252a;
+  border-color: #32434b;
+  color: #94a3b8;
+}
+
+:global(body.dark-mode) .review-username,
+:global(body.dark-mode) .stat-label {
+  color: #f1f5f9;
+}
+
+:global(body.dark-mode) .review-comment {
+  color: #cbd5e1;
+}
+
+:global(body.dark-mode) .review-date,
+:global(body.dark-mode) .stat-count,
+:global(body.dark-mode) .no-reviews {
+  color: #94a3b8;
+}
+
+:global(body.dark-mode) .star-empty {
+  color: #475569;
+}
+
+:global(body.dark-mode) .progress-bar {
+  background: #1c252a;
+}
+
+:global(body.dark-mode) .filter-button {
+  background: #243036;
+  border-color: #32434b;
+  color: #cbd5e1;
+}
+
+:global(body.dark-mode) .filter-button:hover {
+  background: #1c252a;
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .filter-button.active {
+  background: #36b5b5;
+  color: #ffffff;
+  border-color: #36b5b5;
+}
+
+:global(body.dark-mode) .reviews-list {
+  scrollbar-color: #36b5b5 #1c252a;
+}
+
+:global(body.dark-mode) .reviews-list::-webkit-scrollbar-thumb {
+  background-color: #36b5b5;
+}
+
+:global(body.dark-mode) .reviews-list::-webkit-scrollbar-track {
+  background: #1c252a;
+}

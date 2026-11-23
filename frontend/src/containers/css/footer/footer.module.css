@@ -1,0 +1,274 @@
+/* Background & Thiết lập chung */
+.footerBg {
+  background-color: #218282;
+  color: #ffffff;
+  font-size: 0.9rem;
+  border-top: 4px solid #1a6565;
+  transition: all 0.3s ease;
+}
+
+/* Tiêu đề mục */
+.footerTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  position: relative;
+  display: inline-block;
+  text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+
+.footerTitle::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 30px;
+  height: 2px;
+  background-color: #ffffff;
+  border-radius: 2px;
+  transition: background-color 0.3s ease;
+}
+
+/* Cột 1 - Hotline Section */
+.hotlineSection {
+  margin-top: 0.5rem;
+}
+
+.subTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.5px;
+  opacity: 0.95;
+  transition: color 0.3s ease;
+}
+
+.hotlineList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.hotlineList li {
+  display: flex;
+  align-items: flex-start;
+  font-size: 0.85rem;
+  color: #ffffff;
+  transition: color 0.3s ease;
+}
+
+.hotlineNumber {
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 4px;
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+
+.hotlineNumber:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+.timeText {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+/* Nút "Gặp chuyên gia ngay!" */
+.expertBtn {
+  display: inline-flex;
+  align-items: center;
+  background-color: #ffffff;
+  color: #218282;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.expertBtn:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #1a6565;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Danh sách Menu Links */
+.footerNav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.footerLink {
+  color: #ffffff;
+  opacity: 0.85;
+  text-decoration: none;
+  transition: all 0.2s ease-in-out;
+  display: inline-block;
+}
+
+.footerLink:hover {
+  color: #ffffff;
+  opacity: 1;
+  text-decoration: underline;
+  transform: translateX(4px);
+}
+
+/* Khối Email liên hệ */
+.emailContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.emailCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.2s ease;
+}
+
+.emailCard:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.emailLabel {
+  display: block;
+  font-size: 0.75rem;
+  color: #ffffff;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.emailLink {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+  word-break: break-all;
+}
+
+.emailLink:hover {
+  text-decoration: underline;
+  opacity: 0.9;
+}
+
+/* Thanh Copyright bên dưới */
+.copyrightBar {
+  background-color: #186262;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  transition: all 0.3s ease;
+}
+
+/* RESPONSIVE DESIGN FOR MOBILE */
+@media (max-width: 575.98px) {
+  .footerColumn {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1.5rem;
+  }
+
+  .footerColumn:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .footerTitle {
+    font-size: 1rem;
+  }
+
+  .footerLink {
+    padding: 3px 0;
+  }
+}
+
+/* ================= DARK MODE STYLES ================= */
+:global(body.dark-mode) .footerBg {
+  background-color: #0f1417;
+  border-top: 4px solid #1c252a;
+  color: #cbd5e1;
+}
+
+:global(body.dark-mode) .footerTitle {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .footerTitle::after {
+  background-color: #36b5b5;
+}
+
+:global(body.dark-mode) .subTitle {
+  color: #f1f5f9;
+}
+
+:global(body.dark-mode) .hotlineList li {
+  color: #cbd5e1;
+}
+
+:global(body.dark-mode) .hotlineNumber {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .expertBtn {
+  background-color: #243036;
+  color: #36b5b5;
+  border: 1px solid #32434b;
+}
+
+:global(body.dark-mode) .expertBtn:hover {
+  background-color: #36b5b5;
+  color: #ffffff;
+}
+
+:global(body.dark-mode) .footerLink {
+  color: #cbd5e1;
+}
+
+:global(body.dark-mode) .footerLink:hover {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .emailCard {
+  background-color: #1c252a;
+  border-color: #28343b;
+}
+
+:global(body.dark-mode) .emailCard:hover {
+  background-color: #243036;
+  border-color: #36b5b5;
+}
+
+:global(body.dark-mode) .emailLabel {
+  color: #94a3b8;
+}
+
+:global(body.dark-mode) .emailLink {
+  color: #f1f5f9;
+}
+
+:global(body.dark-mode) .emailLink:hover {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .copyrightBar {
+  background-color: #090c0e;
+  border-top-color: #1c252a;
+  color: #94a3b8;
+}

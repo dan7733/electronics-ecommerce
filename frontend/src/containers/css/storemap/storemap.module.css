@@ -1,0 +1,491 @@
+/* Layout tổng quan */
+.container {
+  display: flex;
+  flex-direction: row;
+  height: calc(100vh - 80px); /* Tối ưu chiều cao vừa vặn màn hình */
+  background-color: #f8fafc;
+  position: relative;
+  overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+/* Sidebar bên trái chứa thông tin cửa hàng */
+.sidebar {
+  width: 380px;
+  background-color: #ffffff;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  flex-shrink: 0;
+  border-right: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+/* HEADER SIDEBAR - TÔNG MÀU XANH CHỦ ĐẠO #218282 & #1a6565 */
+.sidebarHeader {
+  background: linear-gradient(135deg, #218282 0%, #1a6565 100%);
+  color: #ffffff;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 10px rgba(33, 130, 130, 0.2);
+  transition: background 0.3s ease;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  letter-spacing: 0.3px;
+}
+
+.storeBadge {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+}
+
+/* KHỐI TÌM KIẾM VỊ TRÍ */
+.inputGroup {
+  display: flex;
+  gap: 8px;
+  padding: 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #edf2f7;
+  transition: all 0.3s ease;
+}
+
+.searchInput {
+  flex-grow: 1;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: all 0.2s ease;
+  color: #1e293b;
+  background-color: #ffffff;
+}
+
+.searchInput:focus {
+  border-color: #218282;
+  box-shadow: 0 0 0 3px rgba(33, 130, 130, 0.15);
+}
+
+.btnSearch,
+.btnGps {
+  height: 42px;
+  width: 42px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnSearch {
+  background-color: #218282;
+  color: #ffffff;
+}
+
+.btnSearch:hover {
+  background-color: #1a6565;
+  transform: translateY(-1px);
+}
+
+.btnGps {
+  background-color: #f1f5f9;
+  color: #218282;
+  border: 1.5px solid #e2e8f0;
+}
+
+.btnGps:hover {
+  background-color: #e6fffa;
+  border-color: #b2f5ea;
+}
+
+/* DANH SÁCH CỬA HÀNG */
+.storeListWrapper {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+}
+
+/* Custom Scrollbar */
+.storeListWrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.storeListWrapper::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.storeListWrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.storeListWrapper::-webkit-scrollbar-thumb:hover {
+  background: #218282;
+}
+
+.storeList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* MỖI THẺ CỬA HÀNG */
+.storeItem {
+  background-color: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.storeItem:hover {
+  border-color: #218282;
+  background-color: #f0fdfa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 130, 130, 0.08);
+}
+
+/* CỬA HÀNG ĐANG ĐƯỢC CHỌN (ACTIVE) */
+.activeStore {
+  border-color: #218282 !important;
+  background-color: #f0fdfa !important;
+  box-shadow: 0 4px 14px rgba(33, 130, 130, 0.15) !important;
+  border-left: 5px solid #218282 !important;
+}
+
+.storeHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.storeName {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+  transition: color 0.3s ease;
+}
+
+.activeStore .storeName {
+  color: #218282;
+}
+
+.distanceBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  background-color: #e6fffa;
+  color: #218282;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid #b2f5ea;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.storeInfoRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: #475569;
+  transition: color 0.3s ease;
+}
+
+.storeInfoRow i {
+  color: #218282;
+  font-size: 0.95rem;
+  margin-top: 3px;
+  flex-shrink: 0;
+  transition: color 0.3s ease;
+}
+
+/* KHỐI THÔNG TIN TUYẾN ĐƯỜNG XE CHI TIẾT */
+.routeDetails {
+  margin-top: 4px;
+  padding: 10px 12px;
+  background-color: #ffffff;
+  border: 1px dashed #218282;
+  border-radius: 8px;
+  font-size: 0.84rem;
+  color: #1a6565;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.routeDetails i {
+  font-size: 1.1rem;
+  color: #218282;
+  transition: color 0.3s ease;
+}
+
+.routeTime {
+  color: #e53e3e;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+/* THUỘC TÍNH BẢN ĐỒ LEAFLET */
+.map {
+  flex-grow: 1;
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
+
+/* SPINNER LOADING */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 0;
+  color: #218282;
+  font-weight: 600;
+  font-size: 0.95rem;
+  gap: 12px;
+  transition: color 0.3s ease;
+}
+
+.spinner {
+  width: 38px;
+  height: 38px;
+  border: 3.5px solid #e2e8f0;
+  border-top-color: #218282;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  transition: border-color 0.3s ease;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  transition: color 0.3s ease;
+}
+
+/* RESPONSIVE DESIGN CHO TABLET VÀ MOBILE */
+@media (max-width: 992px) {
+  .sidebar {
+    width: 330px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column-reverse;
+    height: auto;
+    min-height: calc(100vh - 70px);
+  }
+
+  .sidebar {
+    width: 100%;
+    height: 50vh;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.08);
+    border-right: none;
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .map {
+    height: 50vh;
+    min-height: 320px;
+  }
+
+  .sidebarHeader {
+    padding: 14px 16px;
+  }
+
+  .title {
+    font-size: 1.1rem;
+  }
+
+  .inputGroup {
+    padding: 10px 14px;
+  }
+}
+
+/* ================= DARK MODE STYLES ================= */
+:global(body.dark-mode) .container {
+  background-color: #12181b;
+}
+
+:global(body.dark-mode) .sidebar {
+  background-color: #1c252a;
+  border-right-color: #28343b;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.35);
+}
+
+:global(body.dark-mode) .sidebarHeader {
+  background: linear-gradient(135deg, #186262 0%, #124d4d 100%);
+}
+
+:global(body.dark-mode) .inputGroup {
+  background-color: #1c252a;
+  border-bottom-color: #28343b;
+}
+
+:global(body.dark-mode) .searchInput {
+  background-color: #243036;
+  border-color: #32434b;
+  color: #f1f5f9;
+}
+
+:global(body.dark-mode) .searchInput::placeholder {
+  color: #64748b;
+}
+
+:global(body.dark-mode) .searchInput:focus {
+  border-color: #36b5b5;
+  box-shadow: 0 0 0 3px rgba(54, 181, 181, 0.2);
+}
+
+:global(body.dark-mode) .btnSearch {
+  background-color: #218282;
+}
+
+:global(body.dark-mode) .btnSearch:hover {
+  background-color: #1a6b6b;
+}
+
+:global(body.dark-mode) .btnGps {
+  background-color: #243036;
+  color: #36b5b5;
+  border-color: #32434b;
+}
+
+:global(body.dark-mode) .btnGps:hover {
+  background-color: rgba(54, 181, 181, 0.15);
+  border-color: #36b5b5;
+}
+
+:global(body.dark-mode) .storeListWrapper::-webkit-scrollbar-track {
+  background: #1c252a;
+}
+
+:global(body.dark-mode) .storeListWrapper::-webkit-scrollbar-thumb {
+  background: #32434b;
+}
+
+:global(body.dark-mode) .storeListWrapper::-webkit-scrollbar-thumb:hover {
+  background: #36b5b5;
+}
+
+:global(body.dark-mode) .storeItem {
+  background-color: #1c252a;
+  border-color: #28343b;
+}
+
+:global(body.dark-mode) .storeItem:hover {
+  border-color: #36b5b5;
+  background-color: #243036;
+  box-shadow: 0 4px 12px rgba(54, 181, 181, 0.12);
+}
+
+:global(body.dark-mode) .activeStore {
+  border-color: #36b5b5 !important;
+  background-color: rgba(54, 181, 181, 0.15) !important;
+  border-left: 5px solid #36b5b5 !important;
+  box-shadow: 0 4px 14px rgba(54, 181, 181, 0.2) !important;
+}
+
+:global(body.dark-mode) .storeName {
+  color: #f1f5f9;
+}
+
+:global(body.dark-mode) .activeStore .storeName {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .distanceBadge {
+  background-color: rgba(54, 181, 181, 0.15);
+  color: #36b5b5;
+  border-color: rgba(54, 181, 181, 0.3);
+}
+
+:global(body.dark-mode) .storeInfoRow {
+  color: #cbd5e1;
+}
+
+:global(body.dark-mode) .storeInfoRow i {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .routeDetails {
+  background-color: #243036;
+  border-color: #36b5b5;
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .routeDetails i {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .routeTime {
+  color: #f87171;
+}
+
+:global(body.dark-mode) .loading-container {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .spinner {
+  border-color: #28343b;
+  border-top-color: #36b5b5;
+}
+
+:global(body.dark-mode) .emptyState {
+  color: #64748b;
+}
+
+/* Custom Dark Popup Leaflet */
+:global(body.dark-mode) :global(.leaflet-popup-content-wrapper) {
+  background-color: #1c252a;
+  color: #f1f5f9;
+  border: 1px solid #32434b;
+}
+
+:global(body.dark-mode) :global(.leaflet-popup-tip) {
+  background-color: #1c252a;
+}
+
+@media (max-width: 768px) {
+  :global(body.dark-mode) .sidebar {
+    border-top-color: #28343b;
+    box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.35);
+  }
+}
