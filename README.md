@@ -1,154 +1,142 @@
-# 📦 WEBSITE KINH DOANH THIẾT BỊ ĐIỆN TỬ
+# 📦 ELECTRONICS E-COMMERCE PLATFORM
 
 **Electronics E-commerce Website**
 
-> Đồ án chuyên ngành -- Ngành Kỹ thuật Phần mềm
+**English** | [Tiếng Việt](README_vi.md)
 
--   Sinh viên thực hiện: Đặng Chương Hậu
--   Kiến trúc: Client -- Server (RESTful API)
--   Mô hình: Fullstack (React + Node.js + MySQL)
-
-------------------------------------------------------------------------
-
-# 1. Tổng quan dự án
-
-Website được xây dựng nhằm tối ưu hóa quy trình kinh doanh thiết bị điện
-tử trực tuyến. Hệ thống cho phép quản trị viên quản lý kho hàng, sản
-phẩm và đơn hàng hiệu quả, đồng thời mang lại trải nghiệm mua sắm thuận
-tiện cho khách hàng.
-
-Các tính năng nổi bật:
-
--   Tìm kiếm sản phẩm thông minh
--   Lọc sản phẩm nâng cao
--   Thanh toán trực tuyến
--   Tích hợp bản đồ tính phí giao hàng
--   Xác thực Google OAuth
-
-Toàn bộ hệ thống đã được Dockerize để triển khai nhanh chóng trên mọi
-môi trường.
+-   **Architecture:** Client -- Server (RESTful API)
+-   **Tech Stack:** Fullstack (React + Node.js + MySQL)
 
 ------------------------------------------------------------------------
 
-# 2. Kiến trúc hệ thống
+## 1. Overview
 
-React (Client)\
-↓ REST API\
-Node.js + Express\
-↓\
-MySQL Database\
-↓\
+An end-to-end e-commerce system built for electronics retail. The platform provides administrators with robust tools for managing products, inventory, and dynamic category attributes, while delivering a responsive, feature-rich shopping experience for customers.
+
+Key Features:
+-   Smart real-time search with input debouncing
+-   Advanced product filtering by dynamic category attributes
+-   Full Dark Mode UI support
+-   Multiple payment gateways (ZaloPay, Bank Transfer, COD)
+-   Map integration for real-time shipping cost calculation based on distance
+-   Google OAuth authentication integration
+
+The entire platform is fully Dockerized for effortless deployment across development and production environments.
+
+------------------------------------------------------------------------
+
+## 2. System Architecture
+
+```text
+React (Client Frontend)
+      ↓ REST API
+Node.js + Express (Backend API)
+      ↓
+MySQL Database (Relational Data)
+      ↓
 Redis (Session / Cache)
+```
 
 ------------------------------------------------------------------------
 
-# 3. Chức năng chính
+## 3. Core Features
 
-## Admin Portal
+### Admin Portal
+-   Comprehensive product & inventory management (CRUD)
+-   Dynamic category attributes and brand management
+-   Store branch location & coordinate management
+-   News & Content Management System (CMS)
 
--   Quản lý sản phẩm (CRUD)
--   Quản lý danh mục & thương hiệu
--   Quản lý cửa hàng (tọa độ chi nhánh)
--   Quản lý tin tức (CMS đơn giản)
+### Customer UI
+-   Instant product search with debouncing
+-   Multi-criteria filtering (price, category, attributes, brand)
+-   Customizable Dark / Light Mode theme
+-   User Authentication / Registration / Google OAuth
+-   Shopping Cart & Order Management
+-   Wishlist & Saved Articles list
+-   Product Ratings & Reviews
 
-## Customer UI
-
--   Tìm kiếm sản phẩm với Debounce
--   Lọc theo giá, danh mục, thương hiệu
--   Đăng ký / đăng nhập / Google OAuth
--   Giỏ hàng
--   Wishlist
--   Reading list tin tức
--   Đánh giá sản phẩm
-
-## Thanh toán & Vận chuyển
-
--   COD
--   Chuyển khoản
--   ZaloPay
--   Tính phí giao hàng theo km bằng Leaflet + OpenRouteService
+### Payment & Shipping
+-   Cash on Delivery (COD)
+-   Direct Bank Transfer
+-   ZaloPay Gateway (HMAC-SHA256 signature verification)
+-   Distance-based shipping fee calculation using Leaflet + OpenRouteService API
 
 ------------------------------------------------------------------------
 
-# 4. Công nghệ sử dụng
+## 4. Tech Stack
 
-## Backend
-
--   Node.js
--   Express.js
--   MySQL
--   Sequelize ORM
+### Backend
+-   Node.js & Express.js
+-   MySQL & Sequelize ORM
 -   JWT Authentication
 -   Passport.js (Google OAuth)
 -   Redis Session Store
 
-## Frontend
+### Frontend
+-   **Customer UI:** React.js, Context API, Axios, Tailwind CSS / Dark Mode
+-   **Admin UI:** EJS Templating, Bootstrap 5, jQuery
 
-Customer UI: - React.js - Context API - Axios
-
-Admin UI: - EJS - Bootstrap 5 - jQuery
-
-## DevOps
-
--   Docker
--   Docker Compose
--   Nginx (production)
--   Nodemailer (Email service)
+### DevOps & Services
+-   Docker & Docker Compose
+-   Nodemailer (Email Notification)
+-   Leaflet & OpenRouteService API
 
 ------------------------------------------------------------------------
 
-# 5. Cài đặt dự án
+## 5. Environment Setup
 
-## Backend .env
+### Backend Environment (`./backend/.env`)
+```env
+PORT=3000
+JWT_SECRET=keyboard_cat
+Ad_Session_Secret=your_session_secret
 
-PORT=3000 JWT_SECRET=keyboard cat Ad_Session_Secret=yourdawg
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
 
-EMAIL_USER=your-email@gmail.com EMAIL_PASS=your-app-password
-
-DB_NAME=doan4 DB_USER=root DB_PASSWORD=root DB_HOST=mysql
+DB_NAME=electronics_ecommerce
+DB_USER=root
+DB_PASSWORD=root
+DB_HOST=mysql
 DB_DIALECT=mysql
 
-REDIS_HOST=redis REDIS_PORT=6379
+REDIS_HOST=redis
+REDIS_PORT=6379
 
 FRONTEND_URL=http://localhost:8080
+```
 
-## Frontend .env
-
+### Frontend Environment (`./frontend/.env`)
+```env
 REACT_APP_GOOGLE_CLIENT_ID=your-google-id.apps.googleusercontent.com
 REACT_APP_ORS_API_KEY=your-openrouteservice-api-key
 REACT_APP_BACKEND_URL=http://localhost:3000
+```
 
 ------------------------------------------------------------------------
 
-# 6. Chạy dự án bằng Docker
+## 6. Running with Docker
 
+```bash
 docker compose up -d --build
+```
 
-Lần chạy đầu tiên MySQL sẽ mất khoảng 1 phút để khởi tạo.
-
-------------------------------------------------------------------------
-
-# 7. Truy cập hệ thống
-
-Admin: http://localhost:3000\
-Customer: http://localhost:8080\
-API: http://localhost:3000/api/v1
+*Note: Initializing MySQL container on first startup may take up to 1 minute.*
 
 ------------------------------------------------------------------------
 
-# 8. Docker commands
+## 7. System Access
 
-Chạy hệ thống: docker compose up -d --build
-
-Dừng hệ thống: docker compose down
-
-Xem log backend: docker compose logs -f web
-
-Restart backend: docker compose restart web
+-   **Admin Portal:** `http://localhost:3000`
+-   **Customer UI:** `http://localhost:8080`
+-   **API Endpoint Base:** `http://localhost:3000/api/v1`
 
 ------------------------------------------------------------------------
 
-# Tác giả
+## 8. Useful Docker Commands
 
-Đặng Chương Hậu\
-Sinh viên Kỹ thuật Phần mềm
+-   **Start System:** `docker compose up -d --build`
+-   **Stop System:** `docker compose down`
+-   **Backend Logs:** `docker compose logs -f backend`
+-   **Restart Backend:** `docker compose restart backend`
