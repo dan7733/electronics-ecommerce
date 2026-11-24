@@ -9,12 +9,13 @@ import VoucherController from '../controllers/VoucherController.js';
 import StoreController from '../controllers/StoreController.js';
 import StockController from '../controllers/StockController.js';
 import ProductdetailsController from '../controllers/ProductdetailsController.js';
-import CategoryAttributeController from '../controllers/CategoryAttributeController.js'; // IMPORT CONTROLLER MỚI
+import CategoryAttributeController from '../controllers/CategoryAttributeController.js';
 import UserController from '../controllers/UserController.js';
 import NewsController from '../controllers/NewsController.js';
 import orderController from '../controllers/OrderController.js';
 import ReviewController from '../controllers/ReviewController.js';
 import LogController from '../controllers/LogController.js';
+import NotificationController from '../controllers/NotificationController.js';
 
 const router = express.Router();
 
@@ -42,7 +43,7 @@ const initWebRouter = (app) => {
     router.get('/editcategory/:categoryid', ADMiddleware.adminMiddleware, CategoryController.editCategory);
     router.post('/updatecategory/', ADMiddleware.adminMiddleware, CategoryController.updateCategory);
 
-    // QUẢN LÝ THUỘC TÍNH DANH MỤC (ROUTE MỚI DÀNH RIÊNG)
+    // QUẢN LÝ THUỘC TÍNH DANH MỤC
     router.get('/category-attributes', ADMiddleware.adminMiddleware, CategoryAttributeController.listCategoryAttributes);
     router.post('/add-category-attribute', ADMiddleware.adminMiddleware, CategoryAttributeController.addCategoryAttribute);
     router.post('/delete-category-attribute', ADMiddleware.adminMiddleware, CategoryAttributeController.deleteCategoryAttribute);
@@ -115,6 +116,18 @@ const initWebRouter = (app) => {
     router.get('/log', ADMiddleware.adminMiddleware, LogController.getLogPage);
     router.get('/api/v1/logs/files', ADMiddleware.adminMiddleware, LogController.getLogFilesAPI);
     router.get('/api/v1/logs/:filename', ADMiddleware.adminMiddleware, LogController.getLogContentAPI);
+
+    // Quản lý Thông báo
+    router.get('/addnotification', ADMiddleware.adminMiddleware, NotificationController.createNotification);
+    router.post('/addnotification', ADMiddleware.adminMiddleware, NotificationController.addNotification);
+    router.get('/listnotification', ADMiddleware.adminMiddleware, NotificationController.listNotification);
+    router.post('/deletenotification', ADMiddleware.adminMiddleware, NotificationController.deleteNotification);
+    // ⚡ Route Đánh dấu tất cả thông báo hệ thống đã đọc cho Admin Dashboard
+    router.get('/mark-all-read-notification', ADMiddleware.adminMiddleware, NotificationController.markAllAdminRead);
+    // API lấy chi tiết thông báo cho Modal Popup
+    router.get('/api/v1/notifications/:id', ADMiddleware.adminMiddleware, NotificationController.getNotificationDetailAPI);
+    // Route API Live Search người dùng cho trang thông báo
+    router.get('/api/v1/users/search', ADMiddleware.adminMiddleware, NotificationController.searchUsersAPI);
 
     app.use(ADMiddleware.adminSessionMiddleware);
     return app.use('/', router);

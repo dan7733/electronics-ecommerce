@@ -26,11 +26,13 @@ import ForgotPassword from '../containers/forgotpassword/forgotpassword';
 import Wishlist from '../containers/userlayout/wishlist';
 import ReadingList from '../containers/userlayout/readinglist';
 import ListLastestProduct from '../containers/listlatestproduct/listlatestproduct';
-import ListLastestReviews from '../containers/listlastestreviews/ListLastestReviews'; // Ensure the path is correct
+import ListLastestReviews from '../containers/listlastestreviews/ListLastestReviews';
+import UserNotification from '../containers/userlayout/usernotification';
+import UserNotificationSetting from '../containers/userlayout/usernotificationsetting';
 const HomePage = () => {
   return (
     // React.Fragment
-    <> 
+    <>
       <Slider />
       <Category />
       <ProductDisplay />
@@ -67,27 +69,27 @@ export const router = createBrowserRouter([
         element: <Login />
       },
       {
-        path: "register", 
+        path: "register",
         element: <Register />
       },
       {
-        path: "payment", 
+        path: "payment",
         element: <Payment />
       },
       {
-        path: "ordersuccess", 
+        path: "ordersuccess",
         element: <OrderSuccess />
       },
       {
-        path: "storemap", 
+        path: "storemap",
         element: <StoreMap />
       },
       {
-        path: "cart", 
+        path: "cart",
         element: <Cart />
       },
       {
-        path: "newslist", 
+        path: "newslist",
         element: <ListNews />
       },
       {
@@ -137,6 +139,14 @@ export const router = createBrowserRouter([
           {
             path: 'readinglist',
             element: <ReadingList />,
+          },
+          {
+            path: 'notifications/:username',
+            element: <UserNotification />,
+          },
+          {
+            path: 'notification-settings/:username',
+            element: <UserNotificationSetting />,
           },
         ],
       }

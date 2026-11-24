@@ -1,6 +1,8 @@
 <div class="custom-content" id="content">
     <div class="container-fluid">
         <h2 class="mb-3">Tổng quan hệ thống</h2>
+
+        <!-- Cards Thống Kê Nhanh -->
         <div class="row mb-3">
             <div class="col-md-3 col-6">
                 <div class="custom-card text-center">
@@ -31,6 +33,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- Lọc Báo Cáo Thống Kê -->
         <div class="row mb-3">
             <div class="col-md-12">
                 <div class="card-custom">
@@ -77,7 +81,9 @@
                 </div>
             </div>
         </div>
-        <div class="row mb-3">
+
+        <!-- Biểu Đồ Chart.js -->
+        <div class="row mb-4">
             <div class="col-md-6">
                 <canvas id="salesChart"></canvas>
             </div>
@@ -85,13 +91,128 @@
                 <canvas id="weekChart"></canvas>
             </div>
         </div>
+
+        <!-- 🔔 KHUNG THÔNG BÁO ADMIN & NHẬT KÝ HỆ THỐNG -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card card-custom">
+                    <div class="card-header-custom d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-bell text-warning me-2"></i>
+                            <span>Thông báo & Nhật ký Hệ thống Admin</span>
+                            <% if (data.unreadNotiCount > 0) { %>
+                                <span class="badge bg-danger ms-2" id="dash-unread-badge"><%= data.unreadNotiCount %> chưa đọc</span>
+                            <% } %>
+                        </div>
+                        <div>
+                            <a href="/mark-all-read-notification" class="btn btn-sm btn-outline-success me-2">
+                                <i class="fas fa-check-double"></i> Đọc tất cả
+                            </a>
+                            <a href="/listnotification" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-list"></i> Xem tất cả
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Thanh lọc thông báo -->
+                    <div class="p-3 bg-light rounded mb-3 mt-2 border">
+                        <form action="/" method="GET" class="row g-2 align-items-center">
+                            <input type="hidden" name="filterType" value="<%= data.filterType %>">
+                            <input type="hidden" name="year" value="<%= data.year %>">
+
+                            <div class="col-md-4 col-12">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" name="notiSearch" class="form-control" placeholder="Tìm theo tiêu đề, nội dung..." value="<%= data.notiFilters.notiSearch %>">
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <select name="notiType" class="form-select form-select-sm">
+                                    <option value="">-- Tất cả loại thông báo --</option>
+                                    <option value="system" <%= data.notiFilters.notiType === 'system' ? 'selected' : '' %>>Hệ thống / Kho hàng</option>
+                                    <option value="order" <%= data.notiFilters.notiType === 'order' ? 'selected' : '' %>>Đơn hàng</option>
+                                    <option value="account" <%= data.notiFilters.notiType === 'account' ? 'selected' : '' %>>Tài khoản</option>
+                                    <option value="news" <%= data.notiFilters.notiType === 'news' ? 'selected' : '' %>>Tin tức / Khuyến mãi</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <select name="notiRead" class="form-select form-select-sm">
+                                    <option value="">-- Trạng thái đọc --</option>
+                                    <option value="0" <%= data.notiFilters.notiRead === '0' ? 'selected' : '' %>>Chưa đọc</option>
+                                    <option value="1" <%= data.notiFilters.notiRead === '1' ? 'selected' : '' %>>Đã đọc</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 col-12 d-flex">
+                                <button type="submit" class="btn btn-sm btn-primary w-100 me-1"><i class="fas fa-filter me-1"></i>Lọc</button>
+                                <a href="/" class="btn btn-sm btn-outline-secondary" title="Reset lọc"><i class="fas fa-sync-alt"></i></a>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Danh sách thẻ thông báo -->
+                    <div class="admin-noti-list">
+                        <% if (data.adminNotifications && data.adminNotifications.length > 0) { %>
+                            <div class="row">
+                                <% data.adminNotifications.forEach(item => { %>
+                                    <div class="col-md-6 col-12 mb-3" id="noti-card-container-<%= item.notification_id %>">
+                                        <div class="card h-100 border-0 shadow-sm admin-noti-card <%= item.is_read ? 'is-read' : 'is-unread' %>" id="noti-card-<%= item.notification_id %>">
+                                            <div class="card-body p-3 d-flex flex-column justify-content-between">
+                                                <div>
+                                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                                        <div class="d-flex align-items-center">
+                                                            <% if (item.type === 'system') { %>
+                                                                <span class="badge bg-danger p-2 me-2"><i class="fas fa-exclamation-triangle"></i></span>
+                                                            <% } else if (item.type === 'order') { %>
+                                                                <span class="badge bg-success p-2 me-2"><i class="fas fa-shopping-cart"></i></span>
+                                                            <% } else if (item.type === 'account') { %>
+                                                                <span class="badge bg-info p-2 me-2"><i class="fas fa-user-shield"></i></span>
+                                                            <% } else { %>
+                                                                <span class="badge bg-primary p-2 me-2"><i class="fas fa-bullhorn"></i></span>
+                                                            <% } %>
+                                                            <strong class="text-dark me-2"><%= item.title %></strong>
+                                                        </div>
+                                                        <% if (!item.is_read) { %>
+                                                            <span class="badge bg-warning text-dark badge-new-tag">Mới</span>
+                                                        <% } %>
+                                                    </div>
+                                                    <p class="card-text text-muted small mb-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                                        <%= item.message %>
+                                                    </p>
+                                                </div>
+
+                                                <div class="d-flex justify-content-between align-items-center pt-2 border-top mt-2">
+                                                    <small class="text-muted" style="font-size: 0.8rem;">
+                                                        <i class="far fa-clock me-1"></i><%= new Date(item.created_at).toLocaleString('vi-VN') %>
+                                                    </small>
+                                                    <div>
+                                                        <!-- Nút gọi Popup Modal xem chi tiết -->
+                                                        <button type="button" class="btn btn-xs btn-primary text-white" onclick="openNotiModal('<%= item.notification_id %>')">
+                                                            <i class="fas fa-eye me-1"></i>Xem chi tiết
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } else { %>
+                            <div class="text-center py-4 text-muted">
+                                <i class="far fa-bell-slash fa-2x mb-2 d-block"></i>
+                                Không có thông báo nào phù hợp với bộ lọc.
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Products & Profile Admin -->
         <div class="row">
-            <!-- Top 5 sản phẩm nổi bật -->
-            <div class="col-md-6 d-flex">
+            <div class="col-md-6 d-flex mb-3">
                 <div class="card card-custom flex-fill">
                     <div class="card-header-custom">Top 5 sản phẩm nổi bật</div>
                     <div class="mt-3">
-                        <!-- Top 5 sản phẩm mới được thêm vào -->
                         <h6>Top 5 sản phẩm mới được thêm vào</h6>
                         <% if (data.topProducts && data.topProducts.length > 0) { %>
                             <ul class="list-unstyled">
@@ -105,7 +226,7 @@
                         <% } else { %>
                             <p>Chưa có dữ liệu sản phẩm mới.</p>
                         <% } %>
-                        <!-- Top 5 sản phẩm được xem nhiều nhất -->
+
                         <h6 class="mt-3">Top 5 sản phẩm được xem nhiều nhất</h6>
                         <% if (data.topViewedProducts && data.topViewedProducts.length > 0) { %>
                             <ul class="list-unstyled">
@@ -122,8 +243,8 @@
                     </div>
                 </div>
             </div>
-            <!-- Thông tin Admin -->
-            <div class="col-md-6 d-flex">
+
+            <div class="col-md-6 d-flex mb-3">
                 <div class="card admin-card flex-fill">
                     <img src="<%= data.user.avatar ? '/images/useravatar/' + data.user.avatar : '/images/useravatar/default-avatar.jpg' %>" alt="Admin Avatar">
                     <h5><%= data.user.fullname %></h5>
@@ -148,8 +269,37 @@
     </div>
 </div>
 
+<!-- 🔔 MODAL POPUP XEM CHI TIẾT THÔNG BÁO -->
+<div class="modal fade" id="notiDetailModal" tabindex="-1" aria-labelledby="notiDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="notiDetailModalLabel">
+                    <i class="fas fa-bell me-2"></i>Chi tiết thông báo
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <span id="notiDetailTypeBadge" class="badge bg-info p-2 me-2">SYSTEM</span>
+                    <small class="text-muted ms-auto" id="notiDetailTime"></small>
+                </div>
+                <h5 class="fw-bold text-dark mb-3" id="notiDetailHeader">---</h5>
+                <div class="p-3 bg-light rounded border text-secondary" id="notiDetailMessage" style="white-space: pre-line; line-height: 1.6;">
+                    ---
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <a id="notiDetailLinkBtn" href="#" class="btn btn-primary d-none">
+                    <i class="fas fa-external-link-alt me-1"></i>Truy cập liên kết
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Toggle filter fields based on filter type
     function toggleFilterFields() {
         const filterType = document.getElementById('filterType').value;
         document.getElementById('customDateFields').style.display = filterType === 'custom' ? 'block' : 'none';
@@ -158,7 +308,6 @@
         document.getElementById('yearFields').style.display = filterType === 'quarter' || filterType === 'year' ? 'block' : 'none';
     }
 
-    // Initialize charts
     const salesChart = new Chart(document.getElementById('salesChart'), {
         type: 'line',
         data: {
@@ -205,4 +354,62 @@
             }
         }
     });
+
+    // 🔔 HÀM AJAX GỌI POPUP MODAL VÀ TỰ ĐỘNG ĐÁNH DẤU ĐÃ ĐỌC
+    async function openNotiModal(notiId) {
+        try {
+            const response = await fetch(`/api/v1/notifications/${notiId}`);
+            const result = await response.json();
+
+            if (result.errCode === 0 && result.data) {
+                const noti = result.data;
+
+                document.getElementById('notiDetailHeader').innerText = noti.title;
+                document.getElementById('notiDetailMessage').innerText = noti.message;
+                document.getElementById('notiDetailTime').innerHTML = `<i class="far fa-clock me-1"></i>${new Date(noti.created_at).toLocaleString('vi-VN')}`;
+                
+                const badgeType = document.getElementById('notiDetailTypeBadge');
+                badgeType.innerText = (noti.type || 'SYSTEM').toUpperCase();
+                
+                if (noti.type === 'system') badgeType.className = 'badge bg-danger p-2 me-2';
+                else if (noti.type === 'order') badgeType.className = 'badge bg-success p-2 me-2';
+                else if (noti.type === 'account') badgeType.className = 'badge bg-info p-2 me-2';
+                else badgeType.className = 'badge bg-primary p-2 me-2';
+
+                const linkBtn = document.getElementById('notiDetailLinkBtn');
+                if (noti.link) {
+                    linkBtn.href = noti.link;
+                    linkBtn.classList.remove('d-none');
+                } else {
+                    linkBtn.classList.add('d-none');
+                }
+
+                const notiCard = document.getElementById(`noti-card-${notiId}`);
+                if (notiCard) {
+                    notiCard.classList.remove('is-unread');
+                    notiCard.classList.add('is-read');
+                    const badgeNew = notiCard.querySelector('.badge-new-tag');
+                    if (badgeNew) badgeNew.remove();
+                }
+
+                if (result.unreadCount !== undefined) {
+                    const badgeUnread = document.getElementById('dash-unread-badge');
+                    if (badgeUnread) {
+                        if (result.unreadCount > 0) {
+                            badgeUnread.innerText = `${result.unreadCount} chưa đọc`;
+                        } else {
+                            badgeUnread.remove();
+                        }
+                    }
+                }
+
+                const notiModal = new bootstrap.Modal(document.getElementById('notiDetailModal'));
+                notiModal.show();
+            } else {
+                alert(result.message || 'Không thể lấy dữ liệu thông báo!');
+            }
+        } catch (err) {
+            console.error('Lỗi khi mở Popup thông báo:', err);
+        }
+    }
 </script>

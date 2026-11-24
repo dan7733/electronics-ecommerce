@@ -16,27 +16,21 @@ const ChangePassword = () => {
     const navigate = useNavigate();
     const { user } = useContext(Context);
 
-    // Lấy URL trực tiếp từ biến môi trường .env
     const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-    // Authentication check
     useEffect(() => {
         if (!user || !user.username || !user.auth) {
             navigate('/login');
         }
     }, [user, navigate]);
 
-    // Fetch user data to check if they are a Google user
     useEffect(() => {
         const fetchUserData = async () => {
             try {
-                // Thay thế localhost bằng API_URL
+                // Đã xóa Authorization thủ công
                 const response = await axios.get(
                     `${API_URL}/api/v1/detailuserbyusername/${username}`,
                     {
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-                        },
                         withCredentials: true,
                     }
                 );
@@ -61,16 +55,14 @@ const ChangePassword = () => {
         if (username && user?.auth) {
             fetchUserData();
         }
-    }, [username, navigate, user, API_URL]); // Thêm API_URL vào dependencies
+    }, [username, navigate, user, API_URL]);
 
-    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setSuccess('');
         setIsLoading(true);
 
-        // Validate inputs
         if (!newPassword || !confirmPassword) {
             setError('Vui lòng nhập mật khẩu mới và xác nhận mật khẩu.');
             setIsLoading(false);
@@ -96,7 +88,7 @@ const ChangePassword = () => {
         }
 
         try {
-            // Thay thế localhost bằng API_URL
+            // Đã xóa Authorization thủ công
             const response = await axios.post(
                 `${API_URL}/api/v1/change-password`,
                 {
@@ -105,14 +97,9 @@ const ChangePassword = () => {
                     confirmPassword,
                 },
                 {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-                    },
                     withCredentials: true,
                 }
             );
-
-            console.log('API Response:', response.data); // Debugging
 
             if (response.data.errCode === 0) {
                 setSuccess(response.data.message);
@@ -120,17 +107,13 @@ const ChangePassword = () => {
                 setNewPassword('');
                 setConfirmPassword('');
 
-                console.log('Password change successful, redirecting...'); // Debugging
-                // Chuyển hướng sau khi đổi mật khẩu thành công
                 setTimeout(() => {
-                    console.log(`Executing redirect to /account/${username}`); // Debugging
                     navigate(`/account/${username}`, { replace: true });
                 }, 2000);
             } else {
                 setError(response.data.message || 'Đổi mật khẩu thất bại.');
             }
         } catch (err) {
-            console.error('Error during password change:', err); // Debugging
             if (err.response?.status === 401 || err.response?.status === 403) {
                 navigate('/login');
             } else {
@@ -141,7 +124,6 @@ const ChangePassword = () => {
         }
     };
 
-    // Clear success message after 3 seconds
     useEffect(() => {
         if (success) {
             const timer = setTimeout(() => setSuccess(null), 3000);
@@ -149,7 +131,6 @@ const ChangePassword = () => {
         }
     }, [success]);
 
-    // Loading or error state
     if (error) {
         return <div className={styles.error}>{error}</div>;
     }

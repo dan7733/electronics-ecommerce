@@ -11,7 +11,6 @@ const ReviewForm = ({ orderId, productId, productName, existingReview, onReviewS
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Lấy URL trực tiếp từ biến môi trường .env
   const API_URL = process.env.REACT_APP_BACKEND_URL;
 
   // Pre-populate form with existing review data
@@ -58,24 +57,19 @@ const ReviewForm = ({ orderId, productId, productName, existingReview, onReviewS
         comment,
       };
 
-      const config = {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-        },
-        withCredentials: true,
-      };
-
+      // Đã loại bỏ Authorization thủ công để Interceptor tự đính kèm Token chuẩn
       let response;
       if (existingReview) {
-        // Update existing review - Thay thế localhost bằng API_URL
-        response = await axios.put(`${API_URL}/api/v1/review`, requestData, config);
+        response = await axios.put(`${API_URL}/api/v1/review`, requestData, {
+          withCredentials: true,
+        });
       } else {
-        // Create new review - Thay thế localhost bằng API_URL
-        response = await axios.post(`${API_URL}/api/v1/review`, requestData, config);
+        response = await axios.post(`${API_URL}/api/v1/review`, requestData, {
+          withCredentials: true,
+        });
       }
 
       setSuccess(response.data.message || 'Đánh giá đã được gửi thành công!');
-      // Reset form if it was a new review
       if (!existingReview) {
         setRating(0);
         setComment('');

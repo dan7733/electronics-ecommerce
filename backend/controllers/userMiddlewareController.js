@@ -1,6 +1,7 @@
 // user Middleware and login/logout and register
 import express from "express";
 import userModel from '../models/userModel.js';  // Import model để xử lý với CSDL hoặc logic nghiệp vụ
+import notificationModel from '../models/notificationModel.js'; // 🔔 Import Model Thông báo
 import dotenv from 'dotenv/config';
 import bcrypt from 'bcryptjs';
 import jwt  from 'jsonwebtoken';
@@ -405,6 +406,23 @@ const updateUserAPI = async (req, res) => {
       const updatedUser = await userModel.updateUserAPI(username, updateFields);
       logger.info('API Cập nhật người dùng thành công', { username });
 
+      // 🔔 TẠO THÔNG BÁO GỬI ĐẾN USER VỚI LINK TRỎ TỚI TRANG CHI TIẾT TÀI KHOẢN
+      try {
+        const userId = oldUser.user_id || oldUser.id;
+        if (userId) {
+          await notificationModel.createNotification({
+            user_id: userId,
+            title: 'Cập nhật thông tin cá nhân',
+            message: 'Thông tin tài khoản của bạn đã được cập nhật thành công.',
+            type: 'account',
+            created_by: 'system',
+            link: `/account/${username}` // Đường dẫn khớp với React Router (/account/:username)
+          });
+        }
+      } catch (notiErr) {
+        logger.error('Lỗi khi gửi thông báo cập nhật thông tin cho User', { error: notiErr.message, username });
+      }
+
       return res.status(200).json({
           errCode: 0,
           message: "Cập nhật người dùng thành công.",
@@ -618,4 +636,4 @@ export default {
     requestPasswordResetAPI,
     resetPasswordAPI,
     getResetPasswordAPI
-}
+};

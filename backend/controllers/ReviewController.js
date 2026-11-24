@@ -3,8 +3,9 @@ import { Order } from '../models/orderModel.js';
 import { OrderDetail } from '../models/orderdetailModel.js';
 import { User } from '../models/userModel.js';
 import { Product } from '../models/productModel.js';
+import notificationModel from '../models/notificationModel.js';
 import { Op, fn, col } from 'sequelize';
-import logger from '../configs/logger.js'; // Import custom logger
+import logger from '../configs/logger.js';
 
 const addReviewAPI = async (req, res) => {
   const { order_id, product_id, username, rating, comment } = req.body;
@@ -36,7 +37,6 @@ const addReviewAPI = async (req, res) => {
   }
 
   try {
-    // Find user by username
     const user = await User.findOne({
       where: { username },
     });
@@ -51,7 +51,6 @@ const addReviewAPI = async (req, res) => {
 
     const user_id = user.user_id;
 
-    // Check if order exists and is eligible
     const order = await Order.findOne({
       where: { order_id, user_id, status: 'delivered', status_payment: 'paid' },
     });
@@ -64,7 +63,6 @@ const addReviewAPI = async (req, res) => {
       });
     }
 
-    // Check if product belongs to the order
     const orderDetail = await OrderDetail.findOne({
       where: { order_id, product_id },
     });
@@ -77,7 +75,6 @@ const addReviewAPI = async (req, res) => {
       });
     }
 
-    // Check for existing review
     const existingReview = await Review.findOne({
       where: { order_id, product_id, user_id },
     });
@@ -90,7 +87,6 @@ const addReviewAPI = async (req, res) => {
       });
     }
 
-    // Create new review
     const review = await Review.create({
       user_id,
       product_id,
@@ -99,11 +95,35 @@ const addReviewAPI = async (req, res) => {
       comment,
     });
 
-    // Mark OrderDetail as reviewed
     await OrderDetail.update(
       { isReviewed: true },
       { where: { order_id, product_id } }
     );
+
+    // 🔔 XỬ LÝ THÔNG BÁO TỰ ĐỘNG KHI THÊM ĐÁNH GIÁ
+    try {
+      // 1. Thông báo cho KHÁCH HÀNG (Dẫn đường dẫn chính xác tới /detailproduct/:id)
+      await notificationModel.createNotification({
+        user_id: user_id,
+        title: 'Cảm ơn bạn đã đánh giá!',
+        message: `Bạn vừa gửi đánh giá (${rating}⭐) cho sản phẩm thuộc đơn hàng #${order_id}. Cảm ơn phản hồi của bạn!`,
+        type: 'account',
+        created_by: 'system',
+        link: `/detailproduct/${product_id}` // 🟢 Đã cập nhật đúng Route frontend
+      });
+
+      // 2. Thông báo cho QUẢN TRỊ VIÊN (Admin Dashboard)
+      await notificationModel.createNotification({
+        user_id: null,
+        title: 'Đánh giá sản phẩm mới',
+        message: `Khách hàng ${user.fullname || user.username} (ID: #${user_id}) vừa gửi đánh giá (${rating}⭐) cho sản phẩm (ID: #${product_id}) thuộc đơn hàng #${order_id}.`,
+        type: 'system',
+        created_by: 'system',
+        link: `/listreviews?product=${product_id}`
+      });
+    } catch (notiErr) {
+      logger.error('Lỗi gửi thông báo khi thêm đánh giá', { error: notiErr.message, user_id, product_id });
+    }
 
     logger.info('Thêm đánh giá thành công', { review_id: review.review_id, user_id, product_id });
     return res.status(200).json({
@@ -123,7 +143,6 @@ const addReviewAPI = async (req, res) => {
 const updateReviewAPI = async (req, res) => {
   const { order_id, product_id, username, rating, comment } = req.body;
 
-  // Validate inputs
   if (!username) {
     logger.warn('Cập nhật đánh giá thất bại: Tên người dùng trống');
     return res.status(400).json({
@@ -149,7 +168,6 @@ const updateReviewAPI = async (req, res) => {
   }
 
   try {
-    // Find user by username
     const user = await User.findOne({
       where: { username },
     });
@@ -164,7 +182,6 @@ const updateReviewAPI = async (req, res) => {
 
     const user_id = user.user_id;
 
-    // Check if review exists
     const existingReview = await Review.findOne({
       where: { order_id, product_id, user_id },
     });
@@ -177,7 +194,6 @@ const updateReviewAPI = async (req, res) => {
       });
     }
 
-    // Update review
     await Review.update(
       { rating, comment, updated_at: new Date() },
       { where: { order_id, product_id, user_id } }
@@ -186,6 +202,31 @@ const updateReviewAPI = async (req, res) => {
     const updatedReview = await Review.findOne({
       where: { order_id, product_id, user_id },
     });
+
+    // 🔔 XỬ LÝ THÔNG BÁO TỰ ĐỘNG KHI CẬP NHẬT ĐÁNH GIÁ
+    try {
+      // 1. Thông báo cho KHÁCH HÀNG (Dẫn đường dẫn chính xác tới /detailproduct/:id)
+      await notificationModel.createNotification({
+        user_id: user_id,
+        title: 'Cập nhật đánh giá thành công',
+        message: `Đánh giá của bạn cho sản phẩm thuộc đơn hàng #${order_id} đã được cập nhật.`,
+        type: 'account',
+        created_by: 'system',
+        link: `/detailproduct/${product_id}` // 🟢 Đã cập nhật đúng Route frontend
+      });
+
+      // 2. Thông báo cho ADMIN
+      await notificationModel.createNotification({
+        user_id: null,
+        title: 'Cập nhật đánh giá sản phẩm',
+        message: `Khách hàng ${user.fullname || user.username} vừa chỉnh sửa đánh giá (${rating}⭐) cho sản phẩm (ID: #${product_id}).`,
+        type: 'system',
+        created_by: 'system',
+        link: `/listreviews?product=${product_id}`
+      });
+    } catch (notiErr) {
+      logger.error('Lỗi gửi thông báo khi cập nhật đánh giá', { error: notiErr.message, user_id, product_id });
+    }
 
     logger.info('Cập nhật đánh giá thành công', { review_id: updatedReview.review_id, user_id, product_id });
     return res.status(200).json({
@@ -395,18 +436,59 @@ const listReviews = async (req, res) => {
 const deleteReview = async (req, res) => {
   try {
     const { review_id } = req.body;
+    
+    const reviewToDelete = await Review.findOne({ where: { review_id } });
+
+    if (!reviewToDelete) {
+      logger.warn('Xóa đánh giá thất bại: Không tìm thấy đánh giá', { review_id });
+      return res.redirect('/listreviews?message=' + encodeURIComponent('Không tìm thấy đánh giá để xóa'));
+    }
+
+    const targetUserId = reviewToDelete.user_id;
+    const targetProductId = reviewToDelete.product_id;
+
     const result = await Review.destroy({ where: { review_id } });
 
     if (result) {
       logger.info('Xóa đánh giá thành công', { review_id });
-      res.redirect('/listreviews?message=Xóa đánh giá thành công');
+
+      // 🔔 1. GỬI THÔNG BÁO CHO USER (Chuyển đường dẫn sang /detailproduct/:id)
+      if (targetUserId) {
+        try {
+          await notificationModel.createNotification({
+            user_id: targetUserId,
+            title: 'Đánh giá của bạn đã bị xóa',
+            message: `Đánh giá của bạn cho sản phẩm (ID: #${targetProductId}) đã bị quản trị viên gỡ bỏ do vi phạm tiêu chuẩn cộng đồng.`,
+            type: 'account',
+            created_by: 'admin',
+            link: `/detailproduct/${targetProductId}` // 🟢 Đã cập nhật đúng Route frontend
+          });
+        } catch (notiErr) {
+          logger.error('Lỗi khi gửi thông báo xóa đánh giá cho User', { error: notiErr.message, review_id, targetUserId });
+        }
+      }
+
+      // 🔔 2. GỬI THÔNG BÁO HỆ THỐNG CHO ADMIN
+      try {
+        await notificationModel.createNotification({
+          user_id: null,
+          title: 'Xóa đánh giá sản phẩm',
+          message: `Admin đã xóa đánh giá ID #${review_id} (thuộc sản phẩm ID: #${targetProductId}, User ID: #${targetUserId}).`,
+          type: 'system',
+          created_by: 'admin',
+          link: '/listreviews'
+        });
+      } catch (notiErr) {
+        logger.error('Lỗi khi gửi thông báo xóa đánh giá cho Admin', { error: notiErr.message, review_id });
+      }
+
+      res.redirect('/listreviews?message=' + encodeURIComponent('Xóa đánh giá thành công'));
     } else {
-      logger.warn('Xóa đánh giá thất bại: Không tìm thấy đánh giá', { review_id });
-      res.redirect('/listreviews?message=Không tìm thấy đánh giá để xóa');
+      res.redirect('/listreviews?message=' + encodeURIComponent('Không tìm thấy đánh giá để xóa'));
     }
   } catch (error) {
     logger.error('Lỗi trong deleteReview', { error: error.message, stack: error.stack, body: req.body });
-    res.redirect('/listreviews?message=Xóa đánh giá thất bại');
+    res.redirect('/listreviews?message=' + encodeURIComponent('Xóa đánh giá thất bại'));
   }
 };
 

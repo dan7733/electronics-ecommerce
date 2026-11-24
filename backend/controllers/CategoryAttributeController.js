@@ -1,5 +1,6 @@
 import categoryModel from '../models/categoryModel.js';
 import categoryAttributeModel from '../models/categoryAttributeModel.js';
+import notificationModel from '../models/notificationModel.js'; // 🔔 Import Model Thông báo
 import logger from '../configs/logger.js';
 
 // Tải trang Quản lý Thuộc tính Danh mục
@@ -30,14 +31,14 @@ const listCategoryAttributes = async (req, res) => {
     }
 };
 
-// Thêm thuộc tính mới cho Danh mục (Hỗ trợ nhập 1 thuộc tính HOẶC danh sách cách nhau bằng dấu phẩy/xuống dòng)
+// Thêm thuộc tính mới cho Danh mục (Hỗ trợ nhập 1 hoặc nhiều thuộc tính)
 const addCategoryAttribute = async (req, res) => {
     try {
         const { category_id, name } = req.body;
 
         if (!category_id || !name || name.trim() === '') {
             logger.warn('Thêm thuộc tính thất bại: Thiếu thông tin category_id hoặc name');
-            return res.redirect(`/category-attributes?category_id=${category_id || ''}&message=Vui lòng nhập đầy đủ thông tin!`);
+            return res.redirect(`/category-attributes?category_id=${category_id || ''}&message=${encodeURIComponent('Vui lòng nhập đầy đủ thông tin!')}`);
         }
 
         // Tách chuỗi theo dấu phẩy, dấu chấm phẩy hoặc dấu xuống dòng
@@ -48,18 +49,30 @@ const addCategoryAttribute = async (req, res) => {
 
         let addedCount = 0;
         for (const attrName of attributeNames) {
-            // Đảm bảo mỗi tên thuộc tính không vượt quá 100 ký tự
             const cleanName = attrName.substring(0, 100);
             await categoryAttributeModel.addCategoryAttribute(category_id, cleanName);
             addedCount++;
         }
 
-        logger.info('Thêm thuộc tính danh mục thành công', { category_id, count: addedCount });
+        // 🔔 THÔNG BÁO HỆ THỐNG: Ghi nhật ký thêm thuộc tính danh mục cho Admin
+        try {
+            await notificationModel.createNotification({
+                user_id: null,
+                title: 'Thêm thuộc tính danh mục',
+                message: `Admin vừa thêm ${addedCount} thuộc tính mới cho danh mục ID #${category_id}.`,
+                type: 'system',
+                created_by: 'admin',
+                link: `/category-attributes?category_id=${category_id}`
+            });
+        } catch (notiError) {
+            logger.error('Lỗi khi gửi thông báo thêm thuộc tính danh mục', { error: notiError.message });
+        }
 
-        res.redirect(`/category-attributes?category_id=${category_id}&message=Đã thêm thành công ${addedCount} thuộc tính!`);
+        logger.info('Thêm thuộc tính danh mục thành công', { category_id, count: addedCount });
+        res.redirect(`/category-attributes?category_id=${category_id}&message=${encodeURIComponent(`Đã thêm thành công ${addedCount} thuộc tính!`)}`);
     } catch (error) {
         logger.error('Lỗi khi thêm thuộc tính danh mục', { error: error.message, stack: error.stack, body: req.body });
-        res.redirect(`/category-attributes?category_id=${req.body.category_id || ''}&message=Có lỗi xảy ra khi thêm thuộc tính.`);
+        res.redirect(`/category-attributes?category_id=${req.body.category_id || ''}&message=${encodeURIComponent('Có lỗi xảy ra khi thêm thuộc tính.')}`);
     }
 };
 
@@ -69,16 +82,30 @@ const deleteCategoryAttribute = async (req, res) => {
         const { attribute_id, category_id } = req.body;
 
         if (!attribute_id) {
-            return res.redirect(`/category-attributes?category_id=${category_id || ''}&message=Thiếu ID thuộc tính cần xóa`);
+            return res.redirect(`/category-attributes?category_id=${category_id || ''}&message=${encodeURIComponent('Thiếu ID thuộc tính cần xóa')}`);
         }
 
         await categoryAttributeModel.deleteCategoryAttribute(attribute_id);
-        logger.info('Xóa thuộc tính danh mục thành công', { attribute_id });
 
-        res.redirect(`/category-attributes?category_id=${category_id}&message=Xóa thuộc tính thành công!`);
+        // 🔔 THÔNG BÁO HỆ THỐNG: Ghi nhật ký xóa thuộc tính danh mục cho Admin
+        try {
+            await notificationModel.createNotification({
+                user_id: null,
+                title: 'Xóa thuộc tính danh mục',
+                message: `Admin đã xóa thuộc tính ID #${attribute_id} khỏi danh mục ID #${category_id || 'N/A'}.`,
+                type: 'system',
+                created_by: 'admin',
+                link: `/category-attributes?category_id=${category_id || ''}`
+            });
+        } catch (notiError) {
+            logger.error('Lỗi khi gửi thông báo xóa thuộc tính danh mục', { error: notiError.message });
+        }
+
+        logger.info('Xóa thuộc tính danh mục thành công', { attribute_id });
+        res.redirect(`/category-attributes?category_id=${category_id}&message=${encodeURIComponent('Xóa thuộc tính thành công!')}`);
     } catch (error) {
         logger.error('Lỗi khi xóa thuộc tính danh mục', { error: error.message, stack: error.stack, body: req.body });
-        res.redirect(`/category-attributes?category_id=${req.body.category_id || ''}&message=Có lỗi xảy ra khi xóa.`);
+        res.redirect(`/category-attributes?category_id=${req.body.category_id || ''}&message=${encodeURIComponent('Có lỗi xảy ra khi xóa.')}`);
     }
 };
 

@@ -25,15 +25,13 @@ const OrderList = () => {
   const fetchOrders = useCallback(
     async (status, page = 1, sort = 'default') => {
       try {
+        // Đã xóa Authorization thủ công
         const response = await axios.get(`${API_URL}/api/v1/listorder`, {
           params: {
             username,
             status: status || null,
             page,
             sort,
-          },
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('jwt')}`,
           },
           withCredentials: true,
         });
@@ -148,7 +146,6 @@ const OrderList = () => {
 
   return (
     <div className={styles.container}>
-      {/* Header & Bộ lọc */}
       <div className={styles['header-wrapper']}>
         <h4 className={styles['page-title']}>
           <i className="fa-solid fa-receipt me-2"></i>Quản lý đơn hàng
@@ -168,7 +165,6 @@ const OrderList = () => {
         </div>
       </div>
 
-      {/* Thanh Tab trạng thái - Tự động cuộn mượt khi quá chật */}
       <div className={styles['status-tabs']}>
         <button
           className={`${styles['tab-item']} ${
@@ -211,10 +207,8 @@ const OrderList = () => {
         </button>
       </div>
 
-      {/* Danh sách đơn hàng */}
       {orders.length > 0 ? (
         <>
-          {/* Bảng cho Desktop */}
           <div className={styles['desktop-table-wrapper']}>
             <table className={styles['order-table']}>
               <thead>
@@ -265,7 +259,6 @@ const OrderList = () => {
             </table>
           </div>
 
-          {/* Dạng thẻ cho Mobile */}
           <div className={styles['mobile-card-list']}>
             {orders.map((order) => (
               <div key={order.order_id} className={styles['order-card']}>
@@ -320,7 +313,6 @@ const OrderList = () => {
         </div>
       )}
 
-      {/* Phân trang */}
       {totalPages > 1 && (
         <div className={styles['custom-pagination']}>
           <Link

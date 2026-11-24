@@ -1,8 +1,8 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from '../css/detailuser/changeinfor.module.css';
-import DFavatar from '../../img/avatar/avatar.png'; // Default avatar
+import DFavatar from '../../img/avatar/avatar.png';
 import { Context } from '../login/context';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -10,7 +10,6 @@ import L from 'leaflet';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
-// Fix Leaflet icon issue (consistent with other components)
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -39,9 +38,8 @@ const ChangInfor = () => {
   const [addressError, setAddressError] = useState('');
   const { username } = useParams();
   const navigate = useNavigate();
-  const { user, loginContext } = React.useContext(Context);
+  const { user, loginContext } = useContext(Context);
 
-  // Lấy URL trực tiếp từ biến môi trường
   const API_URL = process.env.REACT_APP_BACKEND_URL;
 
   // Authentication check
@@ -51,10 +49,8 @@ const ChangInfor = () => {
     }
   }, [user, navigate]);
 
-  // Geocode address
   const geocodeAddress = async (address) => {
     if (!address || address.trim().length < 10 || !address.includes(' ')) {
-      console.warn('Address too short or generic:', address);
       return null;
     }
 
@@ -65,10 +61,8 @@ const ChangInfor = () => {
       );
       if (response.data.length > 0) {
         const { lat, lon, display_name } = response.data[0];
-        console.log('Geocoded address:', address, { lat, lon, display_name });
         return { lat: parseFloat(lat), lon: parseFloat(lon), display_name };
       }
-      console.warn('No geocoding results for:', address);
       return null;
     } catch (error) {
       console.error('Error geocoding address:', error);
@@ -76,24 +70,16 @@ const ChangInfor = () => {
     }
   };
 
-  // Fetch user data from API
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        console.log('Fetching user data for username:', username);
-        console.log('JWT Token:', localStorage.getItem('jwt'));
-        // Sử dụng API_URL thay cho localhost
+        // Đã xóa Authorization thủ công
         const response = await axios.get(
           `${API_URL}/api/v1/detailuserbyusername/${username}`,
           {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-            },
             withCredentials: true,
           }
         );
-
-        console.log('API Response:', response.data);
 
         if (response.data.errCode === 0) {
           const data = response.data.detailuser;
@@ -113,7 +99,6 @@ const ChangInfor = () => {
             address: data.address || '',
             sex: data.sex || '',
           });
-          // Cập nhật đường dẫn ảnh đại diện bằng API_URL
           setAvatarPreview(
             data.avatar
               ? `${API_URL}/images/useravatar/${data.avatar}`
@@ -135,11 +120,7 @@ const ChangInfor = () => {
         if (err.response?.status === 401 || err.response?.status === 403) {
           navigate('/login');
         } else {
-          const errorMessage =
-            err.response?.data?.message ||
-            err.message ||
-            'Đã xảy ra lỗi khi tải thông tin. Vui lòng thử lại.';
-          setError(errorMessage);
+          setError(err.response?.data?.message || 'Đã xảy ra lỗi khi tải thông tin. Vui lòng thử lại.');
         }
       }
     };
@@ -149,7 +130,6 @@ const ChangInfor = () => {
     }
   }, [username, navigate, user, API_URL]);
 
-  // Debounce address geocoding
   useEffect(() => {
     const debounceGeocode = setTimeout(async () => {
       if (formData.address) {
@@ -160,7 +140,7 @@ const ChangInfor = () => {
           setAddressError('');
         } else {
           setAddressError(
-            'Không thể xác định tọa độ. Vui lòng nhập địa chỉ chi tiết hơn (ví dụ: số nhà, đường, quận/huyện, tỉnh/thành).'
+            'Không thể xác định tọa độ. Vui lòng nhập địa chỉ chi tiết hơn.'
           );
           setTempCoords(null);
           setUserCoords(null);
@@ -176,7 +156,6 @@ const ChangInfor = () => {
     return () => clearTimeout(debounceGeocode);
   }, [formData.address]);
 
-  // Handle avatar change
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -186,7 +165,6 @@ const ChangInfor = () => {
     }
   };
 
-  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -197,12 +175,10 @@ const ChangInfor = () => {
     }
   };
 
-  // Handle date change for DatePicker
   const handleDateChange = (date) => {
     setFormData((prev) => ({ ...prev, dateOfBirth: date }));
   };
 
-  // Handle address confirmation
   const handleAddressConfirm = () => {
     if (!tempCoords) {
       setAddressError('Không có tọa độ để xác nhận. Vui lòng nhập địa chỉ chi tiết hơn.');
@@ -213,21 +189,18 @@ const ChangInfor = () => {
     setAddressError('');
   };
 
-  // Handle address rejection
   const handleAddressReject = () => {
     setTempCoords(null);
     setShowConfirm(false);
     setAddressError('Vui lòng nhập lại địa chỉ chi tiết hơn.');
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
     setIsLoading(true);
 
-    // Validation
     if (!formData.email.includes('@')) {
       setError('Vui lòng nhập email hợp lệ.');
       setIsLoading(false);
@@ -255,7 +228,6 @@ const ChangInfor = () => {
       return;
     }
 
-    // Age validation
     if (formData.dateOfBirth) {
       const today = new Date();
       const birthDate = new Date(formData.dateOfBirth);
@@ -284,13 +256,12 @@ const ChangInfor = () => {
     }
 
     try {
-      // Sử dụng API_URL cho API cập nhật người dùng
+      // Đã xóa Authorization thủ công
       const response = await axios.patch(
         `${API_URL}/api/v1/updateuser`,
         formDataToSend,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('jwt')}`,
             'Content-Type': 'multipart/form-data',
           },
           withCredentials: true,
@@ -309,6 +280,7 @@ const ChangInfor = () => {
 
         loginContext(
           {
+            ...user,
             username: updatedUser.username,
             fullname: updatedUser.fullname,
             avatar: updatedUser.avatar,
@@ -319,7 +291,7 @@ const ChangInfor = () => {
             dateOfBirth: updatedUser.dateOfBirth,
             auth: true,
           },
-          localStorage.getItem('user')
+          localStorage.getItem('user') ? true : false
         );
       } else {
         setError(response.data.message || 'Cập nhật thất bại.');
@@ -328,10 +300,7 @@ const ChangInfor = () => {
       if (err.response?.status === 401 || err.response?.status === 403) {
         navigate('/login');
       } else {
-        setError(
-          err.response?.data?.message ||
-            'Đã xảy ra lỗi khi cập nhật. Vui lòng thử lại.'
-        );
+        setError(err.response?.data?.message || 'Đã xảy ra lỗi khi cập nhật. Vui lòng thử lại.');
       }
     } finally {
       setIsLoading(false);

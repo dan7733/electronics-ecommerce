@@ -1,5 +1,6 @@
 import express from "express";
 import voucherModel from '../models/voucherModel.js';
+import notificationModel from '../models/notificationModel.js'; // 🔔 Import Model Thông báo
 import logger from '../configs/logger.js'; // Import custom logger
 
 // Tải trang thêm voucher
@@ -17,25 +18,48 @@ const createVoucher = async (req, res) => {
   }
 };
 
-// Thêm voucher mới
+// THÊM VOUCHER MỚI (GỬI THÔNG BÁO CHO ADMIN)
 const addVoucher = async (req, res) => {
   try {
     const { voucher, value, end_at } = req.body;
     
     if (!voucher || !value || !end_at) {
         logger.warn('Thêm voucher thất bại: Thiếu thông tin bắt buộc', { body: req.body });
+        return res.render("home", {
+          data: {
+            title: 'Thêm Voucher',
+            page: 'addVoucher',
+            message: "Thiếu thông tin bắt buộc!"
+          }
+        });
     }
 
     const result = await voucherModel.addVoucher(voucher, value, end_at);
     
     if (result) {
         logger.info('Thêm voucher thành công', { voucher, value });
+
+        // 🔔 THÔNG BÁO HỆ THỐNG: Ghi nhật ký Thêm voucher dành cho Admin
+        try {
+          const formattedValue = Number(value).toLocaleString('vi-VN');
+          await notificationModel.createNotification({
+            user_id: null, // null = gửi cho Admin
+            title: 'Thêm Voucher mới',
+            message: `Admin vừa tạo thành công mã giảm giá "${voucher}" (Giá trị: ${formattedValue} VND, Hạn dùng: ${end_at}).`,
+            type: 'system',
+            created_by: 'admin',
+            link: '/listVoucher'
+          });
+        } catch (notiErr) {
+          logger.error('Lỗi khi gửi thông báo thêm voucher cho Admin', { error: notiErr.message, voucher });
+        }
     } else {
         logger.warn('Thêm voucher thất bại tại Model', { voucher });
     }
 
     res.render("home", {
       data: {
+        title: 'Thêm Voucher',
         page: 'addVoucher',
         message: result ? "Thêm voucher thành công!" : "Thêm voucher thất bại, vui lòng thử lại."
       }
@@ -49,27 +73,17 @@ const addVoucher = async (req, res) => {
 // Danh sách vouchers có phân trang, tìm kiếm và sắp xếp
 const listVoucher = async (req, res) => {
   try {
-      // Lấy trang hiện tại từ query string, mặc định là 1
       const page = parseInt(req.query.page) || 1;
-      const limit = 5; // Số lượng vouchers trên mỗi trang
-      const offset = (page - 1) * limit; // Tính vị trí bắt đầu lấy dữ liệu
+      const limit = 5; 
+      const offset = (page - 1) * limit; 
       
-      // Lấy từ khóa tìm kiếm từ query string, mặc định là rỗng
       const searchKeyword = req.query.search || '';
-      
-      // Lấy tùy chọn sắp xếp từ query string, mặc định là 'default'
       const sortOption = req.query.sort || 'default';
       
-      // Lấy tổng số lượng vouchers
       const totalVouchers = await voucherModel.countVoucher(searchKeyword);
-      
-      // Tính tổng số trang
       const totalPages = Math.ceil(totalVouchers / limit);
       
-      // Lấy danh sách vouchers với các điều kiện tìm kiếm và sắp xếp
       const listVouchers = await voucherModel.listVoucher(offset, limit, searchKeyword, sortOption);
-      
-      // Lấy message từ query string (nếu có)
       const message = req.query.message || '';  
 
       res.render('home', {
@@ -90,17 +104,31 @@ const listVoucher = async (req, res) => {
   }
 };
 
-
-// Xóa voucher
+// XÓA VOUCHER (GỬI THÔNG BÁO CHO ADMIN)
 const deleteVoucher = async (req, res) => {
   try {
     const { id } = req.body;
     await voucherModel.deleteVoucher(id);
     logger.info('Xóa voucher thành công', { id });
-    res.redirect('/listVoucher?message=Xóa thành công');
+
+    // 🔔 THÔNG BÁO HỆ THỐNG: Ghi nhật ký Xóa voucher dành cho Admin
+    try {
+      await notificationModel.createNotification({
+        user_id: null, // null = gửi cho Admin
+        title: 'Xóa Voucher',
+        message: `Admin đã xóa mã giảm giá ID #${id} khỏi hệ thống.`,
+        type: 'system',
+        created_by: 'admin',
+        link: '/listVoucher'
+      });
+    } catch (notiErr) {
+      logger.error('Lỗi khi gửi thông báo xóa voucher cho Admin', { error: notiErr.message, id });
+    }
+
+    res.redirect('/listVoucher?message=' + encodeURIComponent('Xóa thành công'));
   } catch (error) {
     logger.error('Lỗi khi xóa voucher', { error: error.message, stack: error.stack, body: req.body });
-    res.redirect('/listVoucher?message=Xóa thất bại');
+    res.redirect('/listVoucher?message=' + encodeURIComponent('Xóa thất bại'));
   }
 };
 
@@ -129,31 +157,44 @@ const editVoucher = async (req, res) => {
   }
 };
 
-// Cập nhật voucher
+// CẬP NHẬT VOUCHER (GỬI THÔNG BÁO CHO ADMIN)
 const updateVoucher = async (req, res) => {
   const { id, voucherCode, value, end_at } = req.body;
   try {
     if (!id) {
         logger.warn('Cập nhật voucher thất bại: Thiếu ID voucher');
-        return res.redirect('/listVoucher?message=Cập nhật thất bại, thiếu ID');
+        return res.redirect('/listVoucher?message=' + encodeURIComponent('Cập nhật thất bại, thiếu ID'));
     }
 
     await voucherModel.updateVoucher(id, voucherCode, value, end_at);
     logger.info('Cập nhật voucher thành công', { id, voucherCode });
-    res.redirect(`/editVoucher/${id}?message=Cập nhật thành công`);
+
+    // 🔔 THÔNG BÁO HỆ THỐNG: Ghi nhật ký Cập nhật voucher dành cho Admin
+    try {
+      await notificationModel.createNotification({
+        user_id: null, // null = gửi cho Admin
+        title: 'Cập nhật Voucher',
+        message: `Admin đã cập nhật thông tin mã giảm giá "${voucherCode}" (ID: #${id}).`,
+        type: 'system',
+        created_by: 'admin',
+        link: `/editVoucher/${id}`
+      });
+    } catch (notiErr) {
+      logger.error('Lỗi khi gửi thông báo cập nhật voucher cho Admin', { error: notiErr.message, id });
+    }
+
+    res.redirect(`/editVoucher/${id}?message=${encodeURIComponent('Cập nhật thành công')}`);
   } catch (error) {
     logger.error('Lỗi khi cập nhật voucher', { error: error.message, stack: error.stack, body: req.body });
-    res.redirect(`/editVoucher/${id || ''}?message=Cập nhật thất bại`);
+    const redirectId = id || '';
+    res.redirect(`/editVoucher/${redirectId}?message=${encodeURIComponent('Cập nhật thất bại')}`);
   }
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////// api//////////////////////////////////////////////////
+//////////////////////////////////////// API /////////////////////////////////////////////////
 
-// ÁP DỤNG VOUCHER
+// ÁP DỤNG VOUCHER (API CHO KHÁCH HÀNG)
 const applyVoucherAPI = async (req, res) => {
   const { voucherCode } = req.body;
 
@@ -200,6 +241,5 @@ export default {
   deleteVoucher,
   editVoucher,
   updateVoucher,
-  //API
   applyVoucherAPI
 };

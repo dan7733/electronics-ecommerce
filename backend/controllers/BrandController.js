@@ -2,6 +2,7 @@ import express from "express";
 import fs from 'fs';
 import path from 'path';
 import brandModel from '../models/brandModel.js';  // Import model xử lý với CSDL
+import notificationModel from '../models/notificationModel.js'; // 🔔 Import Model Thông báo
 import { UnknownConstraintError } from "sequelize";
 import logger from '../configs/logger.js'; // Import custom logger
 
@@ -23,28 +24,32 @@ const deleteImage = (filename) => {
 const createBrand = async (req, res) => {
   return res.render('home', {
     data: {
-      title: 'List Brand',
+      title: 'Thêm hãng',
       page: 'addBrand',
     }
   });
 };
 
-// thêm hãng
+// Thêm hãng
 const addBrand = async (req, res) => {
   try {
     const { addbrand_name, addbrand_highlight, addbrand_country } = req.body;
     const logo = req.file?.filename || null;
 
-    //  Kiểm tra dữ liệu trước khi lưu
+    // Kiểm tra dữ liệu trước khi lưu
     if (!addbrand_name) {
       logger.warn('Thêm hãng thất bại: Tên hãng trống');
       deleteImage(logo); // Xóa ảnh ngay nếu dữ liệu không hợp lệ
       return res.render("home", { 
-        data: { page: 'addBrand', message: "Tên hãng không được để trống!" } 
+        data: { 
+          title: 'Thêm hãng',
+          page: 'addBrand', 
+          message: "Tên hãng không được để trống!" 
+        } 
       });
     }
 
-    //  Lưu vào database
+    // Lưu vào database
     const result = await brandModel.addBrand(
       addbrand_name, 
       logo, 
@@ -54,12 +59,41 @@ const addBrand = async (req, res) => {
 
     if (result) {
       logger.info('Thêm hãng thành công', { brandName: addbrand_name, country: addbrand_country });
+
+      // 🔔 XỬ LÝ THÔNG BÁO TỰ ĐỘNG
+      try {
+        const highlightVal = parseInt(addbrand_highlight) || 0;
+        
+        // 1. Nếu hãng nổi bật (Độ ưu tiên >= 3) -> Broadcast gửi cho toàn bộ User
+        if (highlightVal >= 3) {
+          await notificationModel.sendBroadcastNotification(
+            `Thương hiệu mới: ${addbrand_name}!`,
+            `Hệ thống vừa cập nhật thương hiệu chính hãng ${addbrand_name} (${addbrand_country || 'Quốc tế'}). Khám phá ngay các sản phẩm mới!`,
+            'news',
+            `/listproduct?search=${encodeURIComponent(addbrand_name)}`
+          );
+        }
+
+        // 2. Tạo thông báo Hệ thống (Audit log) ghi nhận việc Admin thêm hãng
+        await notificationModel.createNotification({
+          user_id: null,
+          title: 'Thêm thương hiệu mới',
+          message: `Admin vừa thêm thành công thương hiệu "${addbrand_name}" (Quốc gia: ${addbrand_country || 'Unknown'}, Highlight: ${highlightVal}).`,
+          type: 'system',
+          created_by: 'admin',
+          link: '/listbrand'
+        });
+      } catch (notiError) {
+        logger.error('Lỗi khi gửi thông báo thêm hãng', { error: notiError.message });
+      }
+
     } else {
       logger.warn('Thêm hãng thất bại tại Model', { brandName: addbrand_name });
     }
 
     res.render("home", {
       data: {
+        title: 'Thêm hãng',
         page: 'addBrand',
         message: result ? "Thêm hãng thành công!" : "Thêm hãng thất bại, vui lòng thử lại."
       }
@@ -72,35 +106,25 @@ const addBrand = async (req, res) => {
   }
 };
 
-// danh sách hãng snả phẩm
+// Danh sách hãng sản phẩm
 const listBrand = async (req, res) => {
   try {
-      // Lấy trang hiện tại từ query string, mặc định là 1
       const page = parseInt(req.query.page) || 1;
       const limit = 5; // số lượng thương hiệu trên mỗi trang
       const offset = (page - 1) * limit; // vị trí bắt đầu lấy thương hiệu
 
-      // Lấy từ khóa tìm kiếm từ query string, mặc định là rỗng
       const searchKeyword = req.query.search || '';
-
-      // Lấy tùy chọn sắp xếp từ query string, mặc định là 'default'
       const sortOption = req.query.sort || 'default';
 
-      // Lấy tổng số thương hiệu
       const totalBrand = await brandModel.countBrand(searchKeyword);
-
-      // Tính tổng số trang
       const totalPages = Math.ceil(totalBrand / limit);
-
-      // Nhận message từ URL nếu có
       const message = req.query.message || '';  
 
-      // Lấy danh sách thương hiệu
       const listBrand = await brandModel.listBrand(offset, limit, searchKeyword, sortOption);
 
       res.render('home', {
           data: {
-              title: 'List Brand',
+              title: 'Danh sách hãng',
               page: 'listBrand',
               rows: listBrand,
               currentPage: page,
@@ -116,23 +140,38 @@ const listBrand = async (req, res) => {
   }
 };
 
-// Xóa 
+// Xóa hãng
 const deleteBrand = async (req, res) => {
   const { brand_id } = req.body;
   try {
     const logo = await brandModel.deleteBrand(brand_id);
-    if(logo){
+    if (logo) {
       deleteImage(logo);
     }
     logger.info('Xóa hãng thành công', { brand_id });
-    res.redirect('/listbrand?message=Xóa thành công');
+
+    // 🔔 THÔNG BÁO HỆ THỐNG: Ghi nhận nhật ký xóa hãng dành cho Admin
+    try {
+      await notificationModel.createNotification({
+        user_id: null,
+        title: 'Xóa thương hiệu',
+        message: `Admin đã xóa thương hiệu (ID: #${brand_id}) khỏi hệ thống.`,
+        type: 'system',
+        created_by: 'admin',
+        link: '/listbrand'
+      });
+    } catch (notiError) {
+      logger.error('Lỗi khi gửi thông báo xóa hãng', { error: notiError.message });
+    }
+
+    res.redirect('/listbrand?message=' + encodeURIComponent('Xóa thành công'));
   } catch (error) {
     logger.error('Lỗi khi xóa hãng', { error: error.message, stack: error.stack, brand_id });
-    res.redirect('/listbrand?message=Xóa thất bại');
+    res.redirect('/listbrand?message=' + encodeURIComponent('Xóa thất bại'));
   }
 };
 
-// lấy chi tiết nhãn hàng
+// Lấy chi tiết nhãn hàng
 const editBrand = async (req, res) => {
   const { brandid } = req.params;
   try {
@@ -140,7 +179,7 @@ const editBrand = async (req, res) => {
     const message = req.query.message || '';
     return res.render('home', {
       data: {
-        title: 'Update Brand',
+        title: 'Cập nhật hãng',
         page: 'updateBrand',
         brand: brand,
         message: message
@@ -154,9 +193,8 @@ const editBrand = async (req, res) => {
 
 // Cập nhật nhãn hàng
 const updateBrand = async (req, res) => {
+  const { brand_id, brandName, brandCountry, oldLogo, highlight } = req.body;
   try {
-    const { brand_id, brandName, brandCountry, oldLogo, highlight } = req.body;
-
     // Kiểm tra brand_id có tồn tại không
     if (!brand_id) {
       logger.warn('Cập nhật hãng thất bại: Thiếu brand_id');
@@ -181,8 +219,22 @@ const updateBrand = async (req, res) => {
       throw new Error("Cập nhật thất bại");
     }
 
+    // 🔔 THÔNG BÁO HỆ THỐNG: Ghi nhận nhật ký cập nhật hãng dành cho Admin
+    try {
+      await notificationModel.createNotification({
+        user_id: null,
+        title: 'Cập nhật thương hiệu',
+        message: `Admin đã cập nhật thông tin thương hiệu "${brandName}" (ID: #${brand_id}).`,
+        type: 'system',
+        created_by: 'admin',
+        link: `/editbrand/${brand_id}`
+      });
+    } catch (notiError) {
+      logger.error('Lỗi khi gửi thông báo cập nhật hãng', { error: notiError.message });
+    }
+
     logger.info('Cập nhật hãng thành công', { brand_id, brandName });
-    return res.redirect(`/editbrand/${brand_id}?message=Cập nhật thành công`);
+    return res.redirect(`/editbrand/${brand_id}?message=${encodeURIComponent('Cập nhật thành công')}`);
   } catch (error) {
     logger.error("Lỗi cập nhật thương hiệu", { error: error.message, stack: error.stack, body: req.body });
 
@@ -191,16 +243,14 @@ const updateBrand = async (req, res) => {
       deleteImage(req.file.filename);
     }
 
-    return res.redirect(`/editbrand?message=${encodeURIComponent(error.message)}`);
+    const redirectId = brand_id || '';
+    return res.redirect(`/editbrand/${redirectId}?message=${encodeURIComponent(error.message)}`);
   }
 };
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////// api//////////////////////////////////////////////////
+//////////////////////////////////////// API /////////////////////////////////////////////////
 
 const getAllBrandAPI = async (req, res) => {
   try {
@@ -226,6 +276,5 @@ export default {
   deleteBrand,
   editBrand,
   updateBrand,
-  // API
   getAllBrandAPI
 };

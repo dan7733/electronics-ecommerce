@@ -19,10 +19,8 @@ const OrderDetail = () => {
 
   const fetchOrderDetails = useCallback(async () => {
     try {
+      // Đã xóa Authorization thủ công
       const response = await axios.get(`${API_URL}/api/v1/orderdetail/${orderid}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-        },
         withCredentials: true,
       });
 
@@ -31,11 +29,9 @@ const OrderDetail = () => {
         setOrderDetails(response.data.data.orderDetails);
 
         const reviewPromises = response.data.data.orderDetails.map(async (detail) => {
+          // Đã xóa Authorization thủ công
           const reviewResponse = await axios.get(`${API_URL}/api/v1/user-review`, {
             params: { order_id: orderid, product_id: detail.product_id, username: user.username },
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-            },
             withCredentials: true,
           });
           return { product_id: detail.product_id, review: reviewResponse.data.data };
@@ -102,7 +98,6 @@ const OrderDetail = () => {
 
   return (
     <div className={styles.container}>
-      {/* Header đơn hàng */}
       <div className={styles.headerRow}>
         <h4 className={styles.pageTitle}>
           <i className="fa-solid fa-file-invoice me-2"></i> Chi tiết đơn hàng #{orderid}
@@ -123,7 +118,6 @@ const OrderDetail = () => {
 
       {!loading && order && (
         <>
-          {/* Khối thông tin đơn hàng & giao hàng */}
           <div className={styles.orderInfoGrid}>
             <div className={styles.infoCard}>
               <h6 className={styles.cardTitle}>
@@ -157,7 +151,6 @@ const OrderDetail = () => {
               </div>
             </div>
 
-            {/* Thẻ Thông tin giao hàng đã fix layout */}
             <div className={styles.infoCard}>
               <h6 className={styles.cardTitle}>
                 <i className="fa-solid fa-truck-ramp-box me-2"></i> Thông tin giao hàng
@@ -173,14 +166,12 @@ const OrderDetail = () => {
             </div>
           </div>
 
-          {/* Danh sách sản phẩm */}
           {orderDetails.length > 0 && (
             <div className={styles.sectionCard}>
               <h6 className={styles.cardTitle}>
                 <i className="fa-solid fa-boxes-packing me-2"></i> Danh sách sản phẩm
               </h6>
 
-              {/* Bảng cho Desktop */}
               <div className={styles.desktopTableWrapper}>
                 <table className={styles.orderTable}>
                   <thead>
@@ -220,7 +211,6 @@ const OrderDetail = () => {
                 </table>
               </div>
 
-              {/* Card List cho Mobile */}
               <div className={styles.mobileProductList}>
                 {orderDetails.map((detail) => {
                   const itemPrice = detail.price || detail.discount_price || 0;
@@ -249,7 +239,6 @@ const OrderDetail = () => {
             </div>
           )}
 
-          {/* Đánh giá sản phẩm */}
           {orderDetails.length > 0 && (
             <div className={styles.sectionCard}>
               <h6 className={styles.cardTitle}>

@@ -13,7 +13,6 @@ body {
 .custom-sidebar {
     width: 250px;
     height: 100vh;
-    /* Ensure it occupies the full height */
     background: #218282;
     padding-top: 20px;
     position: fixed;
@@ -22,7 +21,7 @@ body {
     left: 0;
     top: 0;
     overflow-y: auto;
-    /* Allow scrolling within the sidebar */
+    font-size: 18px !important;
 }
 
 .custom-sidebar a {
@@ -33,7 +32,7 @@ body {
 }
 
 .custom-sidebar a:hover {
-    background: #218282;
+    background: #1a6b6b;
 }
 
 #main {
@@ -53,9 +52,7 @@ body {
     color: white;
     font-size: 20px !important;
 }
-.custom-sidebar{
-    font-size: 18px !important;
-}
+
 .custom-sidebar-toggle {
     background: none;
     border: none;
@@ -69,15 +66,11 @@ body {
 }
 
 .custom-hide-sidebar-btn {
-    display: none;
+    display: none !important;
 }
 
 .custom-header-menu-mobile {
     display: none;
-}
-
-.custom-hide-sidebar-btn {
-    display: none !important;
 }
 
 .card-custom {
@@ -162,10 +155,37 @@ body {
 .custom-sidebar ul li a:hover {
     background: #1a6b6b;
 }
+
+/* 🔔 STYLES CHO THÔNG BÁO ADMIN DASHBOARD */
+.admin-noti-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 8px;
+}
+
+.admin-noti-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.admin-noti-card.is-unread {
+    background-color: #fff;
+    border-left: 4px solid #ffc107 !important;
+}
+
+.admin-noti-card.is-read {
+    background-color: #f8f9fa;
+    opacity: 0.85;
+}
+
+.btn-xs {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.78rem;
+    border-radius: 4px;
+}
+
 @media (max-width: 820px) {
     .custom-sidebar {
         height: 100vh;
-        /* Ensure it occupies the full height */
         transform: translateX(-100%);
         position: fixed;
         z-index: 10000;
@@ -195,7 +215,7 @@ body {
     }
 
     .custom-hide-sidebar-btn {
-        display: block;
+        display: block !important;
     }
 
     .custom-show-sidebar-btn {
@@ -211,10 +231,6 @@ body {
         left: 0;
         z-index: 999;
         display: none;
-    }
-
-    .custom-hide-sidebar-btn {
-        display: block !important;
     }
 }
 

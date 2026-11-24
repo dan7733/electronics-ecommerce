@@ -20,19 +20,16 @@
   transition: all 0.3s ease;
 }
 
-/* Hiệu ứng focus chuyên nghiệp (Light Mode) */
 .searchContainer:focus-within {
   border-color: #218282;
   box-shadow: 0 0 0 3px rgba(33, 130, 130, 0.25);
 }
 
-/* Icon kính lúp */
 .searchIcon {
   color: #888888;
   transition: color 0.3s ease;
 }
 
-/* Search box - Khử viền trắng mặc định khi focus */
 .searchBox {
   background: transparent !important;
   outline: none !important;
@@ -57,7 +54,6 @@
   transition: background-color 0.3s ease;
 }
 
-/* Mobile search */
 .mobileSearch {
   background: white;
   border-radius: 20px;
@@ -95,6 +91,139 @@
 .actionButtons .btn:hover {
   background-color: rgba(255, 255, 255, 0.15);
   opacity: 1;
+}
+
+/* Nút Icon */
+.iconBtn {
+  position: relative;
+  padding: 8px !important;
+  border-radius: 50% !important;
+}
+
+/* 🔔 NOTIFICATION STYLES */
+.notiDropdown {
+  position: relative;
+}
+
+.notiBadge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: #ff4d4f;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 5px;
+  border-radius: 10px;
+  line-height: 1;
+  border: 1.5px solid #218282;
+}
+
+.notiMenu {
+  position: absolute;
+  right: -50px;
+  top: 120%;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+  width: 330px;
+  max-width: 90vw;
+  z-index: 1060;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notiHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  color: #1e293b;
+}
+
+.markReadBtn {
+  background: transparent;
+  border: none;
+  color: #218282;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.markReadBtn:hover {
+  text-decoration: underline;
+}
+
+.notiList {
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.notiItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.notiItem:hover {
+  background-color: #f8fafc;
+}
+
+.notiItem.unread {
+  background-color: #f0fdfa;
+}
+
+.notiIconBox {
+  padding-top: 2px;
+}
+
+.notiContent {
+  flex: 1;
+}
+
+.notiTitle {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+
+.notiMessage {
+  font-size: 12.5px;
+  color: #64748b;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notiTime {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.unreadDot {
+  width: 8px;
+  height: 8px;
+  background-color: #218282;
+  border-radius: 50%;
+  margin-top: 6px;
 }
 
 /* User dropdown */
@@ -169,7 +298,7 @@
   cursor: pointer;
 }
 
-/* ================= NAV MENU ================= */
+/* NAV MENU */
 .navMenu {
   background-color: #1a6b6b !important;
   padding: 0; 
@@ -195,7 +324,6 @@
   color: #e0f2f1 !important;
 }
 
-/* ===== FIX DROPDOWN SUB-MENU ===== */
 .navMenu :global(.dropdown-menu) {
   background-color: #1a6b6b !important;
   border: none;
@@ -218,10 +346,10 @@
   padding-left: 23px;
 }
 
-/* ================= RESPONSIVE STYLES ================= */
+/* RESPONSIVE STYLES */
 @media (max-width: 992px) {
   .searchContainer { display: none !important; }
-  
+
   .navMenu :global(.navbar-nav) {
     padding: 10px 15px;
   }
@@ -295,7 +423,8 @@
     font-size: 18px; 
   }
 
-  .dropdownMenu {
+  .dropdownMenu,
+  .notiMenu {
     right: -10px; 
   }
 }
@@ -307,7 +436,6 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* XỬ LÝ LÀM NỔI BẬT LOGO TRONG DARK MODE */
 :global(body.dark-mode) :global(.navbar-brand) img {
   filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.85)) drop-shadow(0 0 12px rgba(54, 181, 181, 0.5));
   transition: filter 0.3s ease, transform 0.3s ease;
@@ -372,4 +500,53 @@
 :global(body.dark-mode) .dropdownItem:hover {
   background-color: #2c3b42;
   color: #36b5b5;
+}
+
+/* 🌙 DARK MODE FOR NOTIFICATION DROPDOWN */
+:global(body.dark-mode) .notiBadge {
+  border-color: #141b1f;
+}
+
+:global(body.dark-mode) .notiMenu {
+  background-color: #243036;
+  border-color: #32434b;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+:global(body.dark-mode) .notiHeader {
+  background-color: #1c252a;
+  border-bottom-color: #32434b;
+  color: #f1f5f9;
+}
+
+:global(body.dark-mode) .markReadBtn {
+  color: #36b5b5;
+}
+
+:global(body.dark-mode) .notiItem {
+  border-bottom-color: #2c3b42;
+}
+
+:global(body.dark-mode) .notiItem:hover {
+  background-color: #2c3b42;
+}
+
+:global(body.dark-mode) .notiItem.unread {
+  background-color: #1e3a3a;
+}
+
+:global(body.dark-mode) .notiTitle {
+  color: #f1f5f9;
+}
+
+:global(body.dark-mode) .notiMessage {
+  color: #94a3b8;
+}
+
+:global(body.dark-mode) .notiTime {
+  color: #64748b;
+}
+
+:global(body.dark-mode) .unreadDot {
+  background-color: #36b5b5;
 }

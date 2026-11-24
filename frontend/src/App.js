@@ -9,12 +9,13 @@ import CookieBanner from './containers/cookiebanner/CookieBanner';
 import { ContextProvider, Context } from './containers/login/context'; 
 import { setupAxiosInterceptors } from './containers/login/userService';
 import { ThemeProvider } from './context/ThemeContext'; 
+
 const AppContent = () => {
   const navigate = useNavigate();
   const { logoutContext } = useContext(Context);
 
   useEffect(() => {
-    // Kích hoạt đánh chặn token tự động cho toàn bộ app
+    // Kích hoạt/Cập nhật navigate và logoutContext cho Axios Interceptor
     setupAxiosInterceptors(navigate, logoutContext);
   }, [navigate, logoutContext]);
 
@@ -42,7 +43,7 @@ const AppContent = () => {
 function App() {
   return (
     <ContextProvider>
-      {/* 2. Bọc toàn bộ ứng dụng trong ThemeProvider */}
+      {/* Bọc toàn bộ ứng dụng trong ThemeProvider */}
       <ThemeProvider>
         <AppContent />
       </ThemeProvider>

@@ -4,21 +4,28 @@ import CryptoJS from 'crypto-js';
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 const SECRET_KEY = process.env.REACT_APP_STORAGE_SECRET; 
 
-// Hàm giải mã lấy token (Đặt ở đây để dùng chung mà không dính tới React Hooks)
+// Hàm giải mã lấy token từ Storage
 export const getAccessToken = () => {
     const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
     if (!userData) return null;
     try {
         const bytes = CryptoJS.AES.decrypt(userData, SECRET_KEY);
-        const user = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+        const decryptedStr = bytes.toString(CryptoJS.enc.Utf8);
+        if (!decryptedStr) return null;
+
+        const user = JSON.parse(decryptedStr);
         return user?.accessToken || null;
-    } catch {
+    } catch (err) {
+        console.error('Lỗi giải mã token từ storage:', err);
         return null;
     }
 };
 
 let isRefreshing = false;
 let failedQueue = [];
+let navigateRef = null;
+let logoutContextRef = null;
+let isInterceptorSetup = false;
 
 const processQueue = (error, token = null) => {
     failedQueue.forEach((prom) => {
@@ -28,10 +35,15 @@ const processQueue = (error, token = null) => {
     failedQueue = [];
 };
 
-// Thiết lập tự động cho mọi Axios request
 export const setupAxiosInterceptors = (navigate, logoutContext) => {
-    
-    // REQUEST INTERCEPTOR: Tự động gắn Access Token vào mọi request
+    if (navigate) navigateRef = navigate;
+    if (logoutContext) logoutContextRef = logoutContext;
+
+    // Ngăn đính kèm trùng lặp interceptor khi App re-render
+    if (isInterceptorSetup) return;
+    isInterceptorSetup = true;
+
+    // REQUEST INTERCEPTOR: Tự động gắn Token vào tất cả API
     axios.interceptors.request.use(
         (config) => {
             const token = getAccessToken();
@@ -43,13 +55,12 @@ export const setupAxiosInterceptors = (navigate, logoutContext) => {
         (error) => Promise.reject(error)
     );
 
-    // RESPONSE INTERCEPTOR: Tự động làm mới token nếu bị 401
+    // RESPONSE INTERCEPTOR: Tự động làm mới token nếu bị lỗi 401
     axios.interceptors.response.use(
         (response) => response,
         async (error) => {
             const originalRequest = error.config;
             
-            // Thêm điều kiện !originalRequest.url.includes('/refresh-token')
             if (
                 error.response &&
                 error.response.status === 401 &&
@@ -72,14 +83,12 @@ export const setupAxiosInterceptors = (navigate, logoutContext) => {
 
                 isRefreshing = true;
                 try {
-                    // Gọi API xin token mới
                     const response = await axios.get(`${API_URL}/api/v1/refresh-token`, {
                         withCredentials: true,
                     });
                     
                     const { accessToken } = response.data;
                     
-                    // Cập nhật lại Storage với token mới
                     const userData = localStorage.getItem('user') || sessionStorage.getItem('user');
                     if (userData) {
                         const bytes = CryptoJS.AES.decrypt(userData, SECRET_KEY);
@@ -93,13 +102,18 @@ export const setupAxiosInterceptors = (navigate, logoutContext) => {
                     processQueue(null, accessToken);
                     originalRequest.headers.Authorization = `Bearer ${accessToken}`;
                     
-                    // Chạy lại request đang bị kẹt
                     return axios(originalRequest);
                 } catch (refreshError) {
-                    // Nếu xin Refresh Token cũng lỗi (VD: Quá 7 ngày), thì ép đăng xuất
                     processQueue(refreshError, null);
-                    if (logoutContext) logoutContext();
-                    navigate('/login');
+                    if (logoutContextRef) logoutContextRef();
+                    else {
+                        localStorage.removeItem('user');
+                        sessionStorage.removeItem('user');
+                    }
+
+                    if (navigateRef) navigateRef('/login');
+                    else window.location.href = '/login';
+
                     return Promise.reject(refreshError);
                 } finally {
                     isRefreshing = false;
@@ -109,6 +123,9 @@ export const setupAxiosInterceptors = (navigate, logoutContext) => {
         }
     );
 };
+
+// Kích hoạt Interceptor ngay lập tức khi file vừa được nạp vào dự án
+setupAxiosInterceptors();
 
 const login = async (username, password) => {
     return await axios.post(`${API_URL}/api/v1/login`, { username, password }, { withCredentials: true });

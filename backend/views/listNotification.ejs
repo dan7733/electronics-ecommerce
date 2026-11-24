@@ -1,0 +1,288 @@
+<div class="container listnotification-container my-4">
+    <!-- Header: Đã bỏ hoàn toàn nút "Đọc tất cả" -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <h4 class="mb-1 listnotification-title font-weight-bold">
+                <i class="fas fa-bell me-2"></i>Quản lý Thông báo
+            </h4>
+            <span class="badge bg-secondary">Tổng số nhóm/thông báo: <%= data.totalNotifications %></span>
+        </div>
+        <div>
+            <a href="/addnotification" class="btn addnotification-btn-add">
+                <i class="fas fa-plus me-1"></i>Gửi thông báo mới
+            </a>
+        </div>
+    </div>
+
+    <% if (data.message) { %>
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i><%= data.message %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+
+    <!-- Bộ lọc Quản trị: Đã bỏ lọc Trạng thái đọc -->
+    <div class="card p-3 mb-3 noti-filter-card rounded-3">
+        <form action="/listnotification" method="GET" id="notiFilterForm" class="noti-filter-grid">
+            <!-- 1. Tìm kiếm từ khóa -->
+            <div class="noti-filter-item-search">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0" style="border-color: #218282;">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" name="search" id="noti_searchInput"
+                        class="form-control listnotification-searchinput border-start-0"
+                        placeholder="Tìm tiêu đề, nội dung..." value="<%= data.search %>">
+                </div>
+            </div>
+
+            <!-- 2. Loại thông báo -->
+            <div class="noti-filter-item">
+                <select name="type" class="form-select listnotification-filter" onchange="submitNotiFilter()">
+                    <option value="">-- Loại thông báo --</option>
+                    <option value="system" <%= data.typeFilter === 'system' ? 'selected' : '' %>>Hệ thống</option>
+                    <option value="news" <%= data.typeFilter === 'news' ? 'selected' : '' %>>Tin tức & KM</option>
+                    <option value="order" <%= data.typeFilter === 'order' ? 'selected' : '' %>>Đơn hàng</option>
+                    <option value="account" <%= data.typeFilter === 'account' ? 'selected' : '' %>>Tài khoản</option>
+                </select>
+            </div>
+
+            <!-- 3. Nguồn tạo -->
+            <div class="noti-filter-item">
+                <select name="created_by" class="form-select listnotification-filter" onchange="submitNotiFilter()">
+                    <option value="">-- Nguồn tạo --</option>
+                    <option value="admin" <%= data.createdByFilter === 'admin' ? 'selected' : '' %>>Admin gửi</option>
+                    <option value="system" <%= data.createdByFilter === 'system' ? 'selected' : '' %>>Hệ thống tự động</option>
+                </select>
+            </div>
+
+            <!-- 4. Đối tượng nhận -->
+            <div class="noti-filter-item">
+                <select name="receiver" class="form-select listnotification-filter" onchange="submitNotiFilter()">
+                    <option value="">-- Đối tượng nhận --</option>
+                    <option value="single" <%= data.receiverFilter === 'single' ? 'selected' : '' %>>User cụ thể</option>
+                    <option value="admin" <%= data.receiverFilter === 'admin' ? 'selected' : '' %>>Nhật ký hệ thống</option>
+                </select>
+            </div>
+
+            <!-- 5. Nút Lọc & Reset -->
+            <div class="noti-filter-actions">
+                <button type="submit" class="btn addnotification-btn-add" title="Tìm kiếm">
+                    <i class="fas fa-filter"></i>
+                </button>
+                <a href="/listnotification" class="btn btn-outline-secondary" title="Đặt lại">
+                    <i class="fas fa-undo"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bảng thông báo Quản trị -->
+    <div class="table-responsive rounded shadow-sm bg-white p-2">
+        <table class="table table-hover align-middle listnotification-table mb-0">
+            <thead>
+                <tr>
+                    <th width="55">STT</th>
+                    <th width="70">ID</th>
+                    <th>Đối tượng / Người nhận</th>
+                    <th>Tiêu đề</th>
+                    <th width="130">Loại</th>
+                    <th width="130">Nguồn tạo</th>
+                    <th width="165">Thời gian gửi</th>
+                    <th width="145" class="text-center">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (data.rows && data.rows.length > 0) { %>
+                    <% data.rows.forEach((noti, index) => { %>
+                    <tr>
+                        <td><%= (data.currentPage - 1) * 7 + index + 1 %></td>
+                        <td>#<%= noti.notification_id %></td>
+                        <td>
+                            <% if (noti.isGroup && noti.recipientCount > 1) { %>
+                                <span class="badge bg-success px-2 py-2">
+                                    <i class="fas fa-bullhorn me-1"></i>Broadcast (<%= noti.recipientCount %> người dùng)
+                                </span>
+                            <% } else if (noti.User) { %>
+                                <span class="badge bg-info text-dark px-2 py-2">
+                                    <i class="fas fa-user me-1"></i><%= noti.User.fullname || noti.User.username %> (ID: #<%= noti.user_id %>)
+                                </span>
+                            <% } else { %>
+                                <span class="badge bg-secondary px-2 py-2">
+                                    <i class="fas fa-shield-alt me-1"></i>Nhật ký hệ thống
+                                </span>
+                            <% } %>
+                        </td>
+                        <td class="text-start">
+                            <strong class="text-dark"><%= noti.title %></strong>
+                            <% if (noti.link) { %>
+                                <small class="d-block text-muted"><i class="fas fa-link me-1"></i><%= noti.link %></small>
+                            <% } %>
+                        </td>
+                        <td>
+                            <% if (noti.type === 'system') { %>
+                                <span class="badge bg-danger">Hệ thống</span>
+                            <% } else if (noti.type === 'order') { %>
+                                <span class="badge bg-success">Đơn hàng</span>
+                            <% } else if (noti.type === 'account') { %>
+                                <span class="badge bg-info text-dark">Tài khoản</span>
+                            <% } else { %>
+                                <span class="badge bg-primary">Tin tức</span>
+                            <% } %>
+                        </td>
+                        <td>
+                            <span class="badge <%= noti.created_by === 'admin' ? 'bg-success' : 'bg-warning text-dark' %>">
+                                <%= noti.created_by === 'admin' ? 'Admin gửi' : 'Tự động' %>
+                            </span>
+                        </td>
+                        <td class="small"><%= new Date(noti.created_at).toLocaleString('vi-VN') %></td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-outline-primary me-1"
+                                onclick="openNotiModal('<%= noti.notification_id %>', <%= noti.isGroup %>, '<%= noti.recipientCount %>')"
+                                title="Xem chi tiết">
+                                <i class="fas fa-eye"></i> Xem
+                            </button>
+
+                            <form action="/deletenotification" method="POST" class="d-inline-block"
+                                onsubmit="return confirm('Bạn có chắc chắn muốn xóa thông báo/nhóm này?');">
+                                <% if (noti.isGroup && noti.allIds) { %>
+                                    <input type="hidden" name="ids" value="<%= noti.allIds.join(',') %>" />
+                                <% } else { %>
+                                    <input type="hidden" name="notification_id" value="<%= noti.notification_id %>" />
+                                <% } %>
+                                <button class="btn btn-sm btn-outline-danger" type="submit" title="Xóa">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <i class="far fa-bell-slash fa-2x mb-2 d-block"></i>
+                            Không tìm thấy thông báo nào phù hợp.
+                        </td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Phân trang -->
+    <% if (data.totalPages > 1) { %>
+        <nav class="mt-3">
+            <ul class="pagination justify-content-center listnotification-pagination">
+                <li class="page-item <%= data.currentPage === 1 ? 'disabled' : '' %>">
+                    <a class="page-link"
+                        href="?page=<%= data.currentPage - 1 %>&search=<%= encodeURIComponent(data.search) %>&type=<%= data.typeFilter %>&created_by=<%= data.createdByFilter %>&receiver=<%= data.receiverFilter %>">«</a>
+                </li>
+
+                <% for (let i = 1; i <= data.totalPages; i++) { %>
+                    <li class="page-item <%= data.currentPage === i ? 'active' : '' %>">
+                        <a class="page-link"
+                            href="?page=<%= i %>&search=<%= encodeURIComponent(data.search) %>&type=<%= data.typeFilter %>&created_by=<%= data.createdByFilter %>&receiver=<%= data.receiverFilter %>"><%= i %></a>
+                    </li>
+                <% } %>
+
+                <li class="page-item <%= data.currentPage === data.totalPages ? 'disabled' : '' %>">
+                    <a class="page-link"
+                        href="?page=<%= data.currentPage + 1 %>&search=<%= encodeURIComponent(data.search) %>&type=<%= data.typeFilter %>&created_by=<%= data.createdByFilter %>&receiver=<%= data.receiverFilter %>">»</a>
+                </li>
+            </ul>
+        </nav>
+    <% } %>
+</div>
+
+<!-- Modal xem chi tiết -->
+<div class="modal fade" id="detailNotiModal" tabindex="-1" aria-labelledby="detailNotiModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header" style="background-color: #218282; color: white;">
+                <h5 class="modal-title" id="detailNotiModalLabel">
+                    <i class="fas fa-info-circle me-2"></i> Chi tiết Thông báo
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-start p-4">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="badge bg-secondary" id="modal_noti_type">LOẠI</span>
+                    <small class="text-muted" id="modal_noti_date"></small>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-3" id="modal_noti_title"></h5>
+
+                <div class="p-3 bg-light rounded border text-secondary mb-3" id="modal_noti_message"
+                    style="white-space: pre-line; line-height: 1.6;"></div>
+
+                <div class="p-2 bg-light rounded border-start border-4 small" style="border-color: #218282 !important;">
+                    <p class="mb-1"><strong>ID Thông báo:</strong> #<span id="modal_noti_id"></span></p>
+                    <p class="mb-1"><strong>Đối tượng nhận:</strong> <span id="modal_noti_receiver"></span></p>
+                    <p class="mb-1"><strong>Nguồn tạo:</strong> <span id="modal_noti_createdby"></span></p>
+                    <p class="mb-0"><strong>Link chuyển hướng:</strong> <span id="modal_noti_link"></span></p>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <a id="modal_noti_link_btn" href="#" class="btn btn-primary d-none"
+                    style="background-color: #218282; border: none;">
+                    <i class="fas fa-external-link-alt me-1"></i>Truy cập link
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function submitNotiFilter() {
+    document.getElementById('notiFilterForm').submit();
+}
+
+async function openNotiModal(notiId, isGroup, recipientCount) {
+    try {
+        const response = await fetch(`/api/v1/notifications/${notiId}`);
+        const result = await response.json();
+
+        if (result.errCode === 0 && result.data) {
+            const noti = result.data;
+
+            document.getElementById('modal_noti_id').innerText = noti.notification_id;
+            document.getElementById('modal_noti_title').innerText = noti.title;
+            document.getElementById('modal_noti_message').innerText = noti.message;
+            document.getElementById('modal_noti_date').innerText = new Date(noti.created_at).toLocaleString('vi-VN');
+            document.getElementById('modal_noti_createdby').innerText = noti.created_by === 'admin' ? 'Admin gửi' : 'Hệ thống tự động';
+
+            const receiverSpan = document.getElementById('modal_noti_receiver');
+            if (isGroup && Number(recipientCount) > 1) {
+                receiverSpan.innerHTML = `<span class="badge bg-success"><i class="fas fa-bullhorn me-1"></i>Broadcast (${recipientCount} người dùng)</span>`;
+            } else if (noti.User) {
+                receiverSpan.innerHTML = `<span class="badge bg-info text-dark">${noti.User.fullname || noti.User.username} (ID: #${noti.user_id})</span>`;
+            } else {
+                receiverSpan.innerHTML = `<span class="badge bg-secondary">Nhật ký hệ thống</span>`;
+            }
+
+            const badgeType = document.getElementById('modal_noti_type');
+            badgeType.innerText = (noti.type || 'SYSTEM').toUpperCase();
+
+            const linkSpan = document.getElementById('modal_noti_link');
+            const linkBtn = document.getElementById('modal_noti_link_btn');
+
+            if (noti.link) {
+                linkSpan.innerHTML = `<a href="${noti.link}" target="_blank">${noti.link}</a>`;
+                linkBtn.href = noti.link;
+                linkBtn.classList.remove('d-none');
+            } else {
+                linkSpan.innerText = 'Không có';
+                linkBtn.classList.add('d-none');
+            }
+
+            const notiModal = new bootstrap.Modal(document.getElementById('detailNotiModal'));
+            notiModal.show();
+        } else {
+            alert(result.message || 'Không thể tải chi tiết thông báo!');
+        }
+    } catch (err) {
+        console.error('Lỗi mở modal thông báo:', err);
+    }
+}
+</script>

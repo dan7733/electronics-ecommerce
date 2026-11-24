@@ -1,18 +1,18 @@
-// controller/OrderController.js
 import express from "express";
 import orderdetailModel from '../models/orderdetailModel.js';
 import orderModel from '../models/orderModel.js';
 import userModel from '../models/userModel.js';
+import notificationModel from '../models/notificationModel.js';
 import { sendOrderConfirmationEmail, sendZaloPayConfirmationEmail } from '../configs/email.js';
 import stockModel from '../models/stockModel.js';
-import { StockHistory } from '../models/stockhistoryModel.js'; // Thêm import StockHistory
+import { StockHistory } from '../models/stockhistoryModel.js';
 import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import moment from 'moment';
 import PDFDocument from 'pdfkit';
 import path from 'path';
 import fs from 'fs';
-import logger from '../configs/logger.js'; // Import custom logger
+import logger from '../configs/logger.js';
 
 // ZaloPay configuration
 const zalopayConfig = {
@@ -72,7 +72,6 @@ const addOrderAPI = async (req, res) => {
       for (const detail of orderDetails) {
         await orderdetailModel.addOrderDetailAPI(orderId, detail.productId, detail.quantity, detail.price, detail.discount_price);
         const stockUpdate = await stockModel.updateStock(detail.productId, 0, detail.quantity);
-        // Thêm bản ghi vào StockHistory
         if (stockUpdate) {
           await StockHistory.create({
             product_id: detail.productId,
@@ -85,6 +84,31 @@ const addOrderAPI = async (req, res) => {
       }
     }
     
+    // 🔔 XỬ LÝ THÔNG BÁO KHI TẠO ĐƠN HÀNG
+    try {
+      // 1. Thông báo gửi cho KHÁCH HÀNG (Khớp React Router: /account/detailorder/:orderid)
+      await notificationModel.createNotification({
+        user_id: userId,
+        title: 'Đặt hàng thành công!',
+        message: `Đơn hàng #${orderId} trị giá ${Number(totalPrice).toLocaleString('vi-VN')} VND đã được đặt thành công.`,
+        type: 'order',
+        created_by: 'system',
+        link: `/account/detailorder/${orderId}`
+      });
+
+      // 2. Thông báo hệ thống gửi cho ADMIN (Khớp Admin Web Router: /editorder/:orderid)
+      await notificationModel.createNotification({
+        user_id: null,
+        title: 'Đơn hàng mới phát sinh',
+        message: `Khách hàng ${user.fullname || user.username} (ID: #${userId}) vừa đặt đơn hàng mới #${orderId} (${Number(totalPrice).toLocaleString('vi-VN')} VND).`,
+        type: 'system',
+        created_by: 'system',
+        link: `/editorder/${orderId}`
+      });
+    } catch (notiErr) {
+      logger.error('Lỗi khi gửi thông báo đặt hàng mới', { error: notiErr.message, orderId });
+    }
+
     if (paymentMethod === 'zalopay') {
       const transID = `${moment().format('YYMMDD')}_${orderId}_${Math.floor(Math.random() * 1000000)}`;
       const orderData = {
@@ -162,7 +186,6 @@ const addOrderAPI = async (req, res) => {
   }
 };
 
-// Các hàm khác
 const listOrder = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -220,8 +243,9 @@ const editOrder = async (req, res) => {
   }
 };
 
+// ADMIN CẬP NHẬT ĐƠN HÀNG -> GỬI THÔNG BÁO CHO USER
 const updateOrder = async (req, res) => {
-  const { order_id } = req.body;  // <-- lấy ở ngoài luôn nè
+  const { order_id } = req.body;
   try {
     const { status, status_payment } = req.body;
     const updates = {};
@@ -233,12 +257,56 @@ const updateOrder = async (req, res) => {
       throw new Error("Thiếu order_id");
     }
 
+    const existingOrder = await orderModel.getOrderById(order_id);
     await orderModel.updateOrder(order_id, updates);
+
+    // 🔔 THÔNG BÁO CỦA ADMIN GỬI TỚI KHÁCH HÀNG (Khớp React Router: /account/detailorder/:orderid)
+    if (existingOrder && existingOrder.user_id) {
+      try {
+        let title = '';
+        let messageText = '';
+
+        if (status && status !== existingOrder.status) {
+          switch (status) {
+            case 'confirmed':
+              title = 'Đơn hàng đã được xác nhận';
+              messageText = `Đơn hàng #${order_id} của bạn đã được quản trị viên xác nhận và đang đóng gói.`;
+              break;
+            case 'shipped':
+              title = 'Đơn hàng đang trên đường giao';
+              messageText = `Đơn hàng #${order_id} của bạn đã được bàn giao cho đơn vị vận chuyển.`;
+              break;
+            case 'delivered':
+              title = 'Giao hàng thành công';
+              messageText = `Đơn hàng #${order_id} đã giao thành công. Cảm ơn quý khách đã tin tưởng mua sắm!`;
+              break;
+            case 'cancelled':
+              title = 'Đơn hàng đã bị hủy';
+              messageText = `Đơn hàng #${order_id} của bạn đã bị hủy bởi quản trị viên.`;
+              break;
+          }
+        }
+
+        if (title && messageText) {
+          await notificationModel.createNotification({
+            user_id: existingOrder.user_id,
+            title: title,
+            message: messageText,
+            type: 'order',
+            created_by: 'admin',
+            link: `/account/detailorder/${order_id}`
+          });
+        }
+      } catch (notiErr) {
+        logger.error('Lỗi khi gửi thông báo cập nhật đơn hàng cho User', { error: notiErr.message, order_id });
+      }
+    }
+
     logger.info('Cập nhật đơn hàng thành công', { order_id, updates });
-    res.redirect(`/editOrder/${order_id}?message=Cập nhật đơn hàng thành công`);
+    res.redirect(`/editorder/${order_id}?message=Cập nhật đơn hàng thành công`);
   } catch (error) {
     logger.error('Lỗi khi cập nhật đơn hàng', { error: error.message, stack: error.stack, order_id });
-    res.redirect(`/editOrder/${order_id || ''}?message=Cập nhật đơn hàng thất bại`);
+    res.redirect(`/editorder/${order_id || ''}?message=Cập nhật đơn hàng thất bại`);
   }
 };
 
@@ -256,13 +324,11 @@ const downloadOrderPDF = async (req, res) => {
       return res.status(500).send('Lỗi: Chi tiết đơn hàng không hợp lệ.');
     }
 
-    // Tạo PDF
     const doc = new PDFDocument({ margin: 50 });
     const filename = `order_${orderid}.pdf`;
     res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
     res.setHeader('Content-type', 'application/pdf');
 
-    // Đăng ký font
     const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Arial.ttf');
     if (!fs.existsSync(fontPath)) {
       logger.error('Tạo PDF thất bại: Không tìm thấy font Arial', { fontPath });
@@ -271,10 +337,8 @@ const downloadOrderPDF = async (req, res) => {
     doc.registerFont('Arial', fontPath);
     doc.font('Arial');
 
-    // Gửi PDF
     doc.pipe(res);
 
-    // Hàm quản lý màu sắc
     let currentFillColor = '#333';
     const setFillColor = (color) => {
       if (currentFillColor !== color) {
@@ -283,7 +347,6 @@ const downloadOrderPDF = async (req, res) => {
       }
     };
 
-    // Hàm cắt ngắn văn bản
     const truncateText = (text, maxLength) => {
       if (typeof text !== 'string') return 'N/A';
       if (text.length > maxLength) {
@@ -292,7 +355,6 @@ const downloadOrderPDF = async (req, res) => {
       return text;
     };
 
-    // Header cửa hàng
     setFillColor('#218282');
     doc.fontSize(16).text('ESHOP - Cửa hàng điện tử', 50, 50, { align: 'center' });
     setFillColor('#333');
@@ -304,12 +366,10 @@ const downloadOrderPDF = async (req, res) => {
     );
     doc.moveDown(2);
 
-    // Tiêu đề
     setFillColor('#218282');
     doc.fontSize(18).text('Chi tiết đơn hàng', 50, doc.y, { align: 'center' });
     doc.moveDown();
 
-    // Ngày tạo đơn hàng
     const orderDate = order.created_at
       ? new Date(order.created_at).toLocaleDateString('vi-VN')
       : new Date().toLocaleDateString('vi-VN');
@@ -317,7 +377,6 @@ const downloadOrderPDF = async (req, res) => {
     doc.fontSize(10).text(`Ngày tạo đơn: ${orderDate}`, 50, doc.y, { align: 'right' });
     doc.moveDown();
 
-    // Thông tin đơn hàng
     setFillColor('#218282');
     doc.fontSize(12).text('Thông tin đơn hàng', 50, doc.y, { underline: true });
     setFillColor('#333');
@@ -339,20 +398,17 @@ const downloadOrderPDF = async (req, res) => {
                                      order.status_payment === 'failed' ? 'Thanh toán thất bại' : 'N/A'}`, 50, doc.y);
     doc.moveDown(2);
 
-    // Chi tiết đơn hàng (bảng)
     setFillColor('#218282');
     doc.fontSize(12).text('Chi tiết đơn hàng', 50, doc.y, { underline: true });
     setFillColor('#333');
     doc.fontSize(9);
 
-    // Định nghĩa cột
     const tableTop = doc.y + 10;
-    const col1 = 50;  // Sản phẩm
-    const col2 = 250; // Số lượng
-    const col3 = 290; // Giá
-    const col4 = 390; // Tổng
+    const col1 = 50;  
+    const col2 = 250; 
+    const col3 = 290; 
+    const col4 = 390; 
 
-    // Header bảng
     doc.fillColor('#e8f4f8').rect(col1 - 5, tableTop - 5, 440, 20).fill();
     setFillColor('#218282');
     doc.text('Sản phẩm', col1, tableTop, { width: 200 });
@@ -360,7 +416,6 @@ const downloadOrderPDF = async (req, res) => {
     doc.text('Giá', col3, tableTop, { width: 100, align: 'right' });
     doc.text('Tổng', col4, tableTop, { width: 100, align: 'right' });
 
-    // Dữ liệu bảng
     let y = tableTop + 25;
     orderDetails.forEach(detail => {
       setFillColor('#333');
@@ -381,7 +436,6 @@ const downloadOrderPDF = async (req, res) => {
       y += 25;
     });
 
-    // Tổng hợp chi phí
     doc.moveDown(2);
     setFillColor('#218282');
     doc.fontSize(12).text('Tổng hợp chi phí', 50, doc.y, { underline: true });
@@ -398,7 +452,6 @@ const downloadOrderPDF = async (req, res) => {
     doc.text('Tổng thanh toán:', labelX, doc.y);
     doc.text(`${order.total_price.toFixed(2)} VND`, valueX, doc.y, { align: 'right', width: 100 });
 
-    // Lời cảm ơn và hỗ trợ
     doc.moveDown(2);
     setFillColor('#218282');
     doc.fontSize(12).text('Cảm ơn quý khách đã mua sắm tại ESHOP!', 50, doc.y, { align: 'center' });
@@ -410,11 +463,9 @@ const downloadOrderPDF = async (req, res) => {
       { align: 'center', width: 500 }
     );
 
-    // Footer
     setFillColor('#333');
     doc.fontSize(8).text('Trang 1', 50, doc.page.height - 50, { align: 'left' });
 
-    // Kết thúc PDF
     doc.end();
     logger.info('Tạo và tải PDF thành công', { orderid });
   } catch (error) {
@@ -455,7 +506,6 @@ const zalopayCallback = async (req, res) => {
       return res.json({ return_code: 0, return_message: `Order ${orderId} not found` });
     }
 
-    // Gọi API Query để kiểm tra trạng thái giao dịch
     const reqdate = moment().format('YYYYMMDDHHmmss');
     const queryData = {
       app_id: zalopayConfig.app_id,
@@ -481,7 +531,37 @@ const zalopayCallback = async (req, res) => {
             status_payment: 'paid',
             status: 'confirmed'
           });          
-          // Gửi email xác nhận thanh toán ZaloPay
+
+          // 🔔 THÔNG BÁO DÀNH CHO USER KHI THANH TOÁN ZALOPAY THÀNH CÔNG (Khớp React Router)
+          if (order.user_id) {
+            try {
+              await notificationModel.createNotification({
+                user_id: order.user_id,
+                title: 'Thanh toán ZaloPay thành công!',
+                message: `Đơn hàng #${orderId} đã được thanh toán thành công qua ZaloPay và chuyển sang trạng thái Đã xác nhận.`,
+                type: 'order',
+                created_by: 'system',
+                link: `/account/detailorder/${orderId}`
+              });
+            } catch (notiErr) {
+              logger.error('Lỗi khi gửi thông báo ZaloPay cho User', { error: notiErr.message, orderId });
+            }
+          }
+
+          // 🔔 THÔNG BÁO HỆ THỐNG CHO ADMIN (Khớp Admin Web Router)
+          try {
+            await notificationModel.createNotification({
+              user_id: null,
+              title: 'Đơn hàng đã thanh toán qua ZaloPay',
+              message: `Đơn hàng #${orderId} vừa được xác nhận thanh toán thành công qua ZaloPay.`,
+              type: 'system',
+              created_by: 'system',
+              link: `/editorder/${orderId}`
+            });
+          } catch (notiErr) {
+            logger.error('Lỗi khi gửi thông báo ZaloPay cho Admin', { error: notiErr.message, orderId });
+          }
+
           if (order.email) {
             try {
               await sendZaloPayConfirmationEmail(
@@ -545,7 +625,6 @@ const queryOrderStatus = async (req, res) => {
       const orderId = embedData.order_id;
       if (orderId) {
         await orderModel.updateOrder(orderId, { status_payment: 'paid' });
-        // Gửi email xác nhận thanh toán ZaloPay
         const order = await orderModel.getOrderById(orderId);
         if (order && order.email) {
           try {

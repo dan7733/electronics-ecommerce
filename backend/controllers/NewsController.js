@@ -2,6 +2,7 @@ import express from "express";
 import fs from 'fs';
 import path from 'path';
 import newsModel from '../models/newsModel.js';
+import notificationModel from '../models/notificationModel.js'; // 🔔 Import Model Thông báo
 import logger from '../configs/logger.js'; // Import custom logger
 
 // Hàm xóa ảnh nếu cần
@@ -30,7 +31,7 @@ const createNews = async (req, res) => {
   } catch (err) {
     logger.error('Lỗi khi tải trang thêm tin tức', { error: err.message, stack: err.stack });
   }
-}
+};
 
 const addNews = async (req, res) => {
     try {
@@ -56,6 +57,22 @@ const addNews = async (req, res) => {
         deleteNewsImage(images); 
       } else {
         logger.info('Thêm tin tức thành công', { newsTitle });
+
+        // 🔔 THÔNG BÁO DÀNH RIÊNG CHO USER: Broadcast tin tức mới xuất bản
+        // Khớp React Router: /detailnews/:newsid (Fallback: /newslist)
+        try {
+          const newsId = result.news_id || result.id || (typeof result === 'number' ? result : null);
+          const targetLink = newsId ? `/detailnews/${newsId}` : '/newslist';
+
+          await notificationModel.sendBroadcastNotification(
+            `Tin tức mới: ${newsTitle}`,
+            newsSummary || 'Đã có bài viết tin tức mới được đăng tải trên ESHOP. Click xem ngay!',
+            'news',
+            targetLink
+          );
+        } catch (notiErr) {
+          logger.error('Lỗi khi gửi thông báo tin tức mới cho User', { error: notiErr.message });
+        }
       }
 
       res.render("home", {
@@ -74,31 +91,19 @@ const addNews = async (req, res) => {
     }
   };
 
-
 // danh sách tin tức
 const listNews = async (req, res) => {
   try {
-    // Lấy trang hiện tại từ query string, mặc định là 1
     const page = parseInt(req.query.page) || 1;
-    const limit = 5; // số lượng tin tức trên mỗi trang
-    const offset = (page - 1) * limit; // vị trí bắt đầu lấy tin tức
+    const limit = 5; 
+    const offset = (page - 1) * limit; 
 
-    // Lấy từ khóa tìm kiếm từ query string, mặc định là rỗng
     const searchKeyword = req.query.search || '';
-
-    // Lấy tùy chọn sắp xếp từ query string, mặc định là 'default'
     const sortOption = req.query.sort || 'default';
-
-    // Lấy tổng số tin tức
     const totalNews = await newsModel.countNews(searchKeyword);
-
-    // Tính tổng số trang
     const totalPages = Math.ceil(totalNews / limit);
-
-    // Nhận message từ URL nếu có
     const message = req.query.message || '';  
 
-    // Lấy danh sách tin tức
     const listNews = await newsModel.listNews(offset, limit, searchKeyword, sortOption);
 
     res.render('home', {
@@ -126,7 +131,7 @@ const deleteNews = async (req, res) => {
     const image = await newsModel.deleteNews(news_id);
     
     if (image) {
-      deleteNewsImage(image); // Hàm này xóa ảnh khỏi thư mục nếu có
+      deleteNewsImage(image);
     }
     
     logger.info('Xóa tin tức thành công', { news_id });
@@ -162,24 +167,20 @@ const updateNews = async (req, res) => {
   try {
     const { news_id, newsTitle, newsSummary, newsContent, oldnewsImage } = req.body;
 
-    // Kiểm tra các trường bắt buộc
     if (!news_id || !newsTitle || !newsContent) {
       logger.warn('Cập nhật tin tức thất bại: Thiếu thông tin bắt buộc', { news_id });
       throw new Error("Thiếu thông tin bắt buộc: news_id, tiêu đề hoặc nội dung");
     }
 
-    // Giữ lại ảnh cũ nếu không có ảnh mới
     let newImage = oldnewsImage;
     if (req.file) {
       newImage = req.file.filename;
     }
 
-    // Xóa ảnh cũ nếu có ảnh mới khác
     if (oldnewsImage && newImage !== oldnewsImage) {
       deleteNewsImage(oldnewsImage);
     }
 
-    // Cập nhật tin tức
     const updatedNews = await newsModel.updateNews(news_id, newsTitle, newsSummary, newsContent, newImage);
     if (!updatedNews) {
       logger.warn('Cập nhật tin tức thất bại tại Model', { news_id });
@@ -191,7 +192,6 @@ const updateNews = async (req, res) => {
   } catch (error) {
     logger.error("Lỗi cập nhật tin tức", { error: error.message, stack: error.stack, body: req.body });
 
-    // Nếu có ảnh mới, nhưng lỗi xảy ra -> Xóa ảnh mới để tránh rác
     if (req.file) {
       deleteNewsImage(req.file.filename);
     }
@@ -200,12 +200,8 @@ const updateNews = async (req, res) => {
   }
 };
 
-
 //////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////// api//////////////////////////////////////////////////
+//////////////////////////////////////// API /////////////////////////////////////////////////
 
 const getLatestNewsAPI = async (req, res) => {
   try {
@@ -224,30 +220,19 @@ const getLatestNewsAPI = async (req, res) => {
   }
 };
 
-// danh sách tin tức
 const listNewsAPI = async (req, res) => {
   try {
-    // Lấy trang hiện tại từ query string, mặc định là 1
     const page = parseInt(req.query.page) || 1;
-    const limit = 5; // số lượng tin tức trên mỗi trang
-    const offset = (page - 1) * limit; // vị trí bắt đầu lấy tin tức
+    const limit = 5; 
+    const offset = (page - 1) * limit; 
 
-    // Lấy từ khóa tìm kiếm từ query string, mặc định là rỗng
     const searchKeyword = req.query.search || '';
-
-    // Lấy tùy chọn sắp xếp từ query string, mặc định là 'default'
     const sortOption = req.query.sort || 'default';
-
-    // Lấy tổng số tin tức
     const totalNews = await newsModel.countNewsAPI(searchKeyword);
-
-    // Tính tổng số trang
     const totalPages = Math.ceil(totalNews / limit);
 
-    // Lấy danh sách tin tức
     const listNews = await newsModel.listNewsAPI(offset, limit, searchKeyword, sortOption);
 
-    // Trả về JSON thành công
     return res.status(200).json({
       errCode: 0,
       message: "Success",
@@ -261,7 +246,6 @@ const listNewsAPI = async (req, res) => {
     });
   } catch (error) {
     logger.error('Lỗi trong listNewsAPI', { error: error.message, stack: error.stack, query: req.query });
-    // Trả về JSON lỗi
     return res.status(500).json({
       errCode: 1,
       message: "Lỗi khi tải dữ liệu tin tức.",
@@ -270,7 +254,6 @@ const listNewsAPI = async (req, res) => {
   }
 };
 
-// lấy chi tiết tin tức
 const getNewsByIdAPI = async (req, res) => {
   const { newsid } = req.params;
   try {
@@ -306,8 +289,7 @@ export default {
     deleteNews,
     editNews,
     updateNews,
-    //API
     getLatestNewsAPI,
     listNewsAPI,
     getNewsByIdAPI
-  };
+};

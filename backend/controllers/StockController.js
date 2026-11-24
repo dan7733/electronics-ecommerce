@@ -3,10 +3,11 @@ import stockModel from "../models/stockModel.js";
 import { StockHistory } from "../models/stockhistoryModel.js";
 import stockHistoryModel from "../models/stockhistoryModel.js";
 import { Product } from "../models/productModel.js";
+import notificationModel from "../models/notificationModel.js"; // 🔔 Import Model Thông báo
 import PDFDocument from "pdfkit";
 import fs from "fs";
 import path from "path";
-import logger from "../configs/logger.js"; // Import custom logger
+import logger from "../configs/logger.js";
 
 const listStock = async (req, res) => {
     try {
@@ -58,6 +59,7 @@ const editStock = async (req, res) => {
     }
 };
 
+// CẬP NHẬT KHO HÀNG (GỬI THÔNG BÁO CHO ADMIN)
 const updateStock = async (req, res) => {
     const { product_id, stock_in = 0, stock_out = 0 } = req.body;
     try {
@@ -77,13 +79,13 @@ const updateStock = async (req, res) => {
                 currentQuantity: stock.quantity, 
                 requestedOut: stockOutNum 
             });
-            return res.redirect(`/editstock/${product_id}?message=Số lượng xuất vượt quá tồn kho hiện tại!`);
+            return res.redirect(`/editstock/${product_id}?message=${encodeURIComponent('Số lượng xuất vượt quá tồn kho hiện tại!')}`);
         }
 
         const result = await stockModel.updateStock(product_id, stockInNum, stockOutNum);
         if (!result) {
             logger.warn('Cập nhật tồn kho thất bại tại Model', { product_id });
-            return res.redirect(`/editstock/${product_id}?message=Cập nhật thất bại!`);
+            return res.redirect(`/editstock/${product_id}?message=${encodeURIComponent('Cập nhật thất bại!')}`);
         }
 
         if (stockInNum > 0) {
@@ -105,18 +107,49 @@ const updateStock = async (req, res) => {
             });
         }
 
+        // 🔔 1. CẢNH BÁO TỒN KHO THẤP CHO ADMIN (Khi số lượng < 5)
+        if (newQuantity < 5) {
+            try {
+                await notificationModel.createNotification({
+                    user_id: null, // null = gửi cho Admin
+                    title: 'Cảnh báo tồn kho thấp',
+                    message: `Sản phẩm ID #${product_id} hiện chỉ còn lại ${newQuantity} món trong kho. Vui lòng kiểm tra và nhập thêm hàng!`,
+                    type: 'system',
+                    created_by: 'system',
+                    link: `/editstock/${product_id}`
+                });
+            } catch (notiErr) {
+                logger.error('Lỗi khi gửi thông báo cảnh báo kho cho Admin', { error: notiErr.message, product_id });
+            }
+        }
+
+        // 🔔 2. GHI NHẬT KÝ THAO TÁC KHO CHO ADMIN
+        try {
+            await notificationModel.createNotification({
+                user_id: null,
+                title: 'Cập nhật kho hàng',
+                message: `Admin đã điều chỉnh kho sản phẩm ID #${product_id} (Nhập: +${stockInNum}, Xuất: -${stockOutNum}, Tồn mới: ${newQuantity}).`,
+                type: 'system',
+                created_by: 'admin',
+                link: `/editstock/${product_id}`
+            });
+        } catch (notiErr) {
+            logger.error('Lỗi khi gửi thông báo nhật ký kho cho Admin', { error: notiErr.message, product_id });
+        }
+
         logger.info('Cập nhật tồn kho thành công', { product_id, stockInNum, stockOutNum, newQuantity });
-        return res.redirect(`/editstock/${product_id}?message=Cập nhật tồn kho thành công!`);
+        return res.redirect(`/editstock/${product_id}?message=${encodeURIComponent('Cập nhật tồn kho thành công!')}`);
     } catch (error) {
         logger.error('Lỗi khi cập nhật tồn kho', { error: error.message, stack: error.stack, body: req.body });
-        return res.redirect(`/editstock/${product_id || ''}?message=Lỗi khi cập nhật tồn kho!`);
+        const redirectId = product_id || '';
+        return res.redirect(`/editstock/${redirectId}?message=${encodeURIComponent('Lỗi khi cập nhật tồn kho!')}`);
     }
 };
 
 const listStockHistory = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = 5; // Đồng bộ với listStock
+        const limit = 5;
         const offset = (page - 1) * limit;
         const searchKeyword = req.query.search || '';
         const productId = req.query.productId || null;
@@ -166,13 +199,11 @@ const exportStockHistoryPDF = async (req, res) => {
 
         const history = await stockHistoryModel.listStockHistory(null, null, searchKeyword, productId, transactionType, startDate, endDate);
 
-        // Tạo PDF
         const doc = new PDFDocument({ margin: 50 });
         const filename = `stock_history_${Date.now()}.pdf`;
         res.setHeader('Content-disposition', `attachment; filename="${filename}"`);
         res.setHeader('Content-type', 'application/pdf');
 
-        // Đăng ký font
         const fontPath = path.join(process.cwd(), 'public', 'fonts', 'Arial.ttf');
         if (!fs.existsSync(fontPath)) {
             logger.error('Xuất PDF thất bại: Không tìm thấy font Arial', { fontPath });
@@ -181,10 +212,8 @@ const exportStockHistoryPDF = async (req, res) => {
         doc.registerFont('Arial', fontPath);
         doc.font('Arial');
 
-        // Gửi PDF
         doc.pipe(res);
 
-        // Hàm quản lý màu sắc
         let currentFillColor = '#333';
         const setFillColor = (color) => {
             if (currentFillColor !== color) {
@@ -193,7 +222,6 @@ const exportStockHistoryPDF = async (req, res) => {
             }
         };
 
-        // Hàm cắt ngắn văn bản
         const truncateText = (text, maxLength) => {
             if (typeof text !== 'string') return 'N/A';
             if (text.length > maxLength) {
@@ -202,7 +230,6 @@ const exportStockHistoryPDF = async (req, res) => {
             return text;
         };
 
-        // Header cửa hàng
         setFillColor('#218282');
         doc.fontSize(16).text('ESHOP - Cửa hàng điện tử', 50, 50, { align: 'center' });
         setFillColor('#333');
@@ -214,18 +241,15 @@ const exportStockHistoryPDF = async (req, res) => {
         );
         doc.moveDown(2);
 
-        // Tiêu đề
         setFillColor('#218282');
         doc.fontSize(18).text('Lịch sử nhập/xuất kho', 50, doc.y, { align: 'center' });
         doc.moveDown();
 
-        // Ngày xuất PDF
         const exportDate = new Date().toLocaleDateString('vi-VN');
         setFillColor('#333');
         doc.fontSize(10).text(`Ngày xuất: ${exportDate}`, 50, doc.y, { align: 'right' });
         doc.moveDown();
 
-        // Thông tin bộ lọc
         setFillColor('#218282');
         doc.fontSize(12).text('Thông tin bộ lọc', 50, doc.y, { underline: true });
         setFillColor('#333');
@@ -244,21 +268,18 @@ const exportStockHistoryPDF = async (req, res) => {
         }
         doc.moveDown(2);
 
-        // Bảng lịch sử giao dịch
         setFillColor('#218282');
         doc.fontSize(12).text('Lịch sử giao dịch', 50, doc.y, { underline: true });
         setFillColor('#333');
         doc.fontSize(9);
 
-        // Định nghĩa cột
         const tableTop = doc.y + 10;
-        const col1 = 50;  // ID
-        const col2 = 100; // Sản phẩm
-        const col3 = 300; // Loại giao dịch
-        const col4 = 380; // Số lượng
-        const col5 = 460; // Thời gian
+        const col1 = 50;  
+        const col2 = 100; 
+        const col3 = 300; 
+        const col4 = 380; 
+        const col5 = 460; 
 
-        // Header bảng
         doc.fillColor('#e8f4f8').rect(col1 - 5, tableTop - 5, 490, 20).fill();
         setFillColor('#218282');
         doc.text('ID', col1, tableTop, { width: 50 });
@@ -267,7 +288,6 @@ const exportStockHistoryPDF = async (req, res) => {
         doc.text('Số lượng', col4, tableTop, { width: 80, align: 'right' });
         doc.text('Thời gian', col5, tableTop, { width: 100, align: 'right' });
 
-        // Dữ liệu bảng
         let y = tableTop + 25;
         history.forEach((row) => {
             setFillColor('#333');
@@ -294,7 +314,6 @@ const exportStockHistoryPDF = async (req, res) => {
             y += 25;
         });
 
-        // Lời cảm ơn và hỗ trợ
         doc.moveDown(2);
         setFillColor('#218282');
         doc.fontSize(12).text('Cảm ơn quý khách đã sử dụng hệ thống ESHOP!', 50, doc.y, { align: 'center' });
@@ -306,11 +325,9 @@ const exportStockHistoryPDF = async (req, res) => {
             { align: 'center', width: 500 }
         );
 
-        // Footer
         setFillColor('#333');
         doc.fontSize(8).text('Trang 1', 50, doc.page.height - 50, { align: 'left' });
 
-        // Kết thúc PDF
         doc.end();
         logger.info('Xuất PDF lịch sử kho thành công');
     } catch (error) {

@@ -1,12 +1,20 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 import styles from '../css/detailuser/detailuser.module.css';
 import { Context } from '../login/context';
 
 const UserLayout = () => {
   const { user } = useContext(Context);
+  const navigate = useNavigate();
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Bảo vệ toàn bộ khu vực tài khoản từ cấp Layout
+  useEffect(() => {
+    if (!user || !user.auth) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -34,7 +42,7 @@ const UserLayout = () => {
   return (
     <div className="container-fluid p-0">
       <div className={styles.contentWrapper}>
-        {/* Thanh Header Mobile chứa nút bấm thân thiện */}
+        {/* Thanh Header Mobile */}
         {isMobile && (
           <div className={styles.mobileTopBar}>
             <button
@@ -54,18 +62,16 @@ const UserLayout = () => {
         )}
 
         <div className={styles.layoutContainer}>
-          <aside
-            className={`${styles.sidebarUser} ${
-              sidebarVisible ? styles.show : ''
-            }`}
-          >
+          <aside className={`${styles.sidebarUser} ${sidebarVisible ? styles.show : ''}`}>
             <div className={styles.sidebarHeader}>
               <h4 className={styles.sidebarTitle}>Tài khoản của</h4>
               <h4 className={styles.sidebarUsername}>
                 {user?.fullname || user?.username || 'Khách'}
               </h4>
             </div>
+
             <nav className={styles.sidebarNav}>
+              {/* Nhóm Quản lý tài khoản (Dropdown/Collapse) */}
               <div className={styles.navSection}>
                 <button
                   className={styles.navCollapseButton}
@@ -104,26 +110,21 @@ const UserLayout = () => {
                   </Link>
                   <Link
                     className={styles.navLink}
-                    to="/account"
+                    to={`/account/notification-settings/${user?.username || ''}`}
                     onClick={closeSidebar}
                   >
                     Cài đặt thông báo
                   </Link>
                 </div>
               </div>
+
+              {/* Các liên kết điều hướng độc lập */}
               <Link
                 className={styles.navLink}
                 to={`/account/orderlist/${user?.username || ''}`}
                 onClick={closeSidebar}
               >
                 <i className="fa-solid fa-list me-2"></i>Quản lý đơn hàng
-              </Link>
-              <Link
-                className={styles.navLink}
-                to="/account"
-                onClick={closeSidebar}
-              >
-                <i className="fa-solid fa-location-dot me-2"></i>Sổ địa chỉ
               </Link>
               <Link
                 className={styles.navLink}
@@ -141,7 +142,7 @@ const UserLayout = () => {
               </Link>
               <Link
                 className={styles.navLink}
-                to="/account"
+                to={`/account/notifications/${user?.username || ''}`}
                 onClick={closeSidebar}
               >
                 <i className="fa-solid fa-bell me-2"></i>Thông báo

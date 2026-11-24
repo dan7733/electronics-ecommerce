@@ -9,6 +9,9 @@ import StoreController from '../controllers/StoreController.js';
 import NewsController from '../controllers/NewsController.js';
 import upload from '../configs/upload.js';
 import ReviewController from '../controllers/ReviewController.js';
+import NotificationController from '../controllers/NotificationController.js';
+import NotificationSettingController from '../controllers/NotificationSettingController.js';
+
 import { getCollaborativeRecommendationsController, getProductBasedRecommendationsController, getPopularityBasedRecommendationsController } from '../controllers/RecommendController.js';
 
 const router = express.Router();
@@ -22,11 +25,11 @@ const initAPIRoute = (app) => {
 
     // Lấy chi tiết sản phẩm theo ID (Bao gồm Stock + Brand + Category + Dynamic Technical Details)
     router.get('/productdetail/:id', ProductController.getProductDetailAPI);
-    
+
     // Lấy danh sách loại sản phẩm & hãng
     router.get('/listcategory', CategoryController.getAllCategoryAPI);
     router.get('/listbrand', BrandController.getAllBrandAPI);
-    
+
     // Danh sách sản phẩm (Có phân trang, bộ lọc)
     router.get('/listproduct', ProductController.listProductAPI);
 
@@ -80,6 +83,16 @@ const initAPIRoute = (app) => {
     router.get('/reviews/:product_id', ReviewController.getReviewsByProductAPI);
     router.get('/user-review', userMiddlewareController.userMiddlewareAPI, ReviewController.getUserReviewAPI);
     router.get('/latestreviews', ReviewController.getLatestReviewsAPI);
+
+    //Thông báo dành cho người dùng (User Notifications API)
+    router.get('/user-notifications', userMiddlewareController.userMiddlewareAPI, NotificationController.getUserNotificationsAPI);
+    router.get('/user-notifications/unread-count', userMiddlewareController.userMiddlewareAPI, NotificationController.getUnreadCountAPI);
+    router.patch('/user-notifications/read/:id', userMiddlewareController.userMiddlewareAPI, NotificationController.markReadAPI);
+    router.patch('/user-notifications/read-all', userMiddlewareController.userMiddlewareAPI, NotificationController.markAllReadAPI);
+
+    //API Cài đặt thông báo người dùng (User Notification Settings API)
+    router.get('/user-notification-settings', userMiddlewareController.userMiddlewareAPI, NotificationSettingController.getUserSettingsAPI);
+    router.patch('/user-notification-settings', userMiddlewareController.userMiddlewareAPI, NotificationSettingController.updateUserSettingsAPI);
 
     // Gắn router vào ứng dụng Express
     return app.use('/api/v1', router);

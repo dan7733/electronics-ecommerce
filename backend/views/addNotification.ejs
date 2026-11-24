@@ -1,0 +1,183 @@
+<div class="container my-4">
+    <div class="addnotification-inforinput card p-4 shadow-sm border-0 rounded-3">
+        <h4 class="mb-3 font-weight-bold">
+            <i class="fas fa-paper-plane me-2"></i>Thêm & Gửi thông báo
+        </h4>
+        
+        <% if (data && data.message) { %>
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle me-2"></i><%= data.message %>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <% } %>
+
+        <form action="/addnotification" method="POST">
+            <!-- Tiêu đề -->
+            <div class="mb-3">
+                <label class="form-label font-weight-bold"><i class="fas fa-heading me-1"></i> Tiêu đề thông báo</label>
+                <input type="text" class="form-control" name="title" placeholder="Nhập tiêu đề thông báo..." required>
+            </div>
+
+            <!-- Loại thông báo -->
+            <div class="mb-3">
+                <label class="form-label font-weight-bold"><i class="fas fa-tag me-1"></i> Loại thông báo</label>
+                <select class="form-select" name="type" required>
+                    <option value="system">Hệ thống & Tồn kho (System)</option>
+                    <option value="news" selected>Tin tức & Khuyến mãi (News)</option>
+                    <option value="order">Đơn hàng (Order)</option>
+                    <option value="account">Tài khoản & Bảo mật (Account)</option>
+                </select>
+            </div>
+
+            <!-- Đối tượng nhận -->
+            <div class="mb-3">
+                <label class="form-label font-weight-bold"><i class="fas fa-users me-1"></i> Đối tượng nhận</label>
+                <div class="d-flex gap-4 align-items-center mt-1 p-3 bg-light rounded border">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="target_type" id="target_all" value="all" checked>
+                        <label class="form-check-label font-weight-bold text-dark" for="target_all">
+                            <i class="fas fa-globe text-success me-1"></i>Gửi cho tất cả người dùng (Broadcast)
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="target_type" id="target_single" value="single">
+                        <label class="form-check-label font-weight-bold text-dark" for="target_single">
+                            <i class="fas fa-user-tag text-primary me-1"></i>Gửi cho 1 người dùng cụ thể
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ⚡ KHUNG TÌM KIẾM NGƯỜI DÙNG LIVE AUTOCOMPLETE -->
+            <div class="mb-3 p-3 border rounded bg-white shadow-sm position-relative" id="user_id_box" style="display: none;">
+                <label class="form-label font-weight-bold">
+                    <i class="fas fa-search me-1"></i>Tìm kiếm & Chọn người dùng nhận
+                </label>
+                
+                <input type="hidden" name="target_user_id" id="selected_target_user_id">
+
+                <!-- User được chọn -->
+                <div id="selected_user_badge" class="mb-2 d-none">
+                    <span class="badge bg-success p-2 fs-6 d-inline-flex align-items-center">
+                        <i class="fas fa-user-check me-2"></i>
+                        <span id="selected_user_text">---</span>
+                        <i class="fas fa-times ms-3 cursor-pointer" onclick="clearSelectedUser()" title="Bỏ chọn"></i>
+                    </span>
+                </div>
+
+                <!-- Input Gõ Tìm Kiếm -->
+                <input type="text" id="user_search_input" class="form-control" 
+                       placeholder="🔍 Gõ tên, email hoặc username để tìm nhanh..." onkeyup="onUserSearchInput()" autocomplete="off">
+                
+                <!-- Khung gợi ý kết quả -->
+                <div id="user_search_results" class="list-group position-absolute w-100 shadow rounded-3 mt-1 d-none" 
+                     style="max-height: 250px; overflow-y: auto; z-index: 1050; left: 0;">
+                </div>
+                <small class="text-muted mt-1 d-block"><i class="fas fa-info-circle"></i> Kết quả tìm kiếm tự động giới hạn 10 người dùng để hệ thống luôn mượt mà.</small>
+            </div>
+
+            <!-- Đường dẫn (Link) -->
+            <div class="mb-3">
+                <label class="form-label font-weight-bold"><i class="fas fa-link me-1"></i> Đường dẫn chuyển hướng (Link - Không bắt buộc)</label>
+                <input type="text" class="form-control" name="link" placeholder="VD: /listorder hoặc /editproduct/5">
+            </div>
+
+            <!-- Nội dung chi tiết -->
+            <div class="mb-4">
+                <label class="form-label font-weight-bold"><i class="fas fa-align-left me-1"></i> Nội dung thông báo</label>
+                <textarea class="form-control" name="message" rows="4" placeholder="Nhập nội dung chi tiết thông báo..." required></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn addnotification-btn-add px-4">
+                    <i class="fas fa-paper-plane me-1"></i> Gửi thông báo ngay
+                </button>
+                <a href="/listnotification" class="btn btn-outline-secondary">Hủy bỏ</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let searchDebounceTimer = null;
+
+document.addEventListener("DOMContentLoaded", function () {
+    const targetAll = document.getElementById("target_all");
+    const targetSingle = document.getElementById("target_single");
+    const userIdBox = document.getElementById("user_id_box");
+    const selectedUserIdInput = document.getElementById("selected_target_user_id");
+
+    targetAll.addEventListener("change", function () {
+        if (this.checked) {
+            userIdBox.style.display = "none";
+            selectedUserIdInput.removeAttribute("required");
+            clearSelectedUser();
+        }
+    });
+
+    targetSingle.addEventListener("change", function () {
+        if (this.checked) {
+            userIdBox.style.display = "block";
+            selectedUserIdInput.setAttribute("required", "true");
+        }
+    });
+});
+
+// Xử lý khi Admin gõ chữ tìm kiếm (Debounce 300ms)
+function onUserSearchInput() {
+    clearTimeout(searchDebounceTimer);
+    const keyword = document.getElementById('user_search_input').value.trim();
+    const resultsBox = document.getElementById('user_search_results');
+
+    if (keyword.length === 0) {
+        resultsBox.classList.add('d-none');
+        resultsBox.innerHTML = '';
+        return;
+    }
+
+    searchDebounceTimer = setTimeout(async () => {
+        try {
+            const response = await fetch(`/api/v1/users/search?keyword=${encodeURIComponent(keyword)}`);
+            const res = await response.json();
+
+            if (res.errCode === 0 && res.data.length > 0) {
+                let html = '';
+                res.data.forEach(u => {
+                    const nameStr = u.fullname ? `${u.fullname} (${u.username})` : u.username;
+                    html += `
+                        <button type="button" class="list-group-item list-group-item-action p-2 text-start" 
+                                onclick="selectUser('${u.user_id}', '${nameStr.replace(/'/g, "\\'")}', '${u.email || ''}')">
+                            <div class="fw-bold text-dark"><i class="fas fa-user me-2 text-primary"></i>${nameStr}</div>
+                            <small class="text-muted">Email: ${u.email || 'N/A'} | ID: #${u.user_id}</small>
+                        </button>
+                    `;
+                });
+                resultsBox.innerHTML = html;
+                resultsBox.classList.remove('d-none');
+            } else {
+                resultsBox.innerHTML = '<div class="list-group-item text-muted p-2">Không tìm thấy người dùng phù hợp.</div>';
+                resultsBox.classList.remove('d-none');
+            }
+        } catch (err) {
+            console.error('Lỗi tìm kiếm user:', err);
+        }
+    }, 300);
+}
+
+// Chọn User từ danh sách gợi ý
+function selectUser(id, name, email) {
+    document.getElementById('selected_target_user_id').value = id;
+    document.getElementById('selected_user_text').innerText = `${name} - ${email} (ID: #${id})`;
+    document.getElementById('selected_user_badge').classList.remove('d-none');
+    
+    document.getElementById('user_search_input').value = '';
+    document.getElementById('user_search_results').classList.add('d-none');
+}
+
+// Hủy chọn User
+function clearSelectedUser() {
+    document.getElementById('selected_target_user_id').value = '';
+    document.getElementById('selected_user_badge').classList.add('d-none');
+    document.getElementById('selected_user_text').innerText = '---';
+}
+</script>

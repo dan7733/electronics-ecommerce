@@ -3,18 +3,17 @@ import { Product } from "../models/productModel.js";
 import { User } from "../models/userModel.js";
 import { Order } from "../models/orderModel.js";
 import { OrderDetail } from "../models/orderdetailModel.js";
+import { Notification } from "../models/notificationModel.js";
 import { Op, fn, col } from "sequelize";
-import logger from "../configs/logger.js"; // Import custom logger
+import logger from "../configs/logger.js";
 
 const getHomePage = async (req, res) => {
     try {
-        // Kiểm tra session người dùng
         if (!req.session || !req.session.user) {
             logger.warn('Truy cập Dashboard thất bại: Không có session', { ip: req.ip });
             return res.redirect('/');
         }
 
-        // Lấy user_id từ session
         const userId = req.session.user.user_id;
         const user = await User.findOne({
             where: { user_id: userId },
@@ -27,10 +26,9 @@ const getHomePage = async (req, res) => {
             return res.redirect('/login');
         }
 
-        // Lấy tham số lọc
         const { filterType, startDate, endDate, quarter, year } = req.query;
+        const { notiType, notiRead, notiSearch } = req.query;
 
-        // Xác định khoảng thời gian
         let timeCondition = {};
         let dateRange = {};
         let selectedYear = year ? parseInt(year) : new Date().getFullYear();
@@ -54,7 +52,6 @@ const getHomePage = async (req, res) => {
             timeCondition = { created_at: { [Op.between]: [dateRange.startDate, dateRange.endDate] } };
         }
 
-        // 1. Tính tổng doanh thu
         const totalRevenue = await Order.sum('total_price', {
             where: {
                 status_payment: 'paid',
@@ -63,10 +60,8 @@ const getHomePage = async (req, res) => {
             }
         }) || 0;
 
-        // 2. Đếm tổng số sản phẩm
         const totalProducts = await Product.count();
 
-        // 3. Đếm số sản phẩm đã bán
         const productsSold = await OrderDetail.sum('quantity', {
             include: [{
                 model: Order,
@@ -79,18 +74,14 @@ const getHomePage = async (req, res) => {
             }]
         }) || 0;
 
-        // 4. Đếm tổng số đơn hàng
         const totalOrders = await Order.count({ where: timeCondition });
 
-        // 5. Đếm số đơn hàng đang giao
         const ordersShipping = await Order.count({
             where: { status: 'shipped', ...timeCondition }
         });
 
-        // 6. Đếm tổng số khách hàng
         const totalCustomers = await User.count({ where: { role: 0 } });
 
-        // 7. Đếm số khách hàng mới
         const newCustomers = await User.count({
             where: {
                 role: 0,
@@ -98,7 +89,6 @@ const getHomePage = async (req, res) => {
             }
         });
 
-        // 8. Dữ liệu cho biểu đồ
         let labels = [];
         let revenueData = [];
         let weekLabels = [];
@@ -139,7 +129,6 @@ const getHomePage = async (req, res) => {
                 raw: true
             });
 
-            // Xử lý dữ liệu hiển thị (giữ nguyên)
             labels = Array(12).fill(0).map((_, i) => `Th${i + 1}`);
             revenueData = Array(12).fill(0);
             salesData = Array(12).fill(0);
@@ -245,7 +234,6 @@ const getHomePage = async (req, res) => {
             });
         }
 
-        // 9. Lấy top 5 sản phẩm mới
         const topProducts = await Product.findAll({
             attributes: ['name', 'product_id'],
             order: [['product_id', 'DESC']],
@@ -253,7 +241,6 @@ const getHomePage = async (req, res) => {
             raw: true
         });
 
-        // 10. Lấy top 5 sản phẩm xem nhiều
         const topViewedProducts = await Product.findAll({
             attributes: ['name', 'views'],
             order: [['views', 'DESC']],
@@ -261,7 +248,32 @@ const getHomePage = async (req, res) => {
             raw: true
         });
 
-        // Render giao diện
+        // 🔔 LẤY DANH SÁCH THÔNG BÁO CHO ADMIN (user_id = null)
+        let notiWhere = { user_id: null };
+
+        if (notiType) {
+            notiWhere.type = notiType;
+        }
+        if (notiRead !== undefined && notiRead !== '') {
+            notiWhere.is_read = notiRead === '1';
+        }
+        if (notiSearch) {
+            notiWhere[Op.or] = [
+                { title: { [Op.like]: `%${notiSearch}%` } },
+                { message: { [Op.like]: `%${notiSearch}%` } }
+            ];
+        }
+
+        const adminNotifications = await Notification.findAll({
+            where: notiWhere,
+            order: [['created_at', 'DESC']],
+            limit: 6
+        });
+
+        const unreadAdminNotiCount = await Notification.count({
+            where: { user_id: null, is_read: false }
+        });
+
         return res.render('home', {
             data: {
                 title: 'Tổng quan hệ thống',
@@ -287,7 +299,16 @@ const getHomePage = async (req, res) => {
                 quarter: quarter || '',
                 year: selectedYear,
                 topProducts,
-                topViewedProducts
+                topViewedProducts,
+
+                // Data Thông báo cho Admin
+                adminNotifications: adminNotifications || [],
+                unreadNotiCount: unreadAdminNotiCount,
+                notiFilters: {
+                    notiType: notiType || '',
+                    notiRead: notiRead || '',
+                    notiSearch: notiSearch || ''
+                }
             }
         });
     } catch (error) {

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from '../css/detailuser/detailuser.module.css';
@@ -8,7 +8,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Fix Leaflet icon issue (consistent with Payment component)
+// Fix Leaflet icon issue
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -22,12 +22,11 @@ const DetailUser = () => {
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState(null);
   const [isBirthday, setIsBirthday] = useState(false);
-  const [userCoords, setUserCoords] = useState(null); // New state for user coordinates
-  const { username } = useParams(); // Get username from URL
+  const [userCoords, setUserCoords] = useState(null);
+  const { username } = useParams();
   const navigate = useNavigate();
-  const { user } = React.useContext(Context); // Use context to get user
+  const { user } = useContext(Context);
 
-  // Lấy URL trực tiếp từ biến môi trường .env
   const API_URL = process.env.REACT_APP_BACKEND_URL;
 
   // Authentication check
@@ -40,7 +39,6 @@ const DetailUser = () => {
   // Geocode address
   const geocodeAddress = async (address) => {
     if (!address || address.trim().length < 10 || !address.includes(' ')) {
-      console.warn('Address too short or generic:', address);
       return null;
     }
 
@@ -51,10 +49,8 @@ const DetailUser = () => {
       );
       if (response.data.length > 0) {
         const { lat, lon, display_name } = response.data[0];
-        console.log('Geocoded address:', address, { lat, lon, display_name });
         return { lat: parseFloat(lat), lon: parseFloat(lon), display_name };
       }
-      console.warn('No geocoding results for:', address);
       return null;
     } catch (error) {
       console.error('Error geocoding address:', error);
@@ -62,17 +58,14 @@ const DetailUser = () => {
     }
   };
 
-  // Fetch user data and geocode address
+  // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Thay thế localhost bằng API_URL cho API lấy chi tiết user
+        // Axios Interceptor tự động gắn Bearer Token chuẩn từ CryptoJS Storage
         const response = await axios.get(
           `${API_URL}/api/v1/detailuserbyusername/${username}`,
           {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('jwt')}`,
-            },
             withCredentials: true,
           }
         );
@@ -81,14 +74,12 @@ const DetailUser = () => {
           const data = response.data.detailuser;
           setUserData(data);
           
-          // Thay thế localhost bằng API_URL cho đường dẫn ảnh đại diện
           setAvatarPreview(
             data.avatar
               ? `${API_URL}/images/useravatar/${data.avatar}`
               : DFavatar
           );
 
-          // Check if today is the user's birthday
           if (data.dateOfBirth && data.dateOfBirth !== '0000-00-00') {
             const birthDate = new Date(data.dateOfBirth);
             const today = new Date();
@@ -99,7 +90,7 @@ const DetailUser = () => {
               setIsBirthday(true);
             }
           }
-          // Geocode address if it exists
+
           if (data.address && data.address.trim()) {
             const coords = await geocodeAddress(data.address);
             if (coords) {
@@ -111,7 +102,7 @@ const DetailUser = () => {
         }
       } catch (err) {
         if (err.response?.status === 401 || err.response?.status === 403) {
-          navigate('/login'); // Redirect to login on unauthorized/forbidden
+          navigate('/login');
         } else {
           setError('Đã xảy ra lỗi khi tải thông tin. Vui lòng thử lại.');
         }
@@ -121,9 +112,8 @@ const DetailUser = () => {
     if (username && user?.auth) {
       fetchUserData();
     }
-  }, [username, navigate, user, API_URL]); // Thêm API_URL vào dependencies
+  }, [username, navigate, user, API_URL]);
 
-  // Handle avatar change (unused in this read-only view but kept for consistency)
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -133,7 +123,6 @@ const DetailUser = () => {
     }
   };
 
-  // Loading or error state
   if (error) {
     return <div className={styles.error}>{error}</div>;
   }

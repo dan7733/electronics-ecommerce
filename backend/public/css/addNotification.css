@@ -1,0 +1,77 @@
+/* ========================================================
+   FILE: addNotification.css (Giao diện Thêm & Gửi Thông báo)
+   ======================================================== */
+
+.addnotification-inforinput {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid #e2ecec;
+    box-shadow: 0 4px 15px rgba(33, 130, 130, 0.08) !important;
+}
+
+.addnotification-inforinput > h4 {
+    color: #218282;
+    font-weight: 700;
+}
+
+.addnotification-inforinput h4 i {
+    color: #218282 !important;
+}
+
+.addnotification-inforinput label {
+    font-weight: 600;
+    color: #218282;
+}
+
+.addnotification-inforinput label i {
+    color: #218282 !important;
+}
+
+/* Form Controls & Select Focus */
+.addnotification-inforinput .form-control:focus,
+.addnotification-inforinput .form-select:focus {
+    border-color: #218282;
+    box-shadow: 0 0 0 0.2rem rgba(33, 130, 130, 0.25);
+}
+
+/* KHUNG TÌM KIẾM NGƯỜI DÙNG LIVE SEARCH AUTOCOMPLETE */
+#user_id_box {
+    border: 1px solid #218282 !important;
+    background-color: #ffffff;
+}
+
+#user_search_results {
+    border: 1px solid #218282;
+    background: #ffffff;
+    z-index: 1050;
+}
+
+#user_search_results .list-group-item:hover {
+    background-color: #eaf4f4;
+    color: #218282;
+    cursor: pointer;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* NÚT GỬI THÔNG BÁO */
+.addnotification-btn-add {
+    background-color: #218282 !important;
+    color: #ffffff !important;
+    border: none;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+
+.addnotification-btn-add i {
+    color: #ffffff !important;
+}
+
+.addnotification-btn-add:hover {
+    background-color: #176d6d !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(33, 130, 130, 0.3);
+}

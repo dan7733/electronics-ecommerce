@@ -1,38 +1,61 @@
 import express from "express";
-import categoryModel from '../models/categoryModel.js';  // Import model để xử lý với CSDL hoặc logic nghiệp vụ
+import categoryModel from '../models/categoryModel.js';  // Import model để xử lý với CSDL
+import notificationModel from '../models/notificationModel.js'; // Import Model Thông báo
 import logger from '../configs/logger.js'; // Import custom logger
-// import { body, validationResult } from 'express-validator';
 
-
-// tải trang thêm loại sản phẩm
+// Tải trang thêm loại sản phẩm
 const createCategory = async (req, res) => {
   return res.render('home', {
     data: {
-      title: 'List Category',
+      title: 'Thêm danh mục',
       page: 'addCategory',
     }
   });
-}
+};
 
-// thêm loại sản phẩm
+// Thêm loại sản phẩm
 const addCategory = async (req, res) => {
   try {
     const { categoryName, icon, highlight } = req.body;
 
     if (!categoryName) {
       logger.warn('Thêm danh mục thất bại: Tên danh mục trống');
+      return res.render("home", { 
+        data: { 
+          title: 'Thêm danh mục',
+          page: 'addCategory', 
+          message: "Tên danh mục không được để trống!" 
+        } 
+      });
     }
 
     const result = await categoryModel.addCategory(categoryName, icon, highlight);
     
     if (result) {
       logger.info('Thêm danh mục thành công', { categoryName });
+
+      // 🔔 CHỈ GHI NHẬT KÝ HỆ THỐNG DÀNH CHO ADMIN DASHBOARD (Không broadcast cho User)
+      try {
+        const highlightVal = parseInt(highlight) || 0;
+        await notificationModel.createNotification({
+          user_id: null,
+          title: 'Thêm danh mục mới',
+          message: `Admin vừa thêm danh mục "${categoryName}" (Highlight: ${highlightVal}).`,
+          type: 'system',
+          created_by: 'admin',
+          link: '/listcategory'
+        });
+      } catch (notiError) {
+        logger.error('Lỗi khi lưu log thêm danh mục', { error: notiError.message });
+      }
+
     } else {
       logger.warn('Thêm danh mục thất bại tại Model', { categoryName });
     }
 
     res.render("home", {
       data: {
+        title: 'Thêm danh mục',
         page: 'addCategory',
         message: result ? "Thêm danh mục thành công!" : "Thêm danh mục thất bại, vui lòng thử lại."
       }
@@ -41,37 +64,27 @@ const addCategory = async (req, res) => {
     logger.error('Lỗi khi thêm danh mục', { error: error.message, stack: error.stack, body: req.body });
     res.status(500).send('Có lỗi xảy ra khi thêm danh mục.');
   }
-}
+};
 
-// danh sách loại sản phẩm bao gồm phân trang, tìm kiếm và sắp xếp
+// Danh sách loại sản phẩm bao gồm phân trang, tìm kiếm và sắp xếp
 const listCategory = async (req, res) => {
   try {
-      // Lấy trang hiện tại từ query string, mặc định là 1
       const page = parseInt(req.query.page) || 1;
-      const limit = 5; // số lượng sản phẩm trên mỗi trang
-      const offset = (page - 1) * limit; // offset: vị trí bắt đầu lấy sản phẩm
+      const limit = 5; 
+      const offset = (page - 1) * limit; 
       
-      // lấy từ khóa tìm kiếm từ query string, mặc định là rỗng
       const searchKeyword = req.query.search || '';
-      
-      // lấy tùy chọn sắp xếp từ query string, mặc định là 'default'
       const sortOption = req.query.sort || 'default';
       
-      // lấy tổng số loại sản phẩm
       const totalCategory = await categoryModel.countCategory(searchKeyword);
-      
-      // tính tổng số trang
       const totalPages = Math.ceil(totalCategory / limit);
-      
-      // Nhận message từ URL nếu có
       const message = req.query.message || '';  
       
-      // lấy danh sách loại sản phẩm
       const Listcategory = await categoryModel.listCategory(offset, limit, searchKeyword, sortOption);
       
       res.render('home', {
           data: {
-              title: 'List Category',
+              title: 'Danh sách danh mục',
               page: 'listCategory',
               rows: Listcategory,
               currentPage: page,
@@ -94,15 +107,29 @@ const deleteCategory = async (req, res) => {
     await categoryModel.deleteCategory(category_id);
     
     logger.info('Xóa danh mục thành công', { category_id });
-    res.redirect('/listcategory?message=Xóa thành công');
+
+    // 🔔 GHI NHẬT KÝ HỆ THỐNG DÀNH CHO ADMIN DASHBOARD
+    try {
+      await notificationModel.createNotification({
+        user_id: null,
+        title: 'Xóa danh mục',
+        message: `Admin đã xóa danh mục sản phẩm (ID: #${category_id}) khỏi hệ thống.`,
+        type: 'system',
+        created_by: 'admin',
+        link: '/listcategory'
+      });
+    } catch (notiError) {
+      logger.error('Lỗi khi lưu log xóa danh mục', { error: notiError.message });
+    }
+
+    res.redirect('/listcategory?message=' + encodeURIComponent('Xóa thành công'));
   } catch (error) {
     logger.error('Lỗi khi xóa danh mục', { error: error.message, stack: error.stack, body: req.body });
-    res.redirect('/listcategory?message=Xóa thất bại');
+    res.redirect('/listcategory?message=' + encodeURIComponent('Xóa thất bại'));
   }
 };
 
-// cập nhật loại(nhóm) sản phẩm
-// tải trang cập nhật loại sản phẩm
+// Tải trang cập nhật loại sản phẩm
 const editCategory = async (req, res) => {
   const { categoryid } = req.params;
   try {
@@ -111,7 +138,7 @@ const editCategory = async (req, res) => {
     
     return res.render('home', {
       data: {
-        title: 'Update Category',
+        title: 'Cập nhật danh mục',
         page: 'updateCategory',
         category: category,
         message: message
@@ -121,11 +148,12 @@ const editCategory = async (req, res) => {
     logger.error('Lỗi khi lấy chi tiết danh mục', { error: error.message, stack: error.stack, categoryid });
     return res.redirect('/listcategory');
   }
-}
+};
 
+// Cập nhật loại sản phẩm
 const updateCategory = async (req, res) => {
-  const { category_id, name, icon, highlight} = req.body;
-  try{
+  const { category_id, name, icon, highlight } = req.body;
+  try {
     if (!category_id) {
       logger.warn('Cập nhật danh mục thất bại: Thiếu category_id');
       throw new Error("Thiếu category_id");
@@ -133,19 +161,31 @@ const updateCategory = async (req, res) => {
 
     await categoryModel.updateCategory(category_id, name, icon, highlight);
     
+    // 🔔 GHI NHẬT KÝ HỆ THỐNG DÀNH CHO ADMIN DASHBOARD
+    try {
+      await notificationModel.createNotification({
+        user_id: null,
+        title: 'Cập nhật danh mục',
+        message: `Admin đã cập nhật thông tin danh mục "${name}" (ID: #${category_id}).`,
+        type: 'system',
+        created_by: 'admin',
+        link: `/editCategory/${category_id}`
+      });
+    } catch (notiError) {
+      logger.error('Lỗi khi lưu log cập nhật danh mục', { error: notiError.message });
+    }
+
     logger.info('Cập nhật danh mục thành công', { category_id, name });
-    res.redirect(`/editCategory/${category_id}?message=Cập nhật thành công`);
+    res.redirect(`/editCategory/${category_id}?message=${encodeURIComponent('Cập nhật thành công')}`);
   } catch (error) {
     logger.error('Lỗi khi cập nhật danh mục', { error: error.message, stack: error.stack, body: req.body });
-    res.redirect(`/editCategory/${category_id || ''}?message=Cập nhật thất bại`);
+    const redirectId = category_id || '';
+    res.redirect(`/editCategory/${redirectId}?message=${encodeURIComponent(error.message)}`);
   }
-}
+};
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////// api//////////////////////////////////////////////////
+//////////////////////////////////////// API /////////////////////////////////////////////////
 
 const getAllCategoryAPI = async (req, res) => {
   try {
@@ -171,6 +211,5 @@ export default {
   deleteCategory,
   editCategory,
   updateCategory,
-  // API
   getAllCategoryAPI
-}
+};

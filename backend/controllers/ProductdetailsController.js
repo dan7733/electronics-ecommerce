@@ -3,6 +3,7 @@ import categoryAttributeModel from "../models/categoryAttributeModel.js";
 import productModel from "../models/productModel.js";
 import brandModel from "../models/brandModel.js";
 import categoryModel from "../models/categoryModel.js";
+import notificationModel from "../models/notificationModel.js"; // 🔔 Import Model Thông báo
 import logger from "../configs/logger.js";
 
 const listProductDetails = async (req, res) => {
@@ -62,7 +63,7 @@ const editProductDetails = async (req, res) => {
     try {
         const product = await productModel.getProductById(productid);
         if (!product) {
-            return res.redirect('/listproductdetail?message=Sản phẩm không tồn tại');
+            return res.redirect('/listproductdetail?message=' + encodeURIComponent('Sản phẩm không tồn tại'));
         }
 
         const attributes = await categoryAttributeModel.getProductAttributesByProductId(productid);
@@ -83,21 +84,36 @@ const editProductDetails = async (req, res) => {
     }
 };
 
+// CẬP NHẬT THUỘC TÍNH CHI TIẾT SẢN PHẨM (GỬI THÔNG BÁO CHO ADMIN)
 const updateProductDetails = async (req, res) => {
     const { product_id, attributes } = req.body;
 
     try {
         if (!product_id) {
             logger.warn('Cập nhật chi tiết sản phẩm thất bại: Thiếu product_id');
-            return res.redirect(`/listproductdetail?message=Thiếu thông tin ID sản phẩm`);
+            return res.redirect('/listproductdetail?message=' + encodeURIComponent('Thiếu thông tin ID sản phẩm'));
         }
 
         if (attributes && typeof attributes === 'object') {
             await categoryAttributeModel.saveProductAttributeValues(product_id, attributes);
         }
 
+        // 🔔 THÔNG BÁO HỆ THỐNG: Ghi nhật ký dành riêng cho Admin
+        try {
+            await notificationModel.createNotification({
+                user_id: null, // null = Thông báo hệ thống gửi cho Admin
+                title: 'Cập nhật chi tiết kỹ thuật sản phẩm',
+                message: `Admin đã cập nhật các thông số/thuộc tính kỹ thuật cho sản phẩm (ID: #${product_id}).`,
+                type: 'system',
+                created_by: 'admin',
+                link: `/editproductdetail/${product_id}`
+            });
+        } catch (notiErr) {
+            logger.error('Lỗi khi gửi thông báo cập nhật chi tiết sản phẩm cho Admin', { error: notiErr.message, product_id });
+        }
+
         logger.info("Cập nhật chi tiết sản phẩm thành công", { product_id });
-        res.redirect(`/editproductdetail/${product_id}?message=Cập nhật chi tiết sản phẩm thành công!`);
+        res.redirect(`/editproductdetail/${product_id}?message=${encodeURIComponent('Cập nhật chi tiết sản phẩm thành công!')}`);
     } catch (error) {
         logger.error('Lỗi khi cập nhật chi tiết sản phẩm', { error: error.message, stack: error.stack, body: req.body });
         res.status(500).send("Lỗi khi cập nhật dữ liệu.");

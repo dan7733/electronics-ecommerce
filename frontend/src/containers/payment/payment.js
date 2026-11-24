@@ -5,19 +5,29 @@ import 'react-toastify/dist/ReactToastify.css';
 import styles from '../css/payment/payment.module.css';
 import demoproduct from '../../img/category/Laptop.jpg';
 import axios from 'axios';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import polyline from '@mapbox/polyline';
 import { Context } from '../login/context';
 
-// Sửa lỗi hiển thị Marker Icon của Leaflet
+// Fix Marker Icon Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
+
+// Component hỗ trợ fitBounds bản đồ Leaflet chuẩn React-Leaflet
+const MapController = ({ bounds }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (bounds && map) {
+      map.fitBounds(bounds);
+    }
+  }, [bounds, map]);
+  return null;
+};
 
 const Payment = () => {
   const { user } = useContext(Context);
@@ -26,7 +36,6 @@ const Payment = () => {
   const { product, products = [] } = location.state || {};
   const finalProducts = product ? [product] : products;
 
-  // Lấy các biến môi trường
   const API_URL = process.env.REACT_APP_BACKEND_URL;
   const ORS_API_KEY = process.env.REACT_APP_ORS_API_KEY;
 
@@ -47,12 +56,12 @@ const Payment = () => {
   const [userCoords, setUserCoords] = useState(null);
   const [routeDistance, setRouteDistance] = useState(0);
   const [routeCoordinates, setRouteCoordinates] = useState([]);
-  const [map, setMap] = useState(null);
   const [tempCoords, setTempCoords] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('cod');
   const [userId, setUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [mapBounds, setMapBounds] = useState(null);
 
   useEffect(() => {
     if (!user || !user.username || !user.auth) {
@@ -96,7 +105,6 @@ const Payment = () => {
 
   const geocodeAddress = async (address) => {
     if (!address || address.trim().length < 10 || !address.includes(' ')) {
-      console.warn('Address too short or generic:', address);
       return null;
     }
 
@@ -107,11 +115,8 @@ const Payment = () => {
       );
       if (response.data.length > 0) {
         const { lat, lon, display_name } = response.data[0];
-        console.log('Geocoded address:', address, { lat, lon, display_name });
         return { lat: parseFloat(lat), lon: parseFloat(lon), display_name };
       }
-
-      console.warn('No geocoding results for:', address);
       return null;
     } catch (error) {
       console.error('Error geocoding address:', error);
@@ -121,14 +126,13 @@ const Payment = () => {
 
   useEffect(() => {
     const fetchUserDetails = async () => {
-      if (!user.username) return;
+      if (!user?.username) return;
       try {
-        console.log('Fetching user details for:', user.username);
+        // Tự động sử dụng Axios Interceptor toàn cục + Cookie
         const response = await axios.get(
           `${API_URL}/api/v1/detailuserbyusername/${user.username}`,
           { withCredentials: true }
         );
-        console.log('API response:', response.data);
         const { errCode, detailuser } = response.data;
 
         if (errCode === 0 && detailuser) {
@@ -140,32 +144,32 @@ const Payment = () => {
             note: '',
           });
           setUserId(detailuser.user_id);
-        } else {
-          console.error('No user details found or invalid response:', response.data);
         }
       } catch (error) {
         console.error('Error fetching user details:', error);
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          navigate('/login');
+        }
       }
     };
 
     const fetchStores = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/v1/liststore`);
+        const response = await axios.get(`${API_URL}/api/v1/liststore`, { withCredentials: true });
         const { errCode, data } = response.data;
         if (errCode === 0 && data) {
-          console.log('Fetched stores:', data);
           setStores(data);
-        } else {
-          console.error('Invalid store data:', response.data);
         }
       } catch (error) {
         console.error('Error fetching stores:', error);
       }
     };
 
-    fetchUserDetails();
-    fetchStores();
-  }, [user.username, API_URL]);
+    if (user?.auth) {
+      fetchUserDetails();
+      fetchStores();
+    }
+  }, [user, API_URL, navigate]);
 
   const handleAddressConfirm = async () => {
     if (!tempCoords) {
@@ -186,10 +190,7 @@ const Payment = () => {
     let closestStore = null;
 
     stores.forEach((store) => {
-      if (!store.latitude || !store.longitude) {
-        console.warn('Invalid store coordinates:', store);
-        return;
-      }
+      if (!store.latitude || !store.longitude) return;
       const distance = haversineDistance(
         tempCoords.lat,
         tempCoords.lon,
@@ -211,17 +212,14 @@ const Payment = () => {
     setRouteDistance(minDistance);
 
     try {
-      const apiKey = ORS_API_KEY;
-
-      if (!apiKey) {
-        console.error('Lỗi cấu hình: Thiếu REACT_APP_ORS_API_KEY trong file .env');
-        setAddressError('Hệ thống đang gặp sự cố nhỏ khi tính khoảng cách. Đang sử dụng khoảng cách ước tính.');
+      if (!ORS_API_KEY) {
+        setAddressError('Hệ thống đang gặp sự cố khi tính khoảng cách. Đang sử dụng khoảng cách ước tính.');
         return;
       }
 
       const response = await axios.get('https://api.openrouteservice.org/v2/directions/driving-car', {
         params: {
-          api_key: apiKey,
+          api_key: ORS_API_KEY,
           start: `${tempCoords.lon},${tempCoords.lat}`,
           end: `${closestStore.longitude},${closestStore.latitude}`,
           radiuses: '-1|-1'
@@ -230,35 +228,26 @@ const Payment = () => {
 
       if (response.data && response.data.features && response.data.features.length > 0) {
         const routeFeature = response.data.features[0];
-        
         const coordinates = routeFeature.geometry.coordinates;
         const coords = coordinates.map(([lng, lat]) => [lat, lng]); 
-        
         const summary = routeFeature.properties.summary;
         const distanceKm = summary.distance / 1000;
 
         setRouteCoordinates(coords);
         setRouteDistance(distanceKm);
-        console.log('OpenRouteService distance:', distanceKm, 'km');
 
-        if (map) {
-          const bounds = L.latLngBounds([
-            [tempCoords.lat, tempCoords.lon],
-            [closestStore.latitude, closestStore.longitude],
-          ]);
-          map.fitBounds(bounds);
-        }
+        setMapBounds(L.latLngBounds([
+          [tempCoords.lat, tempCoords.lon],
+          [closestStore.latitude, closestStore.longitude],
+        ]));
       } else {
-        console.warn('No routes found from OpenRouteService');
         setAddressError('Không thể tìm thấy tuyến đường tối ưu. Đang sử dụng khoảng cách ước tính.');
       }
     } catch (error) {
-      console.error('Lỗi OpenRouteService (Dev Only):', error);
-      
+      console.error('Lỗi OpenRouteService:', error);
       const serverMessage = error.response?.data?.error?.message || '';
-      
       if (serverMessage.includes('Could not find routable point')) {
-         setAddressError('Vị trí được chọn nằm khá xa trục đường giao thông chính. Đang áp dụng khoảng cách ước tính để tính phí giao hàng.');
+         setAddressError('Vị trí được chọn nằm xa trục đường chính. Đang áp dụng khoảng cách ước tính.');
       } else {
          setAddressError('Hệ thống tính phí tự động đang bảo trì. Đang áp dụng khoảng cách ước tính.');
       }
@@ -281,7 +270,7 @@ const Payment = () => {
           setAddressError('');
         } else {
           setAddressError(
-            'Không thể xác định tọa độ. Vui lòng nhập địa chỉ chi tiết hơn (ví dụ: số nhà, đường, quận/huyện, tỉnh/thành).'
+            'Không thể xác định tọa độ. Vui lòng nhập địa chỉ chi tiết hơn.'
           );
           setTempCoords(null);
           setUserCoords(null);
@@ -296,10 +285,13 @@ const Payment = () => {
   }, [formData.address, stores]);
 
   const applyVoucher = async () => {
+    if (!voucherCode.trim()) return;
     try {
-      const response = await axios.post(`${API_URL}/api/v1/applyvoucher/`, {
-        voucherCode,
-      });
+      const response = await axios.post(
+        `${API_URL}/api/v1/applyvoucher/`,
+        { voucherCode },
+        { withCredentials: true }
+      );
       const { errCode, message, value } = response.data;
 
       if (errCode === 0) {
@@ -307,7 +299,7 @@ const Payment = () => {
         setVoucherError('');
       } else {
         setDiscountPercent(0);
-        setVoucherError(message);
+        setVoucherError(message || 'Voucher không hợp lệ.');
       }
     } catch (error) {
       setDiscountPercent(0);
@@ -335,7 +327,7 @@ const Payment = () => {
 
   const validateAddress = (address) => {
     if (!address || address.trim().length < 10 || !address.includes(' ')) {
-      return 'Địa chỉ không hợp lệ. Vui lòng nhập địa chỉ chi tiết (ví dụ: số nhà, đường, quận/huyện, tỉnh/thành).';
+      return 'Địa chỉ không hợp lệ. Vui lòng nhập địa chỉ chi tiết.';
     }
     return '';
   };
@@ -397,7 +389,6 @@ const Payment = () => {
 
     try {
       setIsLoading(true);
-      console.log('Gửi yêu cầu đặt hàng:', orderData);
       const response = await axios.post(`${API_URL}/api/v1/addorder`, orderData, {
         withCredentials: true,
       });
@@ -409,24 +400,24 @@ const Payment = () => {
           window.location.href = order_url;
         } else {
           if (!product) {
-            const currentCart = JSON.parse(localStorage.getItem('cart')) || [];
-            const remainingCart = currentCart.filter((cartItem) =>
-              !finalProducts.some(
-                (p) =>
-                  p.product_id === cartItem.product_id &&
-                  p.storage === cartItem.storage &&
-                  p.color === cartItem.color
-              )
-            );
-            localStorage.setItem('cart', JSON.stringify(remainingCart));
+            try {
+              const currentCart = JSON.parse(localStorage.getItem('cart')) || [];
+              const remainingCart = currentCart.filter((cartItem) =>
+                !finalProducts.some(
+                  (p) =>
+                    p.product_id === cartItem.product_id &&
+                    p.storage === cartItem.storage &&
+                    p.color === cartItem.color
+                )
+              );
+              localStorage.setItem('cart', JSON.stringify(remainingCart));
+            } catch (cartErr) {
+              console.error('Lỗi cập nhật giỏ hàng:', cartErr);
+            }
           }
           toast.success('Đơn hàng đã được đặt thành công!', {
             position: 'top-right',
             autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
           });
           setTimeout(() => navigate('/ordersuccess'), 3000);
         }
@@ -435,7 +426,11 @@ const Payment = () => {
       }
     } catch (error) {
       console.error('Lỗi khi đặt hàng:', error);
-      setFormError('Đã có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.');
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        navigate('/login');
+      } else {
+        setFormError('Đã có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -492,7 +487,6 @@ const Payment = () => {
               />
               {addressError && <div className="invalid-feedback">{addressError}</div>}
               
-              {/* KHUNG XÁC NHẬN VỊ TRÍ MỚI (TƯƠNG PHẢN CAO, MÀU TEAL & TRẮNG) */}
               {showConfirm && tempCoords && (
                 <div className={styles.addressConfirmCard}>
                   <div className={styles.confirmHeader}>
@@ -542,15 +536,12 @@ const Payment = () => {
                     center={tempCoords ? [tempCoords.lat, tempCoords.lon] : [userCoords.lat, userCoords.lon]}
                     zoom={14}
                     style={{ height: '100%', width: '100%' }}
-                    whenCreated={(mapInstance) => {
-                      console.log('Map initialized:', mapInstance);
-                      setMap(mapInstance);
-                    }}
                   >
                     <TileLayer
                       url="https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
                       attribution='© <a href="https://maps.google.com/">Google Maps</a>'
                     />
+                    {mapBounds && <MapController bounds={mapBounds} />}
                     {(tempCoords || userCoords) && (
                       <Marker position={tempCoords ? [tempCoords.lat, tempCoords.lon] : [userCoords.lat, userCoords.lon]}>
                         <Popup>Vị trí nhận hàng của bạn</Popup>
@@ -629,7 +620,7 @@ const Payment = () => {
 
             <div className={styles.detailproductContainBox}>
               {finalProducts.length > 0 ? (
-                finalProducts.map((item, index) => (
+                finalProducts.map((item) => (
                   <div
                     key={`${item.product_id}-${item.storage || ''}-${item.color || ''}`}
                     className={styles.detailproductProductItem}
@@ -678,7 +669,7 @@ const Payment = () => {
                 value={voucherCode}
                 onChange={(e) => setVoucherCode(e.target.value)}
               />
-              <button className={`${styles.btnBtn} btn`} onClick={applyVoucher}>
+              <button type="button" className={`${styles.btnBtn} btn`} onClick={applyVoucher}>
                 Áp dụng
               </button>
             </div>
@@ -712,7 +703,7 @@ const Payment = () => {
               </div>
             </div>
 
-            {/* Chọn phương thức thanh toán */}
+            {/* Phương thức thanh toán */}
             <div className="mb-4">
               <label className="form-label fw-bold mb-2">Chọn phương thức thanh toán</label>
               
@@ -757,7 +748,7 @@ const Payment = () => {
                   </div>
                 </label>
 
-                {/* 3. Chuyển khoản (ĐEM XUỐNG DƯỚI & VÔ HIỆU HÓA) */}
+                {/* 3. Chuyển khoản */}
                 <label className={`${styles.paymentOptionCard} ${styles.disabledOption}`}>
                   <input
                     className="form-check-input"

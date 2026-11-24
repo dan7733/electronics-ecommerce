@@ -2,6 +2,7 @@ import express from "express";
 import fs from 'fs';
 import path from 'path';
 import userModel from '../models/userModel.js';
+import notificationModel from '../models/notificationModel.js'; // 🔔 Import Model Thông báo
 import logger from '../configs/logger.js'; // Import custom logger
 import bcrypt from 'bcryptjs'; // Import bcryptjs lên đầu file để tránh lỗi require trong ES Modules
 
@@ -19,7 +20,7 @@ const deleteUserImage = (filename) => {
   }
 };
 
-// tải trang thêm sản phẩm (người dùng)
+// Tải trang thêm người dùng
 const createUser = async (req, res) => {
   try {
     res.render('home', {
@@ -31,9 +32,9 @@ const createUser = async (req, res) => {
   } catch (err) {
     logger.error('Lỗi khi tải trang thêm người dùng', { error: err.message, stack: err.stack });
   }
-}
+};
 
-// thêm người dùng
+// THÊM NGƯỜI DÙNG (GỬI THÔNG BÁO CHO USER & ADMIN)
 const addUser = async (req, res) => {
   try {
     const { username, password, fullname, email, phone, address, sex, dateOfBirth, role } = req.body;
@@ -44,9 +45,13 @@ const addUser = async (req, res) => {
     // Kiểm tra thông tin bắt buộc
     if (!username || !password) {
       logger.warn('Thêm người dùng thất bại: Thiếu tên đăng nhập hoặc mật khẩu', { username });
-      if (avatar) deleteUserImage(avatar); // Xoá avatar nếu có mà dữ liệu sai
-      return res.render("addUser", {
-        data: { message: "Tên đăng nhập và mật khẩu không được để trống!" }
+      if (avatar) deleteUserImage(avatar);
+      return res.render("home", {
+        data: { 
+          title: 'Create new User',
+          page: 'addUser',
+          message: "Tên đăng nhập và mật khẩu không được để trống!" 
+        }
       });
     }
 
@@ -66,16 +71,47 @@ const addUser = async (req, res) => {
 
     if (result) {
       logger.info('Thêm người dùng thành công', { username });
+
+      const newUserId = result.user_id || result.id || null;
+
+      // 🔔 1. THÔNG BÁO DÀNH CHO USER MỚI (KÍCH HOẠT TÀI KHOẢN)
+      if (newUserId) {
+        try {
+          await notificationModel.createNotification({
+            user_id: newUserId,
+            title: 'Tài khoản mới đã được tạo',
+            message: `Chào mừng bạn đến với ESHOP! Tài khoản "${username}" của bạn vừa được quản trị viên tạo thành công.`,
+            type: 'account',
+            created_by: 'admin',
+            link: '/account-settings'
+          });
+        } catch (notiErr) {
+          logger.error('Lỗi khi gửi thông báo chào mừng cho User', { error: notiErr.message, username });
+        }
+      }
+
+      // 🔔 2. THÔNG BÁO HỆ THỐNG DÀNH CHO ADMIN (GHI NHẬT KÝ)
+      try {
+        await notificationModel.createNotification({
+          user_id: null, // null = gửi cho Admin
+          title: 'Thêm người dùng mới',
+          message: `Admin vừa thêm người dùng mới "${username}" (Email: ${email || 'N/A'}, Vai trò: ${role || 'user'}).`,
+          type: 'system',
+          created_by: 'admin',
+          link: '/listuser'
+        });
+      } catch (notiErr) {
+        logger.error('Lỗi khi gửi thông báo thêm user cho Admin', { error: notiErr.message, username });
+      }
+
     } else {
       logger.warn('Thêm người dùng thất bại tại Model', { username });
+      if (avatar) deleteUserImage(avatar);
     }
 
     const message = result
       ? "Thêm người dùng thành công!"
       : "Thêm người dùng thất bại, vui lòng thử lại.";
-
-    // Nếu thất bại, xoá avatar
-    if (!result && avatar) deleteUserImage(avatar);
 
     res.render('home', {
       data: {
@@ -89,7 +125,6 @@ const addUser = async (req, res) => {
     logger.error("Lỗi khi thêm người dùng", { error: error.message, stack: error.stack, body: req.body });
     if (req.file?.filename) deleteUserImage(req.file.filename);
 
-    // Truyền thông báo lỗi chi tiết cho người dùng
     res.render('home', {
       data: {
         title: 'Create new User',
@@ -100,39 +135,26 @@ const addUser = async (req, res) => {
   }
 };
 
-
-// danh sách người dùng
+// Danh sách người dùng
 const listUser = async (req, res) => {
   try {
-      // Lấy trang hiện tại từ query string, mặc định là 1
       const page = parseInt(req.query.page) || 1;
-      const limit = 5; // Số lượng người dùng trên mỗi trang
+      const limit = 5;
       const offset = (page - 1) * limit;
 
-      // Từ khóa tìm kiếm theo fullname
       const searchKeyword = req.query.search || '';
-
-      // Tùy chọn sắp xếp theo role
       const sortOption = req.query.sort || 'default';
 
-      // Đếm tổng số người dùng phù hợp
       const totalUsers = await userModel.countUser(searchKeyword);
-
-      // Tính tổng số trang
       const totalPages = Math.ceil(totalUsers / limit);
-
-      // Lấy danh sách người dùng
       const listUsers = await userModel.listUser(offset, limit, searchKeyword, sortOption);
-
-      // Message (nếu có) từ query string
       const message = req.query.message || '';
 
-      // Render ra view (giả sử dùng view 'listUser')
       res.render('home', {
           data: {
               title: 'List Users',
               page: 'listUser',
-              rows: listUsers, // Danh sách người dùng
+              rows: listUsers,
               currentPage: page,
               totalPages: totalPages,
               message: message,
@@ -146,15 +168,14 @@ const listUser = async (req, res) => {
   }
 };
 
-
-// Xóa người dùng
+// XÓA NGƯỜI DÙNG (GỬI THÔNG BÁO CHO ADMIN)
 const deleteUser = async (req, res) => {
   try {
     const { user_id } = req.body; 
-    const currentUserId = req.session.user.user_id; // Lấy ID của Admin đang thao tác
+    const currentUserId = req.session?.user?.user_id || null; // Lấy ID của Admin đang thao tác
 
     // CHẶN: Nếu ID gửi lên đòi xóa trùng với ID đang đăng nhập
-    if (parseInt(user_id) === currentUserId) {
+    if (currentUserId && parseInt(user_id) === parseInt(currentUserId)) {
         logger.warn('Từ chối thao tác: Cố gắng tự xóa tài khoản của chính mình', { user_id, currentUserId });
         return res.redirect('/listuser?message=' + encodeURIComponent('Hành động bị từ chối: Không thể tự xóa tài khoản của chính mình!'));
     }
@@ -164,9 +185,23 @@ const deleteUser = async (req, res) => {
     if (avatar) {
       deleteUserImage(avatar); 
     }
+
+    // 🔔 THÔNG BÁO HỆ THỐNG DÀNH CHO ADMIN (GHI NHẬT KÝ XÓA TÀI KHOẢN)
+    try {
+      await notificationModel.createNotification({
+        user_id: null, // null = gửi cho Admin
+        title: 'Xóa tài khoản người dùng',
+        message: `Admin (ID: #${currentUserId || 'N/A'}) đã xóa tài khoản người dùng ID #${user_id} khỏi hệ thống.`,
+        type: 'system',
+        created_by: 'admin',
+        link: '/listuser'
+      });
+    } catch (notiErr) {
+      logger.error('Lỗi khi gửi thông báo xóa user cho Admin', { error: notiErr.message, user_id });
+    }
     
     logger.info('Xóa người dùng thành công', { deletedUserId: user_id, actionBy: currentUserId });
-    res.redirect('/listuser?message=Xóa người dùng thành công');
+    res.redirect('/listuser?message=' + encodeURIComponent('Xóa người dùng thành công'));
   } catch (error) {
     logger.error('Lỗi khi xóa người dùng', { error: error.message, stack: error.stack, body: req.body });
     const errorMessage = error.message || 'Xóa người dùng thất bại';
@@ -174,8 +209,7 @@ const deleteUser = async (req, res) => {
   }
 };
 
-
-// lấy chi tiết người dùng
+// Lấy chi tiết người dùng
 const editUser = async (req, res) => {
   const { userid } = req.params; 
   try {
@@ -185,7 +219,8 @@ const editUser = async (req, res) => {
       logger.warn('Lấy chi tiết người dùng thất bại: Không tồn tại', { userid });
       return res.status(404).send("Người dùng không tồn tại.");
     }
-    // chặn xóa tài khoản hệ thống
+    
+    // Chặn xem/sửa tài khoản hệ thống
     if (userDetail.username === 'test') {
         logger.warn('Từ chối thao tác: Cố gắng xem/sửa tài khoản hệ thống', { userid, actionBy: req.session?.user?.user_id });
         return res.redirect('/listuser?message=' + encodeURIComponent('Hành động bị từ chối: Không thể xem hoặc sửa tài khoản hệ thống!'));
@@ -206,7 +241,7 @@ const editUser = async (req, res) => {
   }
 };
 
-// cập nhật người dùng
+// CẬP NHẬT NGƯỜI DÙNG (GỬI THÔNG BÁO CHO USER & ADMIN)
 const updateUser = async (req, res) => {
   try {
     const { user_id, username, password, fullname, email, phone, address, sex, dateOfBirth, role, status, provider } = req.body;
@@ -222,13 +257,13 @@ const updateUser = async (req, res) => {
       throw new Error("Người dùng không tồn tại.");
     }
 
-    // chặn sửa tk hệ thống
+    // Chặn sửa tài khoản hệ thống
     if (oldUser.username === 'test') {
         logger.warn('Từ chối thao tác: Cố gắng sửa tài khoản hệ thống', { user_id, actionBy: req.session?.user?.user_id });
         throw new Error("Hành động bị từ chối: Không thể sửa tài khoản hệ thống!");
     }
 
-    // Handle avatar upload
+    // Xử lý Upload Avatar
     let newAvatar = oldUser.avatar;
     if (req.file) {
       newAvatar = req.file.filename;
@@ -237,14 +272,17 @@ const updateUser = async (req, res) => {
       }
     }
 
-    // Hash password if it is updated (sử dụng bcrypt đã import ở đầu file)
+    // Kiểm tra & mã hóa mật khẩu nếu có thay đổi
     let hashedPassword = oldUser.password;
+    let isPasswordUpdated = false;
+
     if (password) {
       const salt = bcrypt.genSaltSync(10);
       hashedPassword = bcrypt.hashSync(password, salt);
+      isPasswordUpdated = true;
     }
 
-    // Update user
+    // Cập nhật thông tin trong Database
     const updatedUser = await userModel.updateUser(
       user_id, username, hashedPassword, fullname, address, sex, 
       email, phone, newAvatar, status, dateOfBirth, role, provider
@@ -255,22 +293,56 @@ const updateUser = async (req, res) => {
       throw new Error("Cập nhật người dùng thất bại.");
     }
 
+    // 🔔 1. THÔNG BÁO BẢO MẬT GỬI CHO KHÁCH HÀNG (USER)
+    try {
+      const notiTitle = isPasswordUpdated ? 'Mật khẩu đã được thay đổi' : 'Thông tin tài khoản đã được cập nhật';
+      const notiMsg = isPasswordUpdated
+        ? 'Mật khẩu tài khoản của bạn vừa được cập nhật thành công. Nếu không phải bạn thao tác, hãy liên hệ ngay với bộ phận hỗ trợ.'
+        : 'Thông tin cá nhân trong tài khoản của bạn vừa được cập nhật thành công.';
+
+      await notificationModel.createNotification({
+        user_id: user_id,
+        title: notiTitle,
+        message: notiMsg,
+        type: 'account',
+        created_by: 'admin',
+        link: '/account-settings'
+      });
+    } catch (notiErr) {
+      logger.error('Lỗi khi gửi thông báo cập nhật tài khoản cho User', { error: notiErr.message, user_id });
+    }
+
+    // 🔔 2. THÔNG BÁO HỆ THỐNG GỬI CHO ADMIN (GHI NHẬT KÝ)
+    try {
+      await notificationModel.createNotification({
+        user_id: null, // null = gửi cho Admin
+        title: 'Cập nhật tài khoản người dùng',
+        message: `Admin đã cập nhật thông tin tài khoản "${username}" (ID: #${user_id}).`,
+        type: 'system',
+        created_by: 'admin',
+        link: `/edituser/${user_id}`
+      });
+    } catch (notiErr) {
+      logger.error('Lỗi khi gửi thông báo cập nhật user cho Admin', { error: notiErr.message, user_id });
+    }
+
     logger.info('Cập nhật người dùng thành công', { user_id, username });
-    res.redirect(`/edituser/${user_id}?message=Cập nhật thành công`);
+    res.redirect(`/edituser/${user_id}?message=${encodeURIComponent('Cập nhật thành công')}`);
   } catch (error) {
     logger.error("Lỗi cập nhật người dùng", { error: error.message, stack: error.stack, body: req.body });
     if (req.file) {
       deleteUserImage(req.file.filename);
     }
-    res.redirect(`/edituser/${req.body.user_id || ''}?message=${encodeURIComponent(error.message)}`);
+    const redirectId = req.body.user_id || '';
+    res.redirect(`/edituser/${redirectId}?message=${encodeURIComponent(error.message)}`);
   }
 };
 
 export default {
-    createUser,
-    addUser,
-    listUser,
-    deleteUser,
-    editUser,
-    updateUser
-  };
+  createUser,
+  addUser,
+  listUser,
+  deleteUser,
+  editUser,
+  updateUser
+};

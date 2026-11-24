@@ -7,6 +7,7 @@ import productModel from '../models/productModel.js';
 import stockModel from "../models/stockModel.js";
 import categoryAttributeModel from "../models/categoryAttributeModel.js";
 import stock from "../models/stockModel.js";
+import notificationModel from "../models/notificationModel.js"; // 🔔 Import Model Thông báo
 import logger from '../configs/logger.js';
 
 const deleteProductImage = (filename) => {
@@ -39,6 +40,7 @@ const createProduct = async (req, res) => {
   }
 };
 
+// THÊM SẢN PHẨM (GỬI THÔNG BÁO CHO ADMIN)
 const addProduct = async (req, res) => {
   try {
     const { productName, productPrice, ProductDiscount_price, productDescription, brand_id, category_id } = req.body;
@@ -47,8 +49,12 @@ const addProduct = async (req, res) => {
     if (!productName || !productPrice || !category_id) { 
       logger.warn('Thêm sản phẩm thất bại: Thiếu thông tin bắt buộc', { body: req.body });
       deleteProductImage(product_image);
-      return res.render("addProduct", { 
-        data: { message: "Tên các trường không được để trống!" } 
+      return res.render("home", { 
+        data: { 
+          title: 'Create New Product',
+          page: 'addProduct',
+          message: "Tên các trường bắt buộc không được để trống!" 
+        } 
       });
     }
 
@@ -65,7 +71,7 @@ const addProduct = async (req, res) => {
       category_id
     );
 
-    if(!result) {
+    if (!result) {
       logger.warn('Thêm sản phẩm thất bại tại Model', { productName });
       deleteProductImage(product_image);
     } else {
@@ -73,10 +79,26 @@ const addProduct = async (req, res) => {
       // Khởi tạo số lượng kho cho sản phẩm mới
       await stockModel.addStock(productId);
       logger.info('Thêm sản phẩm thành công', { productId, productName });
+
+      // 🔔 THÔNG BÁO HỆ THỐNG: Ghi nhật ký Thêm sản phẩm dành cho Admin
+      try {
+        const formattedPrice = Number(productPrice).toLocaleString('vi-VN');
+        await notificationModel.createNotification({
+          user_id: null, // null = Thông báo hệ thống gửi cho Admin
+          title: 'Thêm sản phẩm mới',
+          message: `Admin vừa thêm sản phẩm mới "${productName}" (ID: #${productId}, Giá: ${formattedPrice} VND).`,
+          type: 'system',
+          created_by: 'admin',
+          link: `/editproduct/${productId}`
+        });
+      } catch (notiErr) {
+        logger.error('Lỗi khi gửi thông báo thêm sản phẩm cho Admin', { error: notiErr.message, productId });
+      }
     }
 
     res.render("home", {
       data: {
+        title: 'Create New Product',
         page: 'addProduct',
         categories: categories,
         brands: Brands,
@@ -132,6 +154,7 @@ const listProduct = async (req, res) => {
   }
 };
 
+// XÓA SẢN PHẨM (GỬI THÔNG BÁO CHO ADMIN)
 const deleteProduct = async (req, res) => {
   try {
     const { product_id } = req.body;
@@ -141,10 +164,25 @@ const deleteProduct = async (req, res) => {
     }
 
     logger.info('Xóa sản phẩm thành công', { product_id });
-    res.redirect('/listproduct?message=Xóa thành công');
+
+    // 🔔 THÔNG BÁO HỆ THỐNG: Ghi nhật ký Xóa sản phẩm dành cho Admin
+    try {
+      await notificationModel.createNotification({
+        user_id: null, // null = Thông báo hệ thống gửi cho Admin
+        title: 'Xóa sản phẩm',
+        message: `Admin đã xóa sản phẩm ID #${product_id} khỏi hệ thống.`,
+        type: 'system',
+        created_by: 'admin',
+        link: '/listproduct'
+      });
+    } catch (notiErr) {
+      logger.error('Lỗi khi gửi thông báo xóa sản phẩm cho Admin', { error: notiErr.message, product_id });
+    }
+
+    res.redirect('/listproduct?message=' + encodeURIComponent('Xóa thành công'));
   } catch (error) {
     logger.error('Lỗi khi xóa sản phẩm', { error: error.message, stack: error.stack, body: req.body });
-    res.redirect('/listproduct?message=Xóa thất bại');
+    res.redirect('/listproduct?message=' + encodeURIComponent('Xóa thất bại'));
   }
 };
 
@@ -172,6 +210,7 @@ const editProduct = async (req, res) => {
   }
 };
 
+// CẬP NHẬT SẢN PHẨM (GỬI THÔNG BÁO CHO ADMIN)
 const updateProduct = async (req, res) => {
   try {
     const { product_id, name, price, discount_price, description, oldImage, brand_id, category_id } = req.body;
@@ -196,8 +235,22 @@ const updateProduct = async (req, res) => {
       throw new Error("Cập nhật thất bại");
     }
 
+    // 🔔 THÔNG BÁO HỆ THỐNG: Ghi nhật ký Cập nhật sản phẩm dành cho Admin
+    try {
+      await notificationModel.createNotification({
+        user_id: null, // null = Thông báo hệ thống gửi cho Admin
+        title: 'Cập nhật sản phẩm',
+        message: `Admin đã cập nhật thông tin sản phẩm "${name}" (ID: #${product_id}).`,
+        type: 'system',
+        created_by: 'admin',
+        link: `/editproduct/${product_id}`
+      });
+    } catch (notiErr) {
+      logger.error('Lỗi khi gửi thông báo cập nhật sản phẩm cho Admin', { error: notiErr.message, product_id });
+    }
+
     logger.info('Cập nhật sản phẩm thành công', { product_id, name });
-    return res.redirect(`/editproduct/${product_id}?message=Cập nhật thành công`);
+    return res.redirect(`/editproduct/${product_id}?message=${encodeURIComponent('Cập nhật thành công')}`);
   } catch (error) {
     logger.error("Lỗi cập nhật sản phẩm", { error: error.message, stack: error.stack, body: req.body });
 
@@ -205,9 +258,13 @@ const updateProduct = async (req, res) => {
       deleteProductImage(req.file.filename);
     }
 
-    return res.redirect(`/editproduct?message=${encodeURIComponent(error.message)}`);
+    const redirectId = req.body.product_id || '';
+    return res.redirect(`/editproduct/${redirectId}?message=${encodeURIComponent(error.message)}`);
   }
 };
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////// API /////////////////////////////////////////////////
 
 const getLatestProductsAPI = async (req, res) => {
   try {
@@ -244,7 +301,6 @@ const getProductDetailAPI = async (req, res) => {
           return res.status(404).json({ errCode: 1, message: "Product not found" });
       }
 
-      // Lấy toàn bộ thuộc tính động của sản phẩm từ bảng product_attribute_values
       const attributes = await categoryAttributeModel.getProductAttributesByProductId(productid);
 
       const technicalDetails = {};
